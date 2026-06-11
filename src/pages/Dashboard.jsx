@@ -1,0 +1,2025 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Camera, Server, ShieldAlert, LogOut, MapPin, CheckCircle,
+  WifiOff, Plus, UserPlus, Users, Map, Activity, Trash2, Clock,
+  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle
+} from 'lucide-react';
+
+// Data Lokasi Awal - Sektor Pertambangan Batubara Astra
+const INITIAL_SITES = [
+  {
+    id: 'pit-a',
+    name: 'Pit A (Quarry Barat)',
+    x: '25%',
+    y: '45%',
+    cctvTotal: 12,
+    cctvOnline: 12,
+    cctvOffline: 0,
+    agentsOnline: 10,
+    agentsOffline: 0,
+    status: 'ONLINE',
+    details: [
+      {
+        id: 'cam-pit-a1',
+        name: 'CCTV Excavator Shovel 01',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Excavator PC2000 loading coal into haul trucks.',
+        clippings: [
+          { id: 'clip-a2', time: '12:50:33', title: 'Shovel Overload Trigger', camera: 'CCTV Excavator Shovel 01', duration: '10s', description: 'Kelebihan muatan bucket shovel terdeteksi AI.', type: 'warning' }
+        ]
+      },
+      {
+        id: 'cam-pit-a2',
+        name: 'CCTV Haul Road Incline A',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Heavy truck hauling route monitoring.',
+        clippings: [
+          { id: 'clip-a1', time: '13:14:02', title: 'Haul Truck Overspeed', camera: 'CCTV Haul Road Incline A', duration: '15s', description: 'Truk HD785 terdeteksi melaju di atas batas 30 km/jam.', type: 'danger' }
+        ]
+      },
+      {
+        id: 'cam-pit-a3',
+        name: 'CCTV Pit Face A Area',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'General wall stability monitoring.',
+        clippings: [
+          { id: 'clip-a3', time: '11:20:10', title: 'Wall Minor Crack Alert', camera: 'CCTV Pit Face A Area', duration: '12s', description: 'Retakan kecil terdeteksi pada dinding Pit Barat oleh sensor AI.', type: 'warning' }
+        ]
+      },
+      { id: 'agent-pit-a', name: 'Agent Safety Guard Pit A', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Patroli lereng barat quarry selesai. Aman.' },
+    ]
+  },
+  {
+    id: 'stockpile-utara',
+    name: 'Stockpile Utara',
+    x: '68%',
+    y: '28%',
+    cctvTotal: 8,
+    cctvOnline: 8,
+    cctvOffline: 0,
+    agentsOnline: 8,
+    agentsOffline: 0,
+    status: 'ONLINE',
+    details: [
+      {
+        id: 'cam-sp-1',
+        name: 'CCTV Conveyor Feed SP1',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Conveyor belt transporting coal pile to crusher.',
+        clippings: [
+          { id: 'clip-sp1', time: '13:01:10', title: 'Dust Suppression Trigger', camera: 'CCTV Conveyor Feed SP1', duration: '12s', description: 'Sistem penyiram debu otomatis menyala karena tingkat kepekatan debu naik.', type: 'info' }
+        ]
+      },
+      {
+        id: 'cam-sp-2',
+        name: 'CCTV Loading Gate SP2',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Truck weightbridge loading area monitoring.',
+        clippings: [
+          { id: 'clip-sp2', time: '10:45:00', title: 'Overload Truck Blocked', camera: 'CCTV Loading Gate SP2', duration: '14s', description: 'Truk bermuatan 50 ton dilarang melintas karena melebihi tonase jembatan.', type: 'danger' }
+        ]
+      },
+      {
+        id: 'cam-sp-3',
+        name: 'CCTV Stacker Reclaimer SP3',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Stacker reclaimer vehicle stacking coal.',
+        clippings: []
+      },
+      { id: 'agent-sp', name: 'Agent Guard Stockpile', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Mengamankan area stockpile utara. Aktivitas conveyor lancar.' },
+    ]
+  },
+  {
+    id: 'workshop-main',
+    name: 'Workshop & Main Office',
+    x: '45%',
+    y: '55%',
+    cctvTotal: 6,
+    cctvOnline: 6,
+    cctvOffline: 0,
+    agentsOnline: 5,
+    agentsOffline: 0,
+    status: 'ONLINE',
+    details: [
+      {
+        id: 'cam-ws-1',
+        name: 'CCTV Heavy Equipment Bay 1',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Mechanics working on dump truck wheel assemblies.',
+        clippings: [
+          { id: 'clip-ws1', time: '13:10:45', title: 'PPE Violation Filtered', camera: 'CCTV Heavy Equipment Bay 1', duration: '8s', description: 'Personel tanpa helm terdeteksi AI (Telah dikoreksi otomatis dalam 3s).', type: 'warning' }
+        ]
+      },
+      {
+        id: 'cam-ws-2',
+        name: 'CCTV Office Lobby',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Administrative office receptionist gate monitoring.',
+        clippings: [
+          { id: 'clip-ws2', time: '09:15:30', title: 'VIP Guest Arrival', camera: 'CCTV Office Lobby', duration: '10s', description: 'Kunjungan Direksi Astra Group terdeteksi sistem ANPR & RFID.', type: 'info' }
+        ]
+      },
+      {
+        id: 'cam-ws-3',
+        name: 'CCTV Workshop Parking 3',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Light vehicle parking area outside main workshop.',
+        clippings: []
+      },
+      { id: 'agent-ws', name: 'Agent Safety BDG 01', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Memeriksa kepatuhan pemakaian APD di Workshop Bay 1.' },
+    ]
+  },
+  {
+    id: 'processing-crusher',
+    name: 'Processing Plant (Crusher)',
+    x: '75%',
+    y: '60%',
+    cctvTotal: 4,
+    cctvOnline: 2,
+    cctvOffline: 2,
+    agentsOnline: 2,
+    agentsOffline: 1,
+    status: 'ALERT',
+    details: [
+      {
+        id: 'cam-cr-1',
+        name: 'CCTV Crusher Hopper (OFFLINE)',
+        type: 'cctv',
+        status: 'OFFLINE',
+        feedDescription: 'Main feeder crusher monitor (No Signal).',
+        clippings: [
+          { id: 'clip-cr1', time: '13:16:30', title: 'CCTV Signal Disconnection', camera: 'CCTV Crusher Hopper (OFFLINE)', duration: '5s', description: 'WARNING: Kamera Crusher Hopper terputus dari jaringan.', type: 'danger' }
+        ]
+      },
+      {
+        id: 'cam-cr-2',
+        name: 'CCTV Conveyor Line C',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Conveyor line feeding primary crusher.',
+        clippings: [
+          { id: 'clip-cr3', time: '08:40:12', title: 'Belt Misalignment Alert', camera: 'CCTV Conveyor Line C', duration: '15s', description: 'Sensor AI mendeteksi pergeseran kemiringan belt conveyor.', type: 'warning' }
+        ]
+      },
+      {
+        id: 'cam-cr-3',
+        name: 'CCTV Screen Deck Feed (OFFLINE)',
+        type: 'cctv',
+        status: 'OFFLINE',
+        feedDescription: 'Screening plant vibrating screens (Offline).',
+        clippings: []
+      },
+      { id: 'agent-cr-1', name: 'Agent Core Crusher 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Memantau input hopper crusher. Aman dari sumbatan material.' },
+      { id: 'agent-cr-2', name: 'Agent Core Crusher 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Selesai tugas. Shift malam belum masuk.' },
+    ]
+  },
+  {
+    id: 'main-security-gate',
+    name: 'Main Security Gate',
+    x: '15%',
+    y: '75%',
+    cctvTotal: 2,
+    cctvOnline: 2,
+    cctvOffline: 0,
+    agentsOnline: 1,
+    agentsOffline: 1,
+    status: 'ALERT',
+    details: [
+      {
+        id: 'cam-gate-1',
+        name: 'CCTV Main Gate Barrier',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Entrance check-point boom gates.',
+        clippings: [
+          { id: 'clip-g2', time: '12:55:10', title: 'Blacklist Vehicle Detected', camera: 'CCTV Main Gate Barrier', duration: '15s', description: 'Plat nomor B 9123 XYZ (Blacklist) mencoba melintas masuk.', type: 'danger' }
+        ]
+      },
+      {
+        id: 'cam-gate-2',
+        name: 'CCTV Weighbridge Scale',
+        type: 'cctv',
+        status: 'ONLINE',
+        feedDescription: 'Incoming truck scale area monitor.',
+        clippings: [
+          { id: 'clip-g3', time: '11:05:00', title: 'Scale Sensor Offline', camera: 'CCTV Weighbridge Scale', duration: '8s', description: 'Terjadi kehilangan kalibrasi sensor timbang berat truk.', type: 'warning' }
+        ]
+      },
+      { id: 'agent-gate-1', name: 'Agent Guard Gate 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Pemeriksaan dokumen muatan batubara truk keluar.' },
+      { id: 'agent-gate-2', name: 'Agent Guard Gate 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Sedang mengambil cuti tahunan.' },
+    ]
+  }
+];
+
+// Data Pengguna Awal
+const INITIAL_USERS = [
+  { id: 1, username: 'admin', fullName: 'Alvin Nugraha (Owner)', role: 'Super Admin', status: 'Aktif' },
+  { id: 2, username: 'budi.s', fullName: 'Budi Santoso', role: 'Operator', status: 'Aktif' },
+  { id: 3, username: 'siti.w', fullName: 'Siti Wijaya', role: 'Supervisor', status: 'Aktif' },
+  { id: 4, username: 'guest.viewer', fullName: 'Guest Viewer Astra', role: 'Viewer', status: 'Aktif' }
+];
+
+// Presets wilayah di Site Tambang
+const REGION_PRESETS = [
+  { label: 'Pit A (Quarry Barat)', x: '25%', y: '45%' },
+  { label: 'Stockpile Utara', x: '68%', y: '28%' },
+  { label: 'Workshop & Main Office', x: '45%', y: '55%' },
+  { label: 'Processing Plant (Crusher)', x: '75%', y: '60%' },
+  { label: 'Main Security Gate', x: '15%', y: '75%' }
+];
+
+export default function Dashboard() {
+  const navigate = useNavigate();
+
+  // Tab Active State ('overview' | 'map' | 'add-site' | 'users')
+  const [activeSubTab, setActiveSubTab] = useState('overview');
+
+  // Core States
+  const [sites, setSites] = useState(INITIAL_SITES);
+  const [users, setUsers] = useState(INITIAL_USERS);
+  const [selectedSite, setSelectedSite] = useState(INITIAL_SITES[0]);
+
+  // CCTV Video Player State
+  const [activeCctv, setActiveCctv] = useState(null);
+  
+  // Playback/Clippings State
+  const [isPlayingClip, setIsPlayingClip] = useState(false);
+  const [selectedClip, setSelectedClip] = useState(null);
+  const [clipProgress, setClipProgress] = useState(0);
+
+  // Set default CCTV when site changes
+  useEffect(() => {
+    const defaultCctv = selectedSite.details.find(d => d.type === 'cctv' && d.status === 'ONLINE');
+    setActiveCctv(defaultCctv || selectedSite.details.find(d => d.type === 'cctv') || null);
+    setIsPlayingClip(false);
+    setSelectedClip(null);
+  }, [selectedSite.id]);
+
+  // Sync activeCctv reference when selectedSite details update (e.g. dynamic clippings added)
+  useEffect(() => {
+    if (activeCctv && selectedSite) {
+      const latestCctv = selectedSite.details.find(d => d.id === activeCctv.id);
+      if (latestCctv && latestCctv.clippings && activeCctv.clippings && latestCctv.clippings.length !== activeCctv.clippings.length) {
+        setActiveCctv(latestCctv);
+      }
+    }
+  }, [selectedSite, activeCctv]);
+
+  // Live Activity Logs
+  const [logs, setLogs] = useState([
+    { time: '13:14:02', message: 'Sistem monitoring PamAgents berhasil diinisialisasi.', type: 'info' },
+    { time: '13:14:15', message: 'Pit A: Truk HD785 terdeteksi melaju di atas batas 30 km/jam.', type: 'error' },
+    { time: '13:15:10', message: 'Processing Crusher: Agent Core Crusher 02 terputus (Offline).', type: 'error' },
+    { time: '13:16:30', message: 'Processing Crusher: CCTV Crusher Hopper mengalami gangguan sinyal (Offline).', type: 'error' },
+  ]);
+
+  // Filter KPI State ('ALL', 'CCTV_OFFLINE', 'AGENT_OFFLINE')
+  const [filterKPI, setFilterKPI] = useState('ALL');
+
+  // Overview Panel Filter State
+  const [overviewFilterMode, setOverviewFilterMode] = useState('all');
+  const [overviewSelectedSiteId, setOverviewSelectedSiteId] = useState(INITIAL_SITES[0]?.id || '');
+
+  // Modal State
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+
+  // Form input states (New Site)
+  const [newSiteName, setNewSiteName] = useState('');
+  const [newSiteRegionIdx, setNewSiteRegionIdx] = useState(0);
+  const [newSiteCctvCount, setNewSiteCctvCount] = useState(4);
+  const [newSiteAgentCount, setNewSiteAgentCount] = useState(2);
+  const [newSiteOfflineCctv, setNewSiteOfflineCctv] = useState(0);
+  const [newSiteOfflineAgent, setNewSiteOfflineAgent] = useState(0);
+
+  // Form mode for Tambah Titik Tab ('cctv' | 'sector')
+  const [addMode, setAddMode] = useState('cctv');
+
+  // Form input states (New CCTV)
+  const [newCctvName, setNewCctvName] = useState('');
+  const [newCctvSiteId, setNewCctvSiteId] = useState(INITIAL_SITES[0]?.id || '');
+  const [newCctvStatus, setNewCctvStatus] = useState('ONLINE');
+  const [newCctvDesc, setNewCctvDesc] = useState('');
+
+  // Form input states (New User)
+  const [newUsername, setNewUsername] = useState('');
+  const [newFullName, setNewFullName] = useState('');
+  const [newUserRole, setNewUserRole] = useState('Operator');
+
+  // Time Clock State
+  const [timeStr, setTimeStr] = useState(new Date().toLocaleTimeString('id-ID'));
+
+  // Auth Guard check
+  useEffect(() => {
+    const auth = localStorage.getItem('isAuthenticated');
+    if (auth !== 'true') {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // Clock Ticker
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeStr(new Date().toLocaleTimeString('id-ID'));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Clipping Playback Animation Ticker
+  useEffect(() => {
+    let interval;
+    if (isPlayingClip) {
+      interval = setInterval(() => {
+        setClipProgress(prev => {
+          if (prev >= 100) {
+            setIsPlayingClip(false); // Playback finished, return to live
+            setSelectedClip(null);
+            return 0;
+          }
+          return prev + 10;
+        });
+      }, 500);
+    }
+    return () => clearInterval(interval);
+  }, [isPlayingClip]);
+
+  // Auto-updating live activity logger & DYNAMIC CLIPPING SAVER
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const time = new Date().toLocaleTimeString('id-ID');
+
+      setSites(prevSites => {
+        // Pick a random site
+        const siteIndex = Math.floor(Math.random() * prevSites.length);
+        const targetSite = prevSites[siteIndex];
+
+        // Find online CCTVs in this site
+        const onlineCctvs = targetSite.details.filter(d => d.type === 'cctv' && d.status === 'ONLINE');
+        if (onlineCctvs.length === 0) return prevSites; // Skip if no online cameras
+
+        const targetCctv = onlineCctvs[Math.floor(Math.random() * onlineCctvs.length)];
+
+        // Generate dynamic event log details
+        const eventTypes = [
+          {
+            title: 'Pergerakan Truk HD',
+            message: `${targetSite.name}: ${targetCctv.name} mendeteksi perlintasan Dump Truck HD785.`,
+            type: 'info',
+            clipType: 'info'
+          },
+          {
+            title: 'Audit Helm K3',
+            message: `${targetSite.name}: ${targetCctv.name} memverifikasi kepatuhan APD Helm & Rompi.`,
+            type: 'success',
+            clipType: 'info'
+          },
+          {
+            title: 'Unit Melanggar Batas',
+            message: `${targetSite.name}: ${targetCctv.name} mendeteksi unit LV melintasi area bahaya.`,
+            type: 'error',
+            clipType: 'danger'
+          },
+          {
+            title: 'Analisis Debu Area',
+            message: `${targetSite.name}: Tingkat emisi debu terdeteksi aman oleh ${targetCctv.name}.`,
+            type: 'success',
+            clipType: 'info'
+          }
+        ];
+
+        const chosenEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+
+        // Create new dynamic clip
+        const newClip = {
+          id: `clip-dyn-${Date.now()}`,
+          time,
+          title: chosenEvent.title,
+          camera: targetCctv.name,
+          duration: '10s',
+          description: chosenEvent.message,
+          type: chosenEvent.clipType
+        };
+
+        // Append log to scrolling feed
+        setLogs(prevLogs => [{ time, message: chosenEvent.message, type: chosenEvent.type }, ...prevLogs.slice(0, 19)]);
+
+        // Update target CCTV inside target site
+        const updatedSites = prevSites.map((s, idx) => {
+          if (idx !== siteIndex) return s;
+          
+          return {
+            ...s,
+            details: s.details.map(device => {
+              if (device.id !== targetCctv.id) return device;
+              return {
+                ...device,
+                clippings: [newClip, ...(device.clippings || [])].slice(0, 8) // Limit to 8 clips
+              };
+            })
+          };
+        });
+
+        // Sync selectedSite
+        const updatedSelectedSite = updatedSites.find(s => s.id === selectedSite.id);
+        if (updatedSelectedSite) {
+          setSelectedSite(updatedSelectedSite);
+        }
+
+        return updatedSites;
+      });
+
+    }, 8000); // Trigger every 8 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedSite.id]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    navigate('/login');
+  };
+
+  // Math totals
+  const totalCCTV = sites.reduce((acc, curr) => acc + curr.cctvTotal, 0);
+  const totalCCTVOffline = sites.reduce((acc, curr) => acc + curr.cctvOffline, 0);
+  const totalCCTVOnline = totalCCTV - totalCCTVOffline;
+
+  const totalAgentsOnline = sites.reduce((acc, curr) => acc + curr.agentsOnline, 0);
+  const totalAgentsOffline = sites.reduce((acc, curr) => acc + curr.agentsOffline, 0);
+  const totalAgents = totalAgentsOnline + totalAgentsOffline;
+
+  // Filtered sites for map rendering
+  const filteredSites = sites.filter(s => {
+    if (filterKPI === 'CCTV_OFFLINE') return s.cctvOffline > 0;
+    if (filterKPI === 'AGENT_OFFLINE') return s.agentsOffline > 0;
+    return true;
+  });
+
+  // Action: Play Clip
+  const handlePlayClip = (clip) => {
+    setSelectedClip(clip);
+    setIsPlayingClip(true);
+    setClipProgress(0);
+  };
+
+  // Action: Add Site (Tambah Titik)
+  const handleAddSiteSubmit = (e) => {
+    e.preventDefault();
+    if (!newSiteName.trim()) return;
+
+    const region = REGION_PRESETS[newSiteRegionIdx];
+    const onlineCctv = Math.max(0, newSiteCctvCount - newSiteOfflineCctv);
+    const onlineAgents = Math.max(0, newSiteAgentCount - newSiteOfflineAgent);
+
+    // Generate details list for cctvs and agents
+    const details = [];
+    for (let i = 1; i <= onlineCctv; i++) {
+      details.push({ id: `cam-new-${i}`, name: `CCTV ${newSiteName} ${i} (Online)`, type: 'cctv', status: 'ONLINE', feedDescription: `Kamera Pemantauan baru di ${newSiteName}`, clippings: [] });
+    }
+    for (let i = 1; i <= newSiteOfflineCctv; i++) {
+      details.push({ id: `cam-new-off-${i}`, name: `CCTV ${newSiteName} B${i} (Trouble)`, type: 'cctv', status: 'OFFLINE', feedDescription: `Kamera offline baru`, clippings: [] });
+    }
+    for (let i = 1; i <= onlineAgents; i++) {
+      details.push({ id: `agent-new-${i}`, name: `Agent Guard ${newSiteName} ${i} (Online)`, type: 'agent', status: 'ONLINE' });
+    }
+    for (let i = 1; i <= newSiteOfflineAgent; i++) {
+      details.push({ id: `agent-new-off-${i}`, name: `Agent Guard ${newSiteName} B${i} (Trouble)`, type: 'agent', status: 'OFFLINE' });
+    }
+
+    const newSite = {
+      id: newSiteName.toLowerCase().replace(/\s+/g, '-'),
+      name: newSiteName,
+      x: region.x,
+      y: region.y,
+      cctvTotal: Number(newSiteCctvCount),
+      cctvOnline: onlineCctv,
+      cctvOffline: Number(newSiteOfflineCctv),
+      agentsOnline: onlineAgents,
+      agentsOffline: Number(newSiteOfflineAgent),
+      status: (newSiteOfflineCctv > 0 || newSiteOfflineAgent > 0) ? 'ALERT' : 'ONLINE',
+      details
+    };
+
+    setSites(prev => [...prev, newSite]);
+    setSelectedSite(newSite);
+    
+    // Reset inputs
+    setNewSiteName('');
+    setNewSiteCctvCount(4);
+    setNewSiteAgentCount(2);
+    setNewSiteOfflineCctv(0);
+    setNewSiteOfflineAgent(0);
+
+    // Dynamic logging
+    const time = new Date().toLocaleTimeString('id-ID');
+    setLogs(prev => [
+      { time, message: `LOKASI TAMBANG BARU DITAMBAHKAN: ${newSite.name} di koordinat satelit ${region.x}, ${region.y}`, type: 'success' },
+      ...prev
+    ]);
+
+    // Redirect to Map tab
+    setFilterKPI('ALL');
+    setActiveSubTab('map');
+  };
+
+  // Action: Add CCTV (Tambah Titik CCTV)
+  const handleAddCctvSubmit = (e) => {
+    e.preventDefault();
+    if (!newCctvName.trim()) return;
+
+    const targetSite = sites.find(s => s.id === newCctvSiteId);
+    if (!targetSite) return;
+
+    const newCctvObj = {
+      id: `cam-${newCctvSiteId}-${Date.now()}`,
+      name: newCctvName.trim(),
+      type: 'cctv',
+      status: newCctvStatus,
+      feedDescription: newCctvDesc.trim() || `Kamera Pemantauan baru di ${targetSite.name}`,
+      clippings: []
+    };
+
+    const updatedSites = sites.map(s => {
+      if (s.id !== newCctvSiteId) return s;
+      
+      const isOffline = newCctvStatus === 'OFFLINE';
+      return {
+        ...s,
+        cctvTotal: s.cctvTotal + 1,
+        cctvOnline: s.cctvOnline + (isOffline ? 0 : 1),
+        cctvOffline: s.cctvOffline + (isOffline ? 1 : 0),
+        status: (s.cctvOffline + (isOffline ? 1 : 0) > 0 || s.agentsOffline > 0) ? 'ALERT' : 'ONLINE',
+        details: [...s.details, newCctvObj]
+      };
+    });
+
+    setSites(updatedSites);
+
+    // Sync selectedSite if it's the one we just updated
+    const updatedSelectedSite = updatedSites.find(s => s.id === selectedSite.id);
+    if (updatedSelectedSite) {
+      setSelectedSite(updatedSelectedSite);
+      // Auto set the new CCTV as active CCTV
+      setActiveCctv(newCctvObj);
+    }
+
+    // Reset inputs
+    setNewCctvName('');
+    setNewCctvDesc('');
+    setNewCctvStatus('ONLINE');
+
+    // Dynamic logging
+    const time = new Date().toLocaleTimeString('id-ID');
+    setLogs(prev => [
+      { time, message: `CCTV BARU DITAMBAHKAN: ${newCctvObj.name} di Sektor ${targetSite.name}`, type: 'success' },
+      ...prev
+    ]);
+
+    // Redirect to Map tab
+    setFilterKPI('ALL');
+    setActiveSubTab('map');
+  };
+
+  // Action: Add User
+  const handleAddUser = (e) => {
+    e.preventDefault();
+    if (!newUsername.trim() || !newFullName.trim()) return;
+
+    const newUser = {
+      id: Date.now(),
+      username: newUsername.toLowerCase().trim(),
+      fullName: newFullName,
+      role: newUserRole,
+      status: 'Aktif'
+    };
+
+    setUsers(prev => [...prev, newUser]);
+    setShowAddUserModal(false);
+    setNewUsername('');
+    setNewFullName('');
+
+    const time = new Date().toLocaleTimeString('id-ID');
+    setLogs(prev => [
+      { time, message: `PENGGUNA BARU DIBUAT: ${newUser.fullName} dengan hak akses ${newUser.role}`, type: 'info' },
+      ...prev
+    ]);
+  };
+
+  // Action: Delete User
+  const handleDeleteUser = (userId, name) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus hak akses untuk ${name}?`)) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      const time = new Date().toLocaleTimeString('id-ID');
+      setLogs(prev => [
+        { time, message: `HAK AKSES DICABUT: ${name} dihapus dari daftar pengguna`, type: 'error' },
+        ...prev
+      ]);
+    }
+  };
+
+  // Helper: Trigger KPI Filters and Route to Map
+  const triggerKPIFilter = (filterType) => {
+    setFilterKPI(filterType);
+    setActiveSubTab('map');
+  };
+
+  // Filter CCTV and Agent list for Right Panel Detail
+  const sectorCctvs = selectedSite.details.filter(d => d.type === 'cctv');
+  const sectorAgents = selectedSite.details.filter(d => d.type === 'agent');
+
+  // Gather all agents globally from all sites
+  const allAgents = sites.flatMap(s =>
+    s.details
+      .filter(d => d.type === 'agent')
+      .map(ag => ({ ...ag, sectorName: s.name, sectorId: s.id }))
+  );
+
+  // Gather all incidents/clippings globally from all CCTVs in all sites
+  const allIncidents = sites.flatMap(s =>
+    s.details
+      .filter(d => d.type === 'cctv')
+      .flatMap(cam =>
+        (cam.clippings || []).map(clip => ({
+          ...clip,
+          sectorId: s.id,
+          sectorName: s.name,
+          cameraObj: cam
+        }))
+      )
+  ).sort((a, b) => b.time.localeCompare(a.time));
+
+  return (
+    <main style={{ minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px' }}>
+      
+      {/* ===== CUSTOM DASHBOARD NAVBAR ===== */}
+      <nav style={{
+        background: 'var(--brand-dark)',
+        padding: '16px 40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        borderBottom: '2.5px solid var(--brand-secondary)'
+      }}>
+        {/* Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '3px 8px',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <img src="/logo.png" alt="PamAgents" style={{ height: '22px', width: 'auto' }} />
+          </div>
+          <div style={{ width: '1.5px', height: '24px', background: 'rgba(255,255,255,0.2)' }} />
+          <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '0.05em' }}>MONITOR PORTAL</span>
+        </div>
+
+        {/* 4 Dedicated Tabs */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setActiveSubTab('overview')}
+            style={{
+              background: activeSubTab === 'overview' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'overview' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Home size={15} /> Utama
+          </button>
+          
+          <button
+            onClick={() => { setActiveSubTab('map'); setFilterKPI('ALL'); }}
+            style={{
+              background: activeSubTab === 'map' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'map' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Map size={15} /> Peta Pemantauan
+          </button>
+          
+          <button
+            onClick={() => setActiveSubTab('add-site')}
+            style={{
+              background: activeSubTab === 'add-site' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'add-site' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Plus size={15} /> Tambah Titik
+          </button>
+          
+          <button
+            onClick={() => setActiveSubTab('users')}
+            style={{
+              background: activeSubTab === 'users' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'users' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Users size={15} /> Hak Akses / Akun
+          </button>
+        </div>
+
+        {/* Profile Clock */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '12px', fontFamily: 'monospace' }}>
+            <Clock size={14} color="#FFC107" />
+            <span>{timeStr}</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>Alvin Nugraha</span>
+              <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>Super Admin</span>
+            </div>
+            <div style={{
+              width: '38px', height: '38px', borderRadius: '50%', background: '#FFC107',
+              color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 700, fontSize: '15px', border: '1.5px solid rgba(255,255,255,0.2)'
+            }}>
+              AN
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+              cursor: 'pointer', padding: '6px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = '#ff4d4d'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+            title="Keluar dari Portal"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+      </nav>
+
+      {/* ===== TAB 1: RINGKASAN UTAMA (OVERVIEW) ===== */}
+      {activeSubTab === 'overview' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            
+
+
+            {/* KPI METRICS ROW */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+              {/* Total CCTV */}
+              <div
+                onClick={() => triggerKPIFilter('ALL')}
+                style={{
+                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  transition: 'transform 0.2s'
+                }}
+                className="hover-pop"
+              >
+                <div style={{ background: 'rgba(13,71,161,0.08)', color: 'var(--brand-primary)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Camera size={24} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Semua CCTV</p>
+                  <h3 style={{ fontSize: '26px', color: 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalCCTV} <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 500 }}>({totalCCTVOnline} Online)</span></h3>
+                </div>
+              </div>
+
+              {/* Online Agents */}
+              <div
+                onClick={() => triggerKPIFilter('ALL')}
+                style={{
+                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  transition: 'transform 0.2s'
+                }}
+                className="hover-pop"
+              >
+                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Server size={24} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Lapangan</p>
+                  <h3 style={{ fontSize: '26px', color: 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOnline} <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 500 }}>/ {totalAgents} Aktif</span></h3>
+                </div>
+              </div>
+
+              {/* Offline CCTV */}
+              <div
+                onClick={() => triggerKPIFilter('CCTV_OFFLINE')}
+                style={{
+                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  border: totalCCTVOffline > 0 ? '1px solid #ff4d4d' : '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  transition: 'transform 0.2s'
+                }}
+                className="hover-pop"
+              >
+                <div style={{ background: totalCCTVOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--outline)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
+                  <WifiOff size={24} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CCTV Offline</p>
+                  <h3 style={{ fontSize: '26px', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalCCTVOffline}</h3>
+                </div>
+              </div>
+
+              {/* Offline Agents */}
+              <div
+                onClick={() => triggerKPIFilter('AGENT_OFFLINE')}
+                style={{
+                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  border: totalAgentsOffline > 0 ? '1px solid #ff4d4d' : '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  transition: 'transform 0.2s'
+                }}
+                className="hover-pop"
+              >
+                <div style={{ background: totalAgentsOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--outline)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
+                  <ShieldAlert size={24} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Offline</p>
+                  <h3 style={{ fontSize: '26px', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOffline}</h3>
+                </div>
+              </div>
+            </div>
+
+            {/* PUSAT PERINGATAN (ALERTS CENTER) UTAMA */}
+            <div style={{
+              background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px',
+              padding: '24px', marginBottom: '28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+            }}>
+              <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
+                <ShieldAlert size={18} color={totalCCTVOffline > 0 || totalAgentsOffline > 0 ? '#ff4d4d' : '#10b981'} />
+                Pusat Peringatan & Status Operasional Keamanan Aktif
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                {/* Alert 1: CCTV Offline Status */}
+                <div style={{
+                  background: totalCCTVOffline > 0 ? '#FFF5F5' : '#F0FDF4',
+                  border: `1.5px solid ${totalCCTVOffline > 0 ? '#FEE2E2' : '#DCFCE7'}`,
+                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
+                }}>
+                  <WifiOff size={20} color={totalCCTVOffline > 0 ? '#ef4444' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalCCTVOffline > 0 ? '#991B1B' : '#14532D' }}>
+                      {totalCCTVOffline > 0 ? `${totalCCTVOffline} Kamera CCTV Offline` : 'Seluruh Kamera Koneksi Baik'}
+                    </h4>
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalCCTVOffline > 0 ? '#7F1D1D' : '#15803D', lineHeight: 1.4 }}>
+                      {totalCCTVOffline > 0 
+                        ? `Masalah koneksi terdeteksi di: ${sites.flatMap(s => s.details.filter(d => d.type === 'cctv' && d.status === 'OFFLINE').map(d => d.name.replace('CCTV ', ''))).join(', ')}.`
+                        : 'Semua node AI Edge CCTV mengirimkan data telemetry realtime secara optimal.'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Alert 2: Agent Status */}
+                <div style={{
+                  background: totalAgentsOffline > 0 ? '#FFFBEB' : '#F0FDF4',
+                  border: `1.5px solid ${totalAgentsOffline > 0 ? '#FEF3C7' : '#DCFCE7'}`,
+                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
+                }}>
+                  <Users size={20} color={totalAgentsOffline > 0 ? '#d97706' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalAgentsOffline > 0 ? '#92400E' : '#14532D' }}>
+                      {totalAgentsOffline > 0 ? `${totalAgentsOffline} Agent Security Offline` : 'Personel Keamanan Siaga'}
+                    </h4>
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalAgentsOffline > 0 ? '#78350F' : '#15803D', lineHeight: 1.4 }}>
+                      {totalAgentsOffline > 0 
+                        ? `Agent berikut sedang tidak aktif di posnya: ${allAgents.filter(ag => ag.status === 'OFFLINE').map(ag => ag.name).join(', ')}.`
+                        : 'Seluruh agent patroli tambang terhubung melalui link radio suara & telemetry.'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Alert 3: AI Latency compute */}
+                <div style={{
+                  background: '#F0F9FF', border: '1.5px solid #E0F2FE',
+                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
+                }}>
+                  <Cpu size={20} color="#0284c7" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#075985' }}>Edge Compute Engine (AI)</h4>
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#0369a1', lineHeight: 1.4 }}>
+                      Waktu proses inferensi deteksi objek APD, truk overspeed, & perimeter aman rata-rata: **8ms (Sangat Cepat)**.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid 2 Columns: System Status & Activity Feed */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }} className="db-layout-grid">
+              
+              {/* Left Column: ALL SECTOR STATUS WITH CCTV & AGENTS */}
+              <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
+                
+                {/* Header Row with Title and Selector Tabs */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #F0EDED', paddingBottom: '12px', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Activity size={18} color="var(--brand-primary)" />
+                    <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0 }}>
+                      Status & Kabar Terkini Sektor (CCTV & Agent)
+                    </h3>
+                  </div>
+
+                  {/* Selector Mode (Gabungan vs Per Sektor) */}
+                  <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '6px', padding: '2px' }}>
+                    <button
+                      onClick={() => setOverviewFilterMode('all')}
+                      style={{
+                        padding: '6px 12px', border: 'none', borderRadius: '4px',
+                        background: overviewFilterMode === 'all' ? 'white' : 'transparent',
+                        color: overviewFilterMode === 'all' ? 'var(--brand-dark)' : 'var(--outline)',
+                        fontWeight: 600, fontSize: '11px', cursor: 'pointer',
+                        boxShadow: overviewFilterMode === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Gabungan Semua
+                    </button>
+                    <button
+                      onClick={() => setOverviewFilterMode('single')}
+                      style={{
+                        padding: '6px 12px', border: 'none', borderRadius: '4px',
+                        background: overviewFilterMode === 'single' ? 'white' : 'transparent',
+                        color: overviewFilterMode === 'single' ? 'var(--brand-dark)' : 'var(--outline)',
+                        fontWeight: 600, fontSize: '11px', cursor: 'pointer',
+                        boxShadow: overviewFilterMode === 'single' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Per Sektor
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dropdown Selector if Per Sektor mode is active */}
+                {overviewFilterMode === 'single' && (
+                  <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--brand-dark)' }}>Pilih Sektor Tambang:</span>
+                    <select
+                      value={overviewSelectedSiteId}
+                      onChange={e => setOverviewSelectedSiteId(e.target.value)}
+                      style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '12px', background: 'white' }}
+                    >
+                      {sites.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Scrollable nodes list */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '440px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {sites
+                    .filter(site => overviewFilterMode === 'all' || site.id === overviewSelectedSiteId)
+                    .map(site => {
+                      const siteCctvs = site.details.filter(d => d.type === 'cctv');
+                      const siteAgents = site.details.filter(d => d.type === 'agent');
+
+                      return (
+                        <div key={site.id} style={{
+                          background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px'
+                        }}>
+                          {/* Sector Header */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #E3E6EE', paddingBottom: '8px' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{site.name}</span>
+                            <span style={{
+                              fontSize: '9px', fontWeight: 700,
+                              color: site.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
+                              background: site.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
+                              padding: '2px 8px', borderRadius: '4px'
+                            }}>
+                              ● {site.status}
+                            </span>
+                          </div>
+
+                          {/* List of CCTVs and Agents inside this site */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {/* CCTVs */}
+                            {siteCctvs.map(cam => {
+                              const isCamOffline = cam.status === 'OFFLINE';
+                              const latestClip = cam.clippings && cam.clippings[0];
+                              const reportText = isCamOffline 
+                                ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.' 
+                                : latestClip 
+                                  ? `⚠️ [REPLAY] ${latestClip.title}: ${latestClip.description}`
+                                  : `Normal: ${cam.feedDescription}`;
+
+                              return (
+                                <div key={cam.id} style={{
+                                  background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Camera size={14} color={isCamOffline ? '#ff4d4d' : 'var(--brand-primary)'} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
+                                      <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
+                                    </div>
+                                  </div>
+                                  <span style={{
+                                    fontSize: '9px', fontWeight: 700,
+                                    color: isCamOffline ? '#ff4d4d' : '#10b981',
+                                    background: isCamOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                                    padding: '2px 6px', borderRadius: '4px'
+                                  }}>
+                                    {cam.status}
+                                  </span>
+                                </div>
+                              );
+                            })}
+
+                            {/* Agents */}
+                            {siteAgents.map(agent => {
+                              const isAgentOffline = agent.status === 'OFFLINE';
+                              return (
+                                <div key={agent.id} style={{
+                                  background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Users size={14} color={isAgentOffline ? '#ff4d4d' : '#10b981'} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{agent.name}</span>
+                                      <span style={{ fontSize: '11px', color: 'var(--outline)' }}>{agent.lastReport || 'Menunggu laporan dari lapangan...'}</span>
+                                    </div>
+                                  </div>
+                                  <span style={{
+                                    fontSize: '9px', fontWeight: 700,
+                                    color: isAgentOffline ? '#6B7280' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
+                                    background: isAgentOffline ? '#E5E7EB' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
+                                    padding: '2px 6px', borderRadius: '4px'
+                                  }}>
+                                    {isAgentOffline ? 'OFFLINE' : agent.workStatus}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Right Column: CENTRAL INCIDENTS LOGS WITH REDIRECT & AUTOPLAY PLAYBACK */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Global Clippings History Card */}
+                <div style={{
+                  background: 'white', borderRadius: '16px', padding: '24px',
+                  border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+                  display: 'flex', flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #F0EDED', paddingBottom: '12px' }}>
+                    <Activity size={18} color="var(--brand-primary)" />
+                    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--brand-dark)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                      Riwayat Insiden & Kejadian Global (CCTV)
+                    </h3>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '2px' }}>
+                    {allIncidents.length > 0 ? (
+                      allIncidents.slice(0, 10).map((incident, idx) => (
+                        <div
+                          key={incident.id || idx}
+                          style={{
+                            background: '#FAFBFD', border: '1.5px solid #F0EDED',
+                            borderRadius: '8px', padding: '12px 14px',
+                            display: 'flex', justify: 'space-between', alignItems: 'center', gap: '16px',
+                            transition: 'border-color 0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = '#C3C6D4'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = '#F0EDED'}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                              <span style={{
+                                background: incident.type === 'danger' ? 'rgba(255,77,77,0.1)' : 'rgba(255,193,7,0.1)',
+                                color: incident.type === 'danger' ? '#ff4d4d' : '#F57F17',
+                                fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px'
+                              }}>
+                                {incident.title}
+                              </span>
+                              <span style={{ fontSize: '10px', color: 'var(--outline)', fontFamily: 'monospace' }}>[{incident.time}]</span>
+                            </div>
+                            <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', margin: 0 }}>
+                              {incident.description}
+                            </p>
+                            <span style={{ fontSize: '9.5px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
+                              Sektor: {incident.sectorName} ({incident.cameraObj?.name || incident.camera})
+                            </span>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setSelectedSite(sites.find(s => s.id === incident.sectorId));
+                              setActiveCctv(incident.cameraObj);
+                              setActiveSubTab('map');
+                              handlePlayClip(incident);
+                            }}
+                            style={{
+                              background: 'var(--brand-primary)',
+                              color: 'white',
+                              border: 'none', borderRadius: '50%', width: '32px', height: '32px',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease',
+                              boxShadow: '0 2px 6px rgba(13,71,161,0.2)'
+                            }}
+                            title="Putar Rekaman Video di Peta"
+                          >
+                            <Play size={14} style={{ marginLeft: '2px' }} />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #C3C6D4', borderRadius: '8px', color: 'var(--outline)', fontSize: '11px' }}>
+                        Tidak ada rekaman klip insiden yang terdeteksi hari ini.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* System Raw Logs Feed */}
+                <div style={{
+                  background: '#0B1D3A', borderRadius: '16px', padding: '20px',
+                  border: '1.5px solid rgba(13,71,161,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                  display: 'flex', flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', color: 'white' }}>
+                    <Terminal size={16} color="#FFC107" />
+                    <h3 style={{ fontSize: '12.5px', fontWeight: 700, margin: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Log Aktivitas Survelans Live</h3>
+                  </div>
+                  <div style={{
+                    background: '#030811', borderRadius: '8px', padding: '12px',
+                    fontFamily: 'monospace', fontSize: '10.5px', height: '140px', overflowY: 'auto',
+                    display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.05)'
+                  }}>
+                    {logs.map((log, index) => (
+                      <div key={index} style={{ display: 'flex', gap: '10px', lineHeight: 1.4 }}>
+                        <span style={{ color: '#FFC107', flexShrink: 0 }}>[{log.time}]</span>
+                        <span style={{
+                          color: log.type === 'error' ? '#ff4d4d' : log.type === 'success' ? '#10b981' : 'rgba(255,255,255,0.85)',
+                          fontWeight: log.type !== 'info' ? 'bold' : 'normal'
+                        }}>
+                          {log.message}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+      )}
+
+
+      {/* ===== TAB 2: PETA PEMANTAUAN (SATELLITE & VIDEO) ===== */}
+      {activeSubTab === 'map' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            
+            {/* Filter tags status */}
+            {filterKPI !== 'ALL' && (
+              <div style={{ background: '#ff5f5615', border: '1px solid #ff4d4d35', borderRadius: '8px', padding: '12px 20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#ff4d4d', fontSize: '13px', fontWeight: 600 }}>
+                  ⚠️ Menampilkan filter lokasi yang memiliki perangkat {filterKPI === 'CCTV_OFFLINE' ? 'CCTV' : 'Agent'} offline saja.
+                </span>
+                <button
+                  onClick={() => setFilterKPI('ALL')}
+                  style={{ background: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.3fr', gap: '32px' }} className="db-layout-grid">
+              
+              {/* LEFT: SATELLITE MAP */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700 }}>Peta Satelit Sektor Pertambangan</h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>Pilih pin sektor tambang pada peta atau tombol di bawah untuk detail pemantauan CCTV.</p>
+                </div>
+
+                {/* Clickable Sectors List (Chips) */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                  {filteredSites.map(s => {
+                    const isSelected = selectedSite.id === s.id;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => setSelectedSite(s)}
+                        style={{
+                          background: isSelected ? 'var(--brand-primary)' : '#FAFBFD',
+                          color: isSelected ? 'white' : 'var(--brand-dark)',
+                          border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : '#E3E6EE'}`,
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          boxShadow: isSelected ? '0 2px 6px rgba(13,71,161,0.15)' : 'none',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: s.status === 'ALERT' ? '#ff4d4d' : '#10b981',
+                          display: 'inline-block'
+                        }} />
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Satellite Map Viewbox */}
+                <div style={{
+                  position: 'relative', 
+                  backgroundImage: 'url("/mine_site_satellite.png")',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  borderRadius: '12px',
+                  height: '520px', 
+                  overflow: 'hidden', 
+                  border: '2px solid rgba(13,71,161,0.2)',
+                  boxShadow: 'inset 0 0 80px rgba(0,0,0,0.7)'
+                }}>
+                  {/* Grid overlay */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px', pointerEvents: 'none'
+                  }} />
+
+                  {/* Active SVG lines connecting to office HQ */}
+                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+                    {filteredSites.map(s => {
+                      if (s.id === 'workshop-main') return null;
+                      return (
+                        <line
+                          key={s.id}
+                          x1="45%" y1="55%"
+                          x2={s.x} y2={s.y}
+                          stroke={s.status === 'ALERT' ? 'rgba(255,77,77,0.5)' : 'rgba(255,193,7,0.5)'}
+                          strokeWidth="2"
+                          strokeDasharray="4 4"
+                        />
+                      );
+                    })}
+                  </svg>
+
+                  {/* Pins */}
+                  {filteredSites.map(s => {
+                    const isSelected = selectedSite.id === s.id;
+                    const isAlert = s.status === 'ALERT';
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => setSelectedSite(s)}
+                        style={{
+                          position: 'absolute', left: s.x, top: s.y,
+                          transform: 'translate(-50%, -50%)', background: 'none',
+                          border: 'none', cursor: 'pointer', padding: 0,
+                          display: 'flex', flexDirection: 'column', alignItems: 'center',
+                          zIndex: isSelected ? 10 : 2
+                        }}
+                      >
+                        <div style={{
+                          position: 'relative', width: '28px', height: '28px',
+                          display: 'flex', alignItems: 'center', justify: 'center'
+                        }}>
+                          <div style={{
+                            position: 'absolute', width: '100%', height: '100%',
+                            borderRadius: '50%', background: isAlert ? '#ff4d4d' : '#FFC107',
+                            animation: 'mapPulse 1.8s infinite', opacity: 0.45
+                          }} />
+                          <div style={{
+                            width: '14px', height: '14px', borderRadius: '50%',
+                            background: isAlert ? '#ff4d4d' : '#FFC107',
+                            border: isSelected ? '2.5px solid white' : '1px solid rgba(0,0,0,0.5)',
+                            boxShadow: '0 0 10px rgba(0,0,0,0.6)'
+                          }} />
+                        </div>
+                        <span style={{
+                          marginTop: '4px', background: isSelected ? 'var(--brand-primary)' : 'rgba(11,29,58,0.9)',
+                          color: 'white', fontSize: '9px', fontWeight: 700, padding: '3px 8px',
+                          borderRadius: '4px', whiteSpace: 'nowrap', border: isSelected ? '1px solid #FFC107' : '1px solid rgba(255,255,255,0.1)',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                          backdropFilter: isSelected ? 'none' : 'blur(4px)'
+                        }}>
+                          {s.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* RIGHT: SURVEILLANCE LIVE STREAM & HISTORY CLIPPINGS */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
+                
+                {/* Site Header */}
+                <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '18px', fontWeight: 700 }}>{selectedSite.name}</h3>
+                    <span style={{
+                      background: selectedSite.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
+                      border: `1px solid ${selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'}`,
+                      borderRadius: '4px', padding: '3px 10px', fontSize: '10px', fontWeight: 700,
+                      color: selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'
+                    }}>
+                      ● {selectedSite.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* CCTV Live Video Stream Player (Simulasi) */}
+                <div style={{ background: '#071224', borderRadius: '10px', overflow: 'hidden', border: '1.5px solid rgba(13,71,161,0.2)', marginBottom: '20px' }}>
+                  
+                  {/* Player header */}
+                  <div style={{ background: 'rgba(11,29,58,0.95)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <span style={{ color: 'white', fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
+                      {isPlayingClip ? '🔴 PLAYBACK MODE' : '🟢 LIVE CCTV FEED'}
+                    </span>
+                    <span style={{ color: isPlayingClip ? '#ff4d4d' : '#FFC107', fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold' }}>
+                      {activeCctv ? activeCctv.name : 'NO CAMERA SELECTED'}
+                    </span>
+                  </div>
+
+                  {/* Player Screen */}
+                  <div style={{ height: '200px', background: '#02060f', position: 'relative', display: 'flex', alignItems: 'center', justify: 'center', overflow: 'hidden' }}>
+                    
+                    {/* CCTV grid effect */}
+                    <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '15px 15px', pointerEvents: 'none' }} />
+                    
+                    {/* Error / Offline State */}
+                    {activeCctv && activeCctv.status === 'OFFLINE' ? (
+                      <div style={{ textAlign: 'center', zIndex: 5, color: '#ff4d4d', padding: '20px' }}>
+                        <WifiOff size={40} style={{ marginBottom: '10px', opacity: 0.8 }} />
+                        <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>CCTV DISCONNECTED</h4>
+                        <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Signal timeout or hardware offline.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Bounding Box Visuals */}
+                        {!isPlayingClip ? (
+                          <>
+                            <div style={{ position: 'absolute', top: '40px', left: '60px', width: '120px', height: '100px', border: '1.5px solid #10b981', borderRadius: '3px' }}>
+                              <span style={{ background: '#10b981', color: 'white', fontSize: '8px', fontWeight: 700, padding: '1px 3px', position: 'absolute', top: 0, left: 0 }}>HD785 TRUCK [99.1%]</span>
+                            </div>
+                            <div style={{ position: 'absolute', bottom: '40px', right: '80px', width: '50px', height: '80px', border: '1.5px solid #FFC107', borderRadius: '3px' }}>
+                              <span style={{ background: '#FFC107', color: 'black', fontSize: '8px', fontWeight: 700, padding: '1px 3px', position: 'absolute', top: 0, left: 0 }}>STAFF [98.4%]</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ position: 'absolute', top: '30px', right: '60px', width: '130px', height: '110px', border: '2.5px solid #ff4d4d', borderRadius: '4px', boxShadow: '0 0 10px rgba(255,77,77,0.4)', animation: 'flashRed 1s infinite' }}>
+                              <span style={{ background: '#ff4d4d', color: 'white', fontSize: '8px', fontWeight: 700, padding: '2px 4px', position: 'absolute', top: 0, left: 0, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                <AlertTriangle size={8} /> {selectedClip.title.toUpperCase()}
+                              </span>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Status Overlay Badge (Sangat Jelas untuk Live vs Replay) */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '12px',
+                          left: '12px',
+                          background: isPlayingClip ? 'rgba(239, 68, 68, 0.9)' : 'rgba(16, 185, 129, 0.9)',
+                          color: 'white',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          zIndex: 10,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+                          border: isPlayingClip ? '1.5px solid #ef4444' : '1.5px solid #10b981'
+                        }}>
+                          <span style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: 'white',
+                            animation: 'mapPulse 1s infinite',
+                            display: 'inline-block'
+                          }} />
+                          {isPlayingClip ? 'REPLAY (REKAMAN KEJADIAN)' : 'LIVE STREAM'}
+                        </div>
+
+                        {/* Technical Parameters on the top-right */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          color: 'rgba(255,255,255,0.7)',
+                          fontSize: '8px',
+                          fontFamily: 'monospace',
+                          lineHeight: 1.4,
+                          textAlign: 'right',
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          border: '1px solid rgba(255,255,255,0.08)'
+                        }}>
+                          CAM_ID: {activeCctv ? activeCctv.id.toUpperCase() : 'UNKNOWN'}<br />
+                          FPS: 30.0 | RES: 1080P<br />
+                          CODEC: H.265
+                        </div>
+
+                        <div style={{ position: 'absolute', bottom: '10px', left: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '9px', fontWeight: 500 }}>
+                          {activeCctv ? activeCctv.feedDescription : ''}
+                        </div>
+
+                        {isPlayingClip && (
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
+                            <div style={{ width: `${clipProgress}%`, height: '100%', background: '#FFC107', transition: 'width 0.5s linear' }} />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* DEVICE LIST WITH CLICKABLE CCTV CHANNELS */}
+                <div style={{ marginBottom: '24px' }}>
+                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Daftar Kamera CCTV (Klik untuk Memutar Live Feed)
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '2px' }}>
+                    {sectorCctvs.map(cam => {
+                      const isActive = activeCctv && activeCctv.id === cam.id;
+                      const isOffline = cam.status === 'OFFLINE';
+                      return (
+                        <div
+                          key={cam.id}
+                          onClick={() => { setActiveCctv(cam); setIsPlayingClip(false); setSelectedClip(null); }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: isActive ? 'rgba(13,71,161,0.06)' : 'white',
+                            border: `1.5px solid ${isActive ? 'var(--brand-primary)' : '#FAFBFD'}`,
+                            borderRadius: '8px',
+                            padding: '12px 14px',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                            transition: 'all 0.2s ease',
+                          }}
+                          className="clickable-cctv-item"
+                          onMouseEnter={e => { if(!isActive) e.currentTarget.style.borderColor = '#C3C6D4'; }}
+                          onMouseLeave={e => { if(!isActive) e.currentTarget.style.borderColor = '#FAFBFD'; }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
+                            <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500 }}>
+                              {cam.name}
+                            </span>
+                          </div>
+                          <span style={{
+                            fontSize: '9px',
+                            fontWeight: 700,
+                            color: isOffline ? '#ff4d4d' : '#10b981',
+                            background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                            padding: '3px 8px',
+                            borderRadius: '4px'
+                          }}>
+                            {cam.status}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ACTIVE CCTV HISTORY CLIPPINGS LIST PANEL */}
+                <div style={{ borderTop: '1px solid #F0EDED', paddingTop: '20px' }}>
+                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Activity size={14} color="var(--brand-primary)" />
+                    Riwayat Rekaman Kamera ({activeCctv ? activeCctv.name.replace('CCTV ', '') : 'Tidak Ada'})
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '2px' }}>
+                    {activeCctv && activeCctv.clippings && activeCctv.clippings.length > 0 ? (
+                      activeCctv.clippings.map(clip => {
+                        const isCurrentClip = selectedClip && selectedClip.id === clip.id;
+                        const isOffline = activeCctv.status === 'OFFLINE';
+                        return (
+                          <div
+                            key={clip.id}
+                            style={{
+                              border: `1px solid ${isCurrentClip ? '#FFC107' : '#E3E6EE'}`,
+                              borderRadius: '8px', padding: '12px 14px', background: isCurrentClip ? 'rgba(255,193,7,0.05)' : '#FAFBFD',
+                              display: 'flex', justify: 'space-between', alignItems: 'center', gap: '12px',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span style={{
+                                  background: clip.type === 'danger' ? 'rgba(255,77,77,0.1)' : 'rgba(255,193,7,0.1)',
+                                  color: clip.type === 'danger' ? '#ff4d4d' : '#F57F17',
+                                  fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px'
+                                }}>
+                                  {clip.title}
+                                </span>
+                                <span style={{ fontSize: '10px', color: 'var(--outline)', fontFamily: 'monospace' }}>[{clip.time}]</span>
+                              </div>
+                              <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', margin: 0 }}>
+                                {clip.description}
+                              </p>
+                              <span style={{ fontSize: '10px', color: 'var(--outline)', display: 'block', marginTop: '4px' }}>
+                                Durasi: {clip.duration}
+                              </span>
+                            </div>
+                            
+                            <button
+                              onClick={() => handlePlayClip(clip)}
+                              disabled={isOffline || isPlayingClip}
+                              style={{
+                                background: isCurrentClip ? '#FFC107' : 'var(--brand-primary)',
+                                color: isCurrentClip ? 'var(--brand-dark)' : 'white',
+                                border: 'none', borderRadius: '50%', width: '32px', height: '32px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                cursor: (isOffline || isPlayingClip) ? 'not-allowed' : 'pointer',
+                                flexShrink: 0, transition: 'all 0.2s ease',
+                                opacity: (isOffline || isPlayingClip) ? 0.4 : 1
+                              }}
+                              title="Putar klip rekaman"
+                            >
+                              {isCurrentClip ? <RotateCcw size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
+                            </button>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #C3C6D4', borderRadius: '8px', color: 'var(--outline)', fontSize: '11px' }}>
+                        Tidak ada rekaman klip insiden untuk kamera ini hari ini.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+
+
+              </div>
+
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== TAB 3: TAMBAH TITIK PEMANTAUAN (DEDICATED PAGE TAB) ===== */}
+      {activeSubTab === 'add-site' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade" style={{ display: 'flex', justifyContent: 'center' }}>
+            
+            <div style={{
+              background: 'white', borderRadius: '16px', width: '100%',
+              maxWidth: '560px', padding: '40px', border: '1px solid #E3E6EE',
+              boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
+            }}>
+              <h3 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px', textAlign: 'center' }}>Tambah Konfigurasi Pemantauan</h3>
+              <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--outline)', textAlign: 'center' }}>
+                Tambahkan kamera CCTV baru ke sektor terdaftar atau buat sektor tambang baru di peta.
+              </p>
+
+              {/* Mode Selector Toggle */}
+              <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '28px' }}>
+                <button
+                  onClick={() => setAddMode('cctv')}
+                  style={{
+                    flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
+                    background: addMode === 'cctv' ? 'white' : 'transparent',
+                    color: addMode === 'cctv' ? 'var(--brand-dark)' : 'var(--outline)',
+                    fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                    boxShadow: addMode === 'cctv' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Tambah Kamera CCTV
+                </button>
+                <button
+                  onClick={() => setAddMode('sector')}
+                  style={{
+                    flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
+                    background: addMode === 'sector' ? 'white' : 'transparent',
+                    color: addMode === 'sector' ? 'var(--brand-dark)' : 'var(--outline)',
+                    fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                    boxShadow: addMode === 'sector' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Tambah Sektor Baru
+                </button>
+              </div>
+
+              {/* FORM 1: TAMBAH CCTV */}
+              {addMode === 'cctv' ? (
+                <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Sektor Penempatan</label>
+                    <select
+                      value={newCctvSiteId}
+                      onChange={e => setNewCctvSiteId(e.target.value)}
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                    >
+                      {sites.map(s => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Nama Kamera CCTV</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: CCTV Area Loading Crusher B"
+                      value={newCctvName}
+                      onChange={e => setNewCctvName(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Status Awal Kamera</label>
+                    <select
+                      value={newCctvStatus}
+                      onChange={e => setNewCctvStatus(e.target.value)}
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                    >
+                      <option value="ONLINE">ONLINE (Aktif/Normal)</option>
+                      <option value="OFFLINE">OFFLINE (Dalam Perbaikan/Trouble)</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Deskripsi Feed Video / Lokasi Detail</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Pemantauan area loading coal pile crusher"
+                      value={newCctvDesc}
+                      onChange={e => setNewCctvDesc(e.target.value)}
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{
+                      width: '100%', padding: '14px', border: 'none', borderRadius: '8px',
+                      background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
+                      fontSize: '15px', marginTop: '12px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                    }}
+                  >
+                    Simpan & Pasang CCTV
+                  </button>
+                </form>
+              ) : (
+                /* FORM 2: TAMBAH SEKTOR */
+                <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Nama Sektor Tambang Baru</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Pit B (Quarry Barat), Stockpile Barat"
+                      value={newSiteName}
+                      onChange={e => setNewSiteName(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Plot Lokasi Koordinat Peta</label>
+                    <select
+                      value={newSiteRegionIdx}
+                      onChange={e => setNewSiteRegionIdx(e.target.value)}
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                    >
+                      {REGION_PRESETS.map((r, idx) => (
+                        <option key={idx} value={idx}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600 }}>Jumlah Kamera CCTV Awal</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newSiteCctvCount}
+                      onChange={e => setNewSiteCctvCount(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600 }}>Kamera Offline Awal (Trouble)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={newSiteCctvCount}
+                      value={newSiteOfflineCctv}
+                      onChange={e => setNewSiteOfflineCctv(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{
+                      width: '100%', padding: '14px', border: 'none', borderRadius: '8px',
+                      background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
+                      fontSize: '15px', marginTop: '12px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                    }}
+                  >
+                    Simpan & Daftarkan Sektor Baru
+                  </button>
+                </form>
+              )}
+
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== TAB 4: USER MANAGEMENT & HAK AKSES ===== */}
+      {activeSubTab === 'users' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            <div style={{ background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px' }}>Manajemen Hak Akses & Akun</h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                    Super Admin dapat menambah, mengedit, atau menghapus kewenangan akses personil monitoring.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={() => setShowAddUserModal(true)}
+                  style={{
+                    background: 'var(--brand-primary)', color: 'white', border: 'none',
+                    borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                    transition: 'all 0.2s ease', boxShadow: '0 4px 12px rgba(13,71,161,0.2)'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--blue-600)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'var(--brand-primary)'}
+                >
+                  <UserPlus size={16} /> Tambah Hak Akses
+                </button>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #E3E6EE', color: 'var(--brand-dark)' }}>
+                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Username</th>
+                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Nama Lengkap</th>
+                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Peran (Role)</th>
+                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Status</th>
+                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid #F0EDED', color: 'var(--on-surface-variant)', transition: 'background 0.2s' }} className="user-table-row">
+                        <td style={{ padding: '16px', fontWeight: 600, fontFamily: 'monospace' }}>{u.username}</td>
+                        <td style={{ padding: '16px' }}>{u.fullName}</td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{
+                            background: u.role === 'Super Admin' ? 'rgba(255,193,7,0.15)' : u.role === 'Supervisor' ? '#E3F2FD' : 'rgba(0,0,0,0.05)',
+                            color: u.role === 'Super Admin' ? 'var(--brand-secondary)' : u.role === 'Supervisor' ? 'var(--brand-primary)' : 'var(--on-surface-variant)',
+                            fontWeight: 700, fontSize: '11px', padding: '4px 10px', borderRadius: '4px'
+                          }}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '13px', fontWeight: 600 }}>
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                            {u.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          {u.username === 'admin' ? (
+                            <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Utama</span>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.fullName)}
+                              style={{
+                                background: 'none', border: 'none', color: '#ff4d4d',
+                                cursor: 'pointer', padding: '6px', borderRadius: '4px',
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'background 0.2s'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,77,77,0.08)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== MODAL: TAMBAH PENGGUNA ===== */}
+      {showAddUserModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(11,29,58,0.6)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '16px', width: '100%',
+            maxWidth: '420px', padding: '32px', boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+            border: '1px solid #E3E6EE'
+          }}>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontWeight: 700 }}>Tambah Pengguna Baru</h3>
+            <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--outline)' }}>
+              Berikan delegasi hak akses monitoring pada operator/supervisor baru.
+            </p>
+
+            <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="form-group">
+                <label className="form-label">Username</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: budi.s, sitiwijaya"
+                  value={newUsername}
+                  onChange={e => setNewUsername(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Nama Lengkap</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Budi Santoso"
+                  value={newFullName}
+                  onChange={e => setNewFullName(e.target.value)}
+                  required
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Hak Akses (Role)</label>
+                <select
+                  value={newUserRole}
+                  onChange={e => setNewUserRole(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                >
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Supervisor">Supervisor</option>
+                  <option value="Operator">Operator</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  style={{
+                    flex: 1, padding: '12px', border: '1.5px solid #C3C6D4', borderRadius: '8px',
+                    background: 'white', color: 'var(--on-surface-variant)', fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    flex: 1, padding: '12px', border: 'none', borderRadius: '8px',
+                    background: 'var(--brand-primary)', color: 'white', fontWeight: 600, cursor: 'pointer'
+                  }}
+                >
+                  Buat Pengguna
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Style settings */}
+      <style>{`
+        @keyframes tabFade {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-tab-fade {
+          animation: tabFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .hover-pop:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 24px rgba(13,71,161,0.06) !important;
+        }
+
+        @keyframes mapPulse {
+          0% { transform: scale(0.95); opacity: 1; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }
+        .user-table-row:hover {
+          background: #FAFBFD;
+        }
+
+        @keyframes flashRed {
+          0%, 100% { border-color: #ff4d4d; box-shadow: 0 0 10px rgba(255,77,77,0.4); }
+          50% { border-color: #ff3333; box-shadow: 0 0 16px rgba(255,77,77,0.6); }
+        }
+
+        @media (max-width: 900px) {
+          .db-layout-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+        }
+      `}</style>
+    </main>
+  );
+}
