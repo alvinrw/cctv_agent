@@ -727,6 +727,26 @@ export default function Dashboard() {
           >
             <Map size={15} /> Peta Pemantauan
           </button>
+
+          <button
+            onClick={() => setActiveSubTab('live-cctv')}
+            style={{
+              background: activeSubTab === 'live-cctv' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'live-cctv' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Camera size={15} /> Live Multi-CCTV
+          </button>
           
           <button
             onClick={() => setActiveSubTab('add-site')}
@@ -1901,6 +1921,142 @@ export default function Dashboard() {
                 </table>
               </div>
 
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== TAB 5: MULTI-STREAM LIVE CCTV ===== */}
+      {activeSubTab === 'live-cctv' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '24px' }} className="db-layout-grid">
+              
+              {/* Left: 2x2 CCTV Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }} className="grid-2">
+                {[
+                  { id: 'cam-1', name: 'Excavator Shovel 01', sector: 'Pit A (Quarry Barat)', fps: 30, acc: '98.5% ACC', status: 'ONLINE', isAlert: false, boundingBox: 'EXCAVATOR' },
+                  { id: 'cam-2', name: 'Haul Road Incline A', sector: 'Pit A (Quarry Barat)', fps: 30, acc: '99.1% ACC', status: 'ONLINE', isAlert: false, boundingBox: 'DUMP TRUCK' },
+                  { id: 'cam-3', name: 'Conveyor Feed SP1', sector: 'Stockpile Utara', fps: 25, acc: '98.4% ACC', status: 'ONLINE', isAlert: false, boundingBox: 'CONVEYOR BELT' },
+                  { id: 'cam-4', name: 'Crusher Hopper', sector: 'Processing Plant', fps: 0, acc: '0.0% ACC', status: 'OFFLINE', isAlert: true, boundingBox: 'NO SIGNAL' },
+                ].map((cam, idx) => (
+                  <div key={cam.id} style={{
+                    background: '#040d1a',
+                    borderRadius: '12px',
+                    border: cam.isAlert ? '2px solid #ff4d4d' : '1.5px solid #E3E6EE',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                    height: '240px'
+                  }}>
+                    {/* CCTV simulated screen */}
+                    {cam.status === 'OFFLINE' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#ff4d4d', gap: '8px' }}>
+                        <WifiOff size={40} />
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', fontFamily: 'monospace' }}>NO SIGNAL // OFFLINE</span>
+                      </div>
+                    ) : (
+                      <div style={{ position: 'relative', height: '100%' }}>
+                        {/* Dummy video background layout */}
+                        <div style={{
+                          position: 'absolute', inset: 0,
+                          backgroundImage: 'radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0)',
+                          backgroundSize: '10px 10px',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          {/* Outer scanning visual */}
+                          <div style={{
+                            width: '80%', height: '60%',
+                            border: '1px dashed rgba(255,255,255,0.2)',
+                            borderRadius: '4px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            position: 'relative'
+                          }}>
+                            {/* Bounding box simulation */}
+                            <div style={{
+                              position: 'absolute',
+                              top: '20%', left: '25%', width: '100px', height: '60px',
+                              border: '1.5px solid #FFD600',
+                              borderRadius: '3px',
+                              boxShadow: '0 0 8px rgba(255,214,0,0.3)',
+                              display: 'flex', flexDirection: 'column'
+                            }}>
+                              <span style={{ background: '#FFD600', color: 'black', fontSize: '7px', fontWeight: 700, padding: '1px 3px' }}>
+                                {cam.boundingBox} [{cam.acc}]
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Top bar info */}
+                        <div style={{ position: 'absolute', top: '12px', left: '12px', right: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 }}>
+                          <span style={{ background: 'rgba(7,21,44,0.85)', color: 'white', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            {cam.name}
+                          </span>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', background: 'rgba(0,0,0,0.6)', padding: '3px 8px', borderRadius: '4px' }}>
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444', animation: 'ping-dot 1s infinite' }} />
+                            <span style={{ color: '#EF4444', fontSize: '8px', fontWeight: 'bold', fontFamily: 'monospace' }}>REC</span>
+                          </div>
+                        </div>
+
+                        {/* Bottom bar info */}
+                        <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 }}>
+                          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', fontFamily: 'monospace' }}>
+                            FPS: {cam.fps} // 1080p
+                          </span>
+                          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', fontFamily: 'monospace' }}>
+                            {cam.sector}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Right: Controller & Alerts */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                  <h4 style={{ color: 'var(--brand-dark)', margin: '0 0 16px', fontSize: '15px', fontWeight: 700 }}>Kontrol Multi-CCTV</h4>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <button
+                      onClick={() => alert('Simulasi Sirene Diaktifkan di Seluruh Sektor!')}
+                      style={{
+                        background: '#EF4444', color: 'white', border: 'none', borderRadius: '8px',
+                        padding: '12px', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                        boxShadow: '0 4px 12px rgba(239,68,68,0.25)'
+                      }}
+                    >
+                      <AlertTriangle size={16} /> Aktifkan Sirene Bahaya
+                    </button>
+                    <button
+                      onClick={() => alert('Mengambil snapshot dari semua feed aktif...')}
+                      style={{
+                        background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)',
+                        borderRadius: '8px', padding: '12px', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                      }}
+                    >
+                      <Camera size={16} /> Tangkap Layar Semua
+                    </button>
+                  </div>
+                </div>
+
+                {/* AI Detection Log Feed */}
+                <div style={{ background: '#07152C', borderRadius: '12px', padding: '20px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
+                  <h4 style={{ color: '#FFD600', margin: '0 0 14px', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deteksi Objek AI Aktif</h4>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '10px' }}>
+                    <div style={{ color: '#4ADE80' }}>&gt; [12:06:01] CCTV-01: excavator terdeteksi (98.5%)</div>
+                    <div style={{ color: '#4ADE80' }}>&gt; [12:06:05] CCTV-02: truk HD785 terdeteksi (99.1%)</div>
+                    <div style={{ color: '#FFD600' }}>&gt; [12:06:12] SENS-12: helm safety tidak dipakai (⚠️)</div>
+                    <div style={{ color: '#EF4444' }}>&gt; [12:06:18] CCTV-07: deteksi gerakan di pit face A (🚨)</div>
+                  </div>
+                </div>
+              </div>
+              
             </div>
           </div>
         </section>
