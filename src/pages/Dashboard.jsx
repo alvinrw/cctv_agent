@@ -244,6 +244,11 @@ export default function Dashboard() {
   // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv')
   const [activeSubTab, setActiveSubTab] = useState('overview');
 
+  // Core States
+  const [sites, setSites] = useState(INITIAL_SITES);
+  const [users, setUsers] = useState(INITIAL_USERS);
+  const [selectedSite, setSelectedSite] = useState(INITIAL_SITES[0]);
+
   // Live CCTV Layout Grid States
   const [gridSize, setGridSize] = useState(4);
   const [selectedCctvIds, setSelectedCctvIds] = useState([]);
@@ -258,11 +263,6 @@ export default function Dashboard() {
       setSelectedCctvIds(initialIds);
     }
   }, [sites]);
-
-  // Core States
-  const [sites, setSites] = useState(INITIAL_SITES);
-  const [users, setUsers] = useState(INITIAL_USERS);
-  const [selectedSite, setSelectedSite] = useState(INITIAL_SITES[0]);
 
   // CCTV Video Player State
   const [activeCctv, setActiveCctv] = useState(null);
