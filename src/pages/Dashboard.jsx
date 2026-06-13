@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, Server, ShieldAlert, LogOut, MapPin, CheckCircle,
   WifiOff, Plus, UserPlus, Users, Map, Activity, Trash2, Clock,
-  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle
+  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle, Edit
 } from 'lucide-react';
 
 // Data Lokasi Awal - Sektor Pertambangan Batubara Astra
@@ -16,8 +16,6 @@ const INITIAL_SITES = [
     cctvTotal: 12,
     cctvOnline: 12,
     cctvOffline: 0,
-    agentsOnline: 10,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -49,8 +47,7 @@ const INITIAL_SITES = [
         clippings: [
           { id: 'clip-a3', time: '11:20:10', title: 'Wall Minor Crack Alert', camera: 'CCTV Pit Face A Area', duration: '12s', description: 'Retakan kecil terdeteksi pada dinding Pit Barat oleh sensor AI.', type: 'warning' }
         ]
-      },
-      { id: 'agent-pit-a', name: 'Agent Safety Guard Pit A', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Patroli lereng barat quarry selesai. Aman.' },
+      }
     ]
   },
   {
@@ -61,8 +58,6 @@ const INITIAL_SITES = [
     cctvTotal: 8,
     cctvOnline: 8,
     cctvOffline: 0,
-    agentsOnline: 8,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -92,8 +87,7 @@ const INITIAL_SITES = [
         status: 'ONLINE',
         feedDescription: 'Stacker reclaimer vehicle stacking coal.',
         clippings: []
-      },
-      { id: 'agent-sp', name: 'Agent Guard Stockpile', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Mengamankan area stockpile utara. Aktivitas conveyor lancar.' },
+      }
     ]
   },
   {
@@ -104,8 +98,6 @@ const INITIAL_SITES = [
     cctvTotal: 6,
     cctvOnline: 6,
     cctvOffline: 0,
-    agentsOnline: 5,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -135,8 +127,7 @@ const INITIAL_SITES = [
         status: 'ONLINE',
         feedDescription: 'Light vehicle parking area outside main workshop.',
         clippings: []
-      },
-      { id: 'agent-ws', name: 'Agent Safety BDG 01', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Memeriksa kepatuhan pemakaian APD di Workshop Bay 1.' },
+      }
     ]
   },
   {
@@ -147,8 +138,6 @@ const INITIAL_SITES = [
     cctvTotal: 4,
     cctvOnline: 2,
     cctvOffline: 2,
-    agentsOnline: 2,
-    agentsOffline: 1,
     status: 'ALERT',
     details: [
       {
@@ -178,9 +167,7 @@ const INITIAL_SITES = [
         status: 'OFFLINE',
         feedDescription: 'Screening plant vibrating screens (Offline).',
         clippings: []
-      },
-      { id: 'agent-cr-1', name: 'Agent Core Crusher 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Memantau input hopper crusher. Aman dari sumbatan material.' },
-      { id: 'agent-cr-2', name: 'Agent Core Crusher 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Selesai tugas. Shift malam belum masuk.' },
+      }
     ]
   },
   {
@@ -191,9 +178,7 @@ const INITIAL_SITES = [
     cctvTotal: 2,
     cctvOnline: 2,
     cctvOffline: 0,
-    agentsOnline: 1,
-    agentsOffline: 1,
-    status: 'ALERT',
+    status: 'ONLINE',
     details: [
       {
         id: 'cam-gate-1',
@@ -214,9 +199,7 @@ const INITIAL_SITES = [
         clippings: [
           { id: 'clip-g3', time: '11:05:00', title: 'Scale Sensor Offline', camera: 'CCTV Weighbridge Scale', duration: '8s', description: 'Terjadi kehilangan kalibrasi sensor timbang berat truk.', type: 'warning' }
         ]
-      },
-      { id: 'agent-gate-1', name: 'Agent Guard Gate 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Pemeriksaan dokumen muatan batubara truk keluar.' },
-      { id: 'agent-gate-2', name: 'Agent Guard Gate 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Sedang mengambil cuti tahunan.' },
+      }
     ]
   }
 ];
@@ -238,11 +221,111 @@ const REGION_PRESETS = [
   { label: 'Main Security Gate', x: '15%', y: '75%' }
 ];
 
+// Helper to initialize custom events for all cameras with defaults
+const getInitialCustomEvents = () => {
+  const allCamIds = [
+    'cam-pit-a1', 'cam-pit-a2', 'cam-pit-a3',
+    'cam-sp-1', 'cam-sp-2', 'cam-sp-3',
+    'cam-ws-1', 'cam-ws-2', 'cam-ws-3',
+    'cam-cr-1', 'cam-cr-2', 'cam-cr-3',
+    'cam-gate-1', 'cam-gate-2'
+  ];
+
+  const initial = {};
+  allCamIds.forEach(id => {
+    const isNoHumanActive = id === 'cam-cr-1';
+    const isNoTruckActive = id === 'cam-pit-a2';
+
+    initial[id] = [
+      {
+        id: `default-human-${id}`,
+        code: 'no_human_zone',
+        description: 'Titik ini ga boleh ada manusia (Bahaya)',
+        guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.',
+        active: isNoHumanActive
+      },
+      {
+        id: `default-truck-${id}`,
+        code: 'no_truck_stop',
+        description: 'Titik ini ga boleh ada truk berhenti / stay',
+        guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.',
+        active: isNoTruckActive
+      }
+    ];
+  });
+
+  // Add pre-configured extra custom events
+  initial['cam-pit-a1'].push(
+    {
+      id: 'ev-1',
+      code: 'heavy_dust_cloud',
+      description: 'High concentration of coal dust cloud',
+      guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.',
+      active: true
+    },
+    {
+      id: 'ev-2',
+      code: 'unsafe_truck_distance',
+      description: 'Haul truck parked too close to excavator swing path',
+      guidelines: 'Identify if any HD785 truck comes within the 10-meter radius boundary of the excavator cabin.',
+      active: true
+    }
+  );
+
+  initial['cam-ws-1'].push({
+    id: 'ev-3',
+    code: 'spark_hazard',
+    description: 'Sparks detected during welding or grinding',
+    guidelines: 'Look for bright flashes of light and flying sparks near equipment.',
+    active: true
+  });
+
+  return initial;
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv')
+  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv' | 'workload')
   const [activeSubTab, setActiveSubTab] = useState('overview');
+
+  // Workload States
+  const [workloadSelectedSiteId, setWorkloadSelectedSiteId] = useState(INITIAL_SITES[0]?.id || '');
+
+  const toggleCustomEvent = (cctvId, eventId) => {
+    setCctvCustomEvents(prev => {
+      const currentList = prev[cctvId] || [];
+      const updated = currentList.map(ev => 
+        ev.id === eventId 
+          ? { ...ev, active: ev.active === false ? true : false }
+          : ev
+      );
+      return {
+        ...prev,
+        [cctvId]: updated
+      };
+    });
+  };
+
+  // Expanded CCTV card in Workload Tab
+  const [expandedCctvId, setExpandedCctvId] = useState(null);
+
+  // Custom Event Form States
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [eventCode, setEventCode] = useState('');
+  const [eventDesc, setEventDesc] = useState('');
+  const [eventGuidelines, setEventGuidelines] = useState('');
+
+  // VLM Stream Contexts State
+  const [cctvContexts, setCctvContexts] = useState({
+    'cam-pit-a1': 'Coal quarry excavation area with high activity of PC2000 excavators and heavy haul trucks loading coal.',
+    'cam-pit-a2': 'Main haul road incline leading to the western quarry pit. Heavy mining trucks transport coal uphill.',
+    'cam-cr-1': 'Primary crusher hopper where haul trucks dump raw coal for processing.',
+    'cam-ws-1': 'Indoor workshop bay for heavy machinery maintenance, welding, and mechanics repair operations.'
+  });
+
+  // VLM Custom Events State
+  const [cctvCustomEvents, setCctvCustomEvents] = useState(getInitialCustomEvents());
 
   // Core States
   const [sites, setSites] = useState(INITIAL_SITES);
@@ -290,15 +373,14 @@ export default function Dashboard() {
     }
   }, [selectedSite, activeCctv]);
 
-  // Live Activity Logs
   const [logs, setLogs] = useState([
     { time: '13:14:02', message: 'Sistem monitoring PamAgents berhasil diinisialisasi.', type: 'info' },
     { time: '13:14:15', message: 'Pit A: Truk HD785 terdeteksi melaju di atas batas 30 km/jam.', type: 'error' },
-    { time: '13:15:10', message: 'Processing Crusher: Agent Core Crusher 02 terputus (Offline).', type: 'error' },
+    { time: '13:15:10', message: 'Processing Crusher: CCTV Screen Deck Feed terputus (Offline).', type: 'error' },
     { time: '13:16:30', message: 'Processing Crusher: CCTV Crusher Hopper mengalami gangguan sinyal (Offline).', type: 'error' },
   ]);
 
-  // Filter KPI State ('ALL', 'CCTV_OFFLINE', 'AGENT_OFFLINE')
+  // Filter KPI State ('ALL', 'CCTV_OFFLINE')
   const [filterKPI, setFilterKPI] = useState('ALL');
 
   // Overview Panel Filter State
@@ -312,9 +394,7 @@ export default function Dashboard() {
   const [newSiteName, setNewSiteName] = useState('');
   const [newSiteRegionIdx, setNewSiteRegionIdx] = useState(0);
   const [newSiteCctvCount, setNewSiteCctvCount] = useState(4);
-  const [newSiteAgentCount, setNewSiteAgentCount] = useState(2);
   const [newSiteOfflineCctv, setNewSiteOfflineCctv] = useState(0);
-  const [newSiteOfflineAgent, setNewSiteOfflineAgent] = useState(0);
 
   // Form mode for Tambah Titik Tab ('cctv' | 'sector')
   const [addMode, setAddMode] = useState('cctv');
@@ -462,19 +542,88 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  // VLM Custom AI Event Handlers
+  const handleContextChange = (cctvId, val) => {
+    setCctvContexts(prev => ({
+      ...prev,
+      [cctvId]: val
+    }));
+  };
+
+  const handleAddEvent = (cctvId) => {
+    if (!eventCode.trim()) {
+      alert('Event Code tidak boleh kosong!');
+      return;
+    }
+    if (!eventDesc.trim()) {
+      alert('Event Description tidak boleh kosong!');
+      return;
+    }
+
+    setCctvCustomEvents(prev => {
+      const currentList = prev[cctvId] || [];
+      if (editingEventId) {
+        // Edit existing event
+        const updated = currentList.map(ev => 
+          ev.id === editingEventId 
+            ? { ...ev, code: eventCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_'), description: eventDesc.trim(), guidelines: eventGuidelines.trim() }
+            : ev
+        );
+        return { ...prev, [cctvId]: updated };
+      } else {
+        // Add new event
+        const newEvent = {
+          id: 'ev-' + Date.now(),
+          code: eventCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_'),
+          description: eventDesc.trim(),
+          guidelines: eventGuidelines.trim(),
+          active: true
+        };
+        return { ...prev, [cctvId]: [...currentList, newEvent] };
+      }
+    });
+
+    // Reset inputs & close form
+    setEventCode('');
+    setEventDesc('');
+    setEventGuidelines('');
+    setEditingEventId(null);
+    setExpandedCctvId(null);
+  };
+
+  const handleEditEvent = (ev) => {
+    setEditingEventId(ev.id);
+    setEventCode(ev.code);
+    setEventDesc(ev.description);
+    setEventGuidelines(ev.guidelines);
+  };
+
+  const handleDeleteEvent = (cctvId, eventId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus deteksi event AI kustom ini?')) {
+      setCctvCustomEvents(prev => {
+        const currentList = prev[cctvId] || [];
+        return {
+          ...prev,
+          [cctvId]: currentList.filter(ev => ev.id !== eventId)
+        };
+      });
+      if (editingEventId === eventId) {
+        setEventCode('');
+        setEventDesc('');
+        setEventGuidelines('');
+        setEditingEventId(null);
+      }
+    }
+  };
+
   // Math totals
   const totalCCTV = sites.reduce((acc, curr) => acc + curr.cctvTotal, 0);
   const totalCCTVOffline = sites.reduce((acc, curr) => acc + curr.cctvOffline, 0);
   const totalCCTVOnline = totalCCTV - totalCCTVOffline;
 
-  const totalAgentsOnline = sites.reduce((acc, curr) => acc + curr.agentsOnline, 0);
-  const totalAgentsOffline = sites.reduce((acc, curr) => acc + curr.agentsOffline, 0);
-  const totalAgents = totalAgentsOnline + totalAgentsOffline;
-
   // Filtered sites for map rendering
   const filteredSites = sites.filter(s => {
     if (filterKPI === 'CCTV_OFFLINE') return s.cctvOffline > 0;
-    if (filterKPI === 'AGENT_OFFLINE') return s.agentsOffline > 0;
     return true;
   });
 
@@ -492,21 +641,14 @@ export default function Dashboard() {
 
     const region = REGION_PRESETS[newSiteRegionIdx];
     const onlineCctv = Math.max(0, newSiteCctvCount - newSiteOfflineCctv);
-    const onlineAgents = Math.max(0, newSiteAgentCount - newSiteOfflineAgent);
 
-    // Generate details list for cctvs and agents
+    // Generate details list for cctvs
     const details = [];
     for (let i = 1; i <= onlineCctv; i++) {
       details.push({ id: `cam-new-${i}`, name: `CCTV ${newSiteName} ${i} (Online)`, type: 'cctv', status: 'ONLINE', feedDescription: `Kamera Pemantauan baru di ${newSiteName}`, clippings: [] });
     }
     for (let i = 1; i <= newSiteOfflineCctv; i++) {
       details.push({ id: `cam-new-off-${i}`, name: `CCTV ${newSiteName} B${i} (Trouble)`, type: 'cctv', status: 'OFFLINE', feedDescription: `Kamera offline baru`, clippings: [] });
-    }
-    for (let i = 1; i <= onlineAgents; i++) {
-      details.push({ id: `agent-new-${i}`, name: `Agent Guard ${newSiteName} ${i} (Online)`, type: 'agent', status: 'ONLINE' });
-    }
-    for (let i = 1; i <= newSiteOfflineAgent; i++) {
-      details.push({ id: `agent-new-off-${i}`, name: `Agent Guard ${newSiteName} B${i} (Trouble)`, type: 'agent', status: 'OFFLINE' });
     }
 
     const newSite = {
@@ -517,9 +659,7 @@ export default function Dashboard() {
       cctvTotal: Number(newSiteCctvCount),
       cctvOnline: onlineCctv,
       cctvOffline: Number(newSiteOfflineCctv),
-      agentsOnline: onlineAgents,
-      agentsOffline: Number(newSiteOfflineAgent),
-      status: (newSiteOfflineCctv > 0 || newSiteOfflineAgent > 0) ? 'ALERT' : 'ONLINE',
+      status: (newSiteOfflineCctv > 0) ? 'ALERT' : 'ONLINE',
       details
     };
 
@@ -529,9 +669,7 @@ export default function Dashboard() {
     // Reset inputs
     setNewSiteName('');
     setNewSiteCctvCount(4);
-    setNewSiteAgentCount(2);
     setNewSiteOfflineCctv(0);
-    setNewSiteOfflineAgent(0);
 
     // Dynamic logging
     const time = new Date().toLocaleTimeString('id-ID');
@@ -571,7 +709,7 @@ export default function Dashboard() {
         cctvTotal: s.cctvTotal + 1,
         cctvOnline: s.cctvOnline + (isOffline ? 0 : 1),
         cctvOffline: s.cctvOffline + (isOffline ? 1 : 0),
-        status: (s.cctvOffline + (isOffline ? 1 : 0) > 0 || s.agentsOffline > 0) ? 'ALERT' : 'ONLINE',
+        status: (s.cctvOffline + (isOffline ? 1 : 0) > 0) ? 'ALERT' : 'ONLINE',
         details: [...s.details, newCctvObj]
       };
     });
@@ -646,16 +784,8 @@ export default function Dashboard() {
     setActiveSubTab('map');
   };
 
-  // Filter CCTV and Agent list for Right Panel Detail
+  // Filter CCTV list for Right Panel Detail
   const sectorCctvs = selectedSite.details.filter(d => d.type === 'cctv');
-  const sectorAgents = selectedSite.details.filter(d => d.type === 'agent');
-
-  // Gather all agents globally from all sites
-  const allAgents = sites.flatMap(s =>
-    s.details
-      .filter(d => d.type === 'agent')
-      .map(ag => ({ ...ag, sectorName: s.name, sectorId: s.id }))
-  );
 
   // Gather all incidents/clippings globally from all CCTVs in all sites
   const allIncidents = sites.flatMap(s =>
@@ -761,6 +891,26 @@ export default function Dashboard() {
             }}
           >
             <Camera size={15} /> Live Multi-CCTV
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('workload')}
+            style={{
+              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '10px 18px',
+              color: activeSubTab === 'workload' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <Cpu size={15} /> Workload Agen
           </button>
           
           <button
@@ -870,25 +1020,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Online Agents */}
-              <div
-                onClick={() => triggerKPIFilter('ALL')}
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
-                  transition: 'transform 0.2s'
-                }}
-                className="hover-pop"
-              >
-                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Server size={24} />
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Lapangan</p>
-                  <h3 style={{ fontSize: '26px', color: 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOnline} <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 500 }}>/ {totalAgents} Aktif</span></h3>
-                </div>
-              </div>
-
               {/* Offline CCTV */}
               <div
                 onClick={() => triggerKPIFilter('CCTV_OFFLINE')}
@@ -908,22 +1039,21 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Offline Agents */}
+              {/* Status AI Agent */}
               <div
-                onClick={() => triggerKPIFilter('AGENT_OFFLINE')}
                 style={{
                   background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: totalAgentsOffline > 0 ? '1px solid #ff4d4d' : '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px',
                   transition: 'transform 0.2s'
                 }}
                 className="hover-pop"
               >
-                <div style={{ background: totalAgentsOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--outline)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
-                  <ShieldAlert size={24} />
+                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Offline</p>
-                  <h3 style={{ fontSize: '26px', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOffline}</h3>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status AI Agent</p>
+                  <h3 style={{ fontSize: '24px', color: '#10b981', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>AKTIF</h3>
                 </div>
               </div>
             </div>
@@ -934,7 +1064,7 @@ export default function Dashboard() {
               padding: '24px', marginBottom: '28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
             }}>
               <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
-                <ShieldAlert size={18} color={totalCCTVOffline > 0 || totalAgentsOffline > 0 ? '#ff4d4d' : '#10b981'} />
+                <ShieldAlert size={18} color={totalCCTVOffline > 0 ? '#ff4d4d' : '#10b981'} />
                 Pusat Peringatan & Status Operasional Keamanan Aktif
               </h3>
 
@@ -961,20 +1091,17 @@ export default function Dashboard() {
 
                 {/* Alert 2: Agent Status */}
                 <div style={{
-                  background: totalAgentsOffline > 0 ? '#FFFBEB' : '#F0FDF4',
-                  border: `1.5px solid ${totalAgentsOffline > 0 ? '#FEF3C7' : '#DCFCE7'}`,
+                  background: '#F0FDF4',
+                  border: '1.5px solid #DCFCE7',
                   borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
                 }}>
-                  <Users size={20} color={totalAgentsOffline > 0 ? '#d97706' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalAgentsOffline > 0 ? '#92400E' : '#14532D' }}>
-                      {totalAgentsOffline > 0 ? `${totalAgentsOffline} Agent Security Offline` : 'Personel Keamanan Siaga'}
+                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#14532D' }}>
+                      Status AI Agent: Aktif
                     </h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalAgentsOffline > 0 ? '#78350F' : '#15803D', lineHeight: 1.4 }}>
-                      {totalAgentsOffline > 0 
-                        ? `Agent berikut sedang tidak aktif di posnya: ${allAgents.filter(ag => ag.status === 'OFFLINE').map(ag => ag.name).join(', ')}.`
-                        : 'Seluruh agent patroli tambang terhubung melalui link radio suara & telemetry.'
-                      }
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#15803D', lineHeight: 1.4 }}>
+                      Sistem AI Agent utama berjalan secara optimal untuk memantau keselamatan & keamanan area tambang.
                     </p>
                   </div>
                 </div>
@@ -998,7 +1125,7 @@ export default function Dashboard() {
             {/* Grid 2 Columns: System Status & Activity Feed */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }} className="db-layout-grid">
               
-              {/* Left Column: ALL SECTOR STATUS WITH CCTV & AGENTS */}
+              {/* Left Column: ALL SECTOR STATUS WITH CCTV */}
               <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
                 
                 {/* Header Row with Title and Selector Tabs */}
@@ -1006,7 +1133,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Activity size={18} color="var(--brand-primary)" />
                     <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0 }}>
-                      Status & Kabar Terkini Sektor (CCTV & Agent)
+                      Status & Kabar Terkini Sektor (CCTV)
                     </h3>
                   </div>
 
@@ -1063,7 +1190,6 @@ export default function Dashboard() {
                     .filter(site => overviewFilterMode === 'all' || site.id === overviewSelectedSiteId)
                     .map(site => {
                       const siteCctvs = site.details.filter(d => d.type === 'cctv');
-                      const siteAgents = site.details.filter(d => d.type === 'agent');
 
                       return (
                         <div key={site.id} style={{
@@ -1082,7 +1208,7 @@ export default function Dashboard() {
                             </span>
                           </div>
 
-                          {/* List of CCTVs and Agents inside this site */}
+                          {/* List of CCTVs inside this site */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {/* CCTVs */}
                             {siteCctvs.map(cam => {
@@ -1104,6 +1230,35 @@ export default function Dashboard() {
                                     <div>
                                       <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
                                       <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
+                                      
+                                      {/* Workload Badges */}
+                                      {!isCamOffline && (
+                                        <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 5px', borderRadius: '3px' }}>
+                                            🛡️ APD
+                                          </span>
+                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 5px', borderRadius: '3px' }}>
+                                            🦺 Keselamatan
+                                          </span>
+                                          {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_human_zone' && ev.active !== false) && (
+                                            <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 5px', borderRadius: '3px' }}>
+                                              🛑 Zona Bahaya
+                                            </span>
+                                          )}
+                                          {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_truck_stop' && ev.active !== false) && (
+                                            <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 5px', borderRadius: '3px' }}>
+                                              🚚 No-Stay Truk
+                                            </span>
+                                          )}
+                                          {(cctvCustomEvents[cam.id] || [])
+                                            .filter(ev => ev.active !== false && ev.code !== 'no_human_zone' && ev.code !== 'no_truck_stop')
+                                            .map(ev => (
+                                              <span key={ev.id} style={{ fontSize: '8.5px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                                ✨ {ev.code}
+                                              </span>
+                                            ))}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <span style={{
@@ -1113,33 +1268,6 @@ export default function Dashboard() {
                                     padding: '2px 6px', borderRadius: '4px'
                                   }}>
                                     {cam.status}
-                                  </span>
-                                </div>
-                              );
-                            })}
-
-                            {/* Agents */}
-                            {siteAgents.map(agent => {
-                              const isAgentOffline = agent.status === 'OFFLINE';
-                              return (
-                                <div key={agent.id} style={{
-                                  background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <Users size={14} color={isAgentOffline ? '#ff4d4d' : '#10b981'} />
-                                    <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{agent.name}</span>
-                                      <span style={{ fontSize: '11px', color: 'var(--outline)' }}>{agent.lastReport || 'Menunggu laporan dari lapangan...'}</span>
-                                    </div>
-                                  </div>
-                                  <span style={{
-                                    fontSize: '9px', fontWeight: 700,
-                                    color: isAgentOffline ? '#6B7280' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
-                                    background: isAgentOffline ? '#E5E7EB' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
-                                    padding: '2px 6px', borderRadius: '4px'
-                                  }}>
-                                    {isAgentOffline ? 'OFFLINE' : agent.workStatus}
                                   </span>
                                 </div>
                               );
@@ -1276,7 +1404,7 @@ export default function Dashboard() {
             {filterKPI !== 'ALL' && (
               <div style={{ background: '#ff5f5615', border: '1px solid #ff4d4d35', borderRadius: '8px', padding: '12px 20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#ff4d4d', fontSize: '13px', fontWeight: 600 }}>
-                  ⚠️ Menampilkan filter lokasi yang memiliki perangkat {filterKPI === 'CCTV_OFFLINE' ? 'CCTV' : 'Agent'} offline saja.
+                  ⚠️ Menampilkan filter lokasi yang memiliki perangkat CCTV offline saja.
                 </span>
                 <button
                   onClick={() => setFilterKPI('ALL')}
@@ -1577,9 +1705,40 @@ export default function Dashboard() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
-                            <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500 }}>
-                              {cam.name}
-                            </span>
+                            <div>
+                              <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500, display: 'block' }}>
+                                {cam.name}
+                              </span>
+                              
+                              {/* Workload Badges */}
+                              {!isOffline && (
+                                <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
+                                    🛡️ APD
+                                  </span>
+                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
+                                    🦺 Keselamatan
+                                  </span>
+                                  {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_human_zone' && ev.active !== false) && (
+                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
+                                      🛑 Zona Bahaya
+                                    </span>
+                                  )}
+                                  {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_truck_stop' && ev.active !== false) && (
+                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
+                                      🚚 No-Stay Truk
+                                    </span>
+                                  )}
+                                  {(cctvCustomEvents[cam.id] || [])
+                                    .filter(ev => ev.active !== false && ev.code !== 'no_human_zone' && ev.code !== 'no_truck_stop')
+                                    .map(ev => (
+                                      <span key={ev.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                        ✨ {ev.code}
+                                      </span>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <span style={{
                             fontSize: '9px',
@@ -2191,6 +2350,561 @@ export default function Dashboard() {
               </div>
               
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== TAB 6: WORKLOAD AGEN AI CONFIGURATION ===== */}
+      {activeSubTab === 'workload' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            
+            {/* Header info */}
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              border: '1px solid #E3E6EE',
+              marginBottom: '28px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <div>
+                <h3 style={{ fontSize: '18px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Cpu size={20} color="var(--brand-primary)" /> Konfigurasi Workload Agen AI CCTV & Sektor
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                  Setiap CCTV dipantau secara otomatis untuk deteksi APD (K3) dan Keselamatan Manusia secara default. Tambahkan workload kustom di bawah ini.
+                </p>
+              </div>
+              <div style={{
+                background: '#F0FDF4',
+                border: '1.5px solid #DCFCE7',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'mapPulse 1.5s infinite' }} />
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>AI Agent Status: AKTIF</span>
+              </div>
+            </div>
+
+            {/* Two Column Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '32px' }} className="db-layout-grid">
+              
+              {/* Left Column: List of Sectors */}
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '24px',
+                border: '1px solid #E3E6EE',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+                alignSelf: 'start'
+              }}>
+                <h4 style={{ fontSize: '14px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Sektor Pertambangan
+                </h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {sites.map(s => {
+                    const isSelected = workloadSelectedSiteId === s.id;
+                    const cctvs = s.details.filter(d => d.type === 'cctv');
+                    
+                    // Count how many custom workloads are active in this sector
+                    let activeCustomRules = 0;
+                    cctvs.forEach(cam => {
+                      activeCustomRules += (cctvCustomEvents[cam.id] || []).filter(ev => ev.active !== false).length;
+                    });
+
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => setWorkloadSelectedSiteId(s.id)}
+                        style={{
+                          background: isSelected ? 'rgba(13,71,161,0.04)' : '#FAFBFD',
+                          border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : '#E3E6EE'}`,
+                          borderRadius: '12px',
+                          padding: '16px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{s.name}</span>
+                          <span style={{
+                            fontSize: '9px', fontWeight: 700,
+                            color: s.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
+                            background: s.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
+                            padding: '2px 8px', borderRadius: '4px'
+                          }}>
+                            ● {s.status}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--outline)' }}>
+                            {cctvs.length} CCTV Terpasang
+                          </span>
+                          {activeCustomRules > 0 ? (
+                            <span style={{ fontSize: '10px', fontWeight: 600, background: '#FFF3E0', color: '#E65100', padding: '2px 6px', borderRadius: '4px' }}>
+                              +{activeCustomRules} Rule Kustom
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '10px', color: 'var(--outline)', background: '#F0EDED', padding: '2px 6px', borderRadius: '4px' }}>
+                              Hanya Standar
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: CCTV Workload Configuration */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {(() => {
+                  const selectedSiteObj = sites.find(s => s.id === workloadSelectedSiteId) || sites[0];
+                  if (!selectedSiteObj) return null;
+                  
+                  const cctvs = selectedSiteObj.details.filter(d => d.type === 'cctv');
+
+                  return (
+                    <div style={{
+                      background: 'white',
+                      borderRadius: '16px',
+                      padding: '28px',
+                      border: '1px solid #E3E6EE',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+                    }}>
+                      <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '16px', fontWeight: 700 }}>
+                            Daftar Kamera Sektor: {selectedSiteObj.name}
+                          </h3>
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--outline)' }}>
+                            Kustomisasi aturan deteksi AI untuk masing-masing kamera di bawah ini.
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, background: '#F4F6FA', color: 'var(--brand-dark)', padding: '4px 10px', borderRadius: '6px' }}>
+                          Total: {cctvs.length} CCTV
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {cctvs.map(cam => {
+                          const isOffline = cam.status === 'OFFLINE';
+
+                          return (
+                            <div key={cam.id} style={{
+                              background: '#FAFBFD',
+                              border: '1px solid #E3E6EE',
+                              borderRadius: '12px',
+                              padding: '20px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '16px',
+                              opacity: isOffline ? 0.75 : 1,
+                              transition: 'all 0.2s'
+                            }}>
+                              {/* CCTV info */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dashed #E3E6EE', paddingBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{
+                                    background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(13,71,161,0.06)',
+                                    color: isOffline ? '#ff4d4d' : 'var(--brand-primary)',
+                                    width: '36px', height: '36px', borderRadius: '8px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                  }}>
+                                    <Camera size={18} />
+                                  </div>
+                                  <div>
+                                    <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)', display: 'block' }}>
+                                      {cam.name}
+                                    </span>
+                                    <span style={{ fontSize: '11px', color: 'var(--outline)' }}>
+                                      {cam.feedDescription}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span style={{
+                                  fontSize: '9px', fontWeight: 700,
+                                  color: isOffline ? '#ff4d4d' : '#10b981',
+                                  background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                                  padding: '3px 8px', borderRadius: '4px'
+                                }}>
+                                  {cam.status}
+                                </span>
+                              </div>
+
+                              {/* Workload Section */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="db-layout-grid">
+                                
+                                {/* Standard/Wajib Column */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Standard Workload (Selalu Aktif)
+                                  </span>
+                                  
+                                  {/* APD check */}
+                                  <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
+                                    borderRadius: '8px', opacity: 0.9
+                                  }}>
+                                    <ShieldCheck size={18} color="#16A34A" style={{ flexShrink: 0 }} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
+                                        Deteksi Kepatuhan APD (K3)
+                                      </span>
+                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
+                                        Verifikasi otomatis rompi & helm safety.
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Keselamatan Manusia */}
+                                  <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
+                                    borderRadius: '8px', opacity: 0.9
+                                  }}>
+                                    <Activity size={18} color="#16A34A" style={{ flexShrink: 0 }} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
+                                        Deteksi Keselamatan Manusia
+                                      </span>
+                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
+                                        Perlindungan kru di dekat peralatan berat.
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Custom Workloads Column */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Custom Workload (Tambahan)
+                                  </span>
+
+                                  {/* Custom AI Event Cards (Checklist Items) */}
+                                  {(cctvCustomEvents[cam.id] || []).map(ev => {
+                                    const isActive = ev.active !== false;
+                                    
+                                    let activeBg = 'rgba(30,73,226,0.03)';
+                                    let activeBorder = '1.5px solid var(--brand-primary)';
+                                    let badgeColor = 'var(--brand-primary)';
+                                    let badgeBg = 'rgba(30,73,226,0.06)';
+                                    let badgePrefix = '✨ ';
+
+                                    if (ev.code === 'no_human_zone') {
+                                      activeBg = 'rgba(239,68,68,0.03)';
+                                      activeBorder = '1.5px solid #EF4444';
+                                      badgeColor = '#EF4444';
+                                      badgeBg = 'rgba(239,68,68,0.06)';
+                                      badgePrefix = '🚫 ';
+                                    } else if (ev.code === 'no_truck_stop') {
+                                      activeBg = 'rgba(245,127,23,0.03)';
+                                      activeBorder = '1.5px solid #F57F17';
+                                      badgeColor = '#F57F17';
+                                      badgeBg = 'rgba(245,127,23,0.06)';
+                                      badgePrefix = '🛑 ';
+                                    }
+
+                                    return (
+                                      <div key={ev.id} style={{
+                                        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px',
+                                        padding: '12px 16px', background: isActive ? activeBg : 'white',
+                                        border: isActive ? activeBorder : '1.5px solid #E3E6EE',
+                                        borderRadius: '8px', cursor: isOffline ? 'not-allowed' : 'pointer',
+                                        transition: 'all 0.2s', userSelect: 'none'
+                                      }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1, minWidth: 0 }}>
+                                          <input
+                                            type="checkbox"
+                                            disabled={isOffline}
+                                            checked={isActive}
+                                            onChange={() => toggleCustomEvent(cam.id, ev.id)}
+                                            style={{ marginTop: '3px', cursor: isOffline ? 'not-allowed' : 'pointer' }}
+                                          />
+                                          <div style={{ minWidth: 0 }}>
+                                            <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                              {ev.description}
+                                            </span>
+                                            {ev.guidelines && (
+                                              <span style={{ fontSize: '10.5px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {ev.guidelines}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Edit / Delete Actions */}
+                                        <div style={{ display: 'flex', gap: '4px', alignSelf: 'center', flexShrink: 0 }}>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleEditEvent(ev);
+                                              setExpandedCctvId(cam.id); // open form
+                                            }}
+                                            title="Edit Event"
+                                            style={{
+                                              background: '#F4F6FA',
+                                              border: '1px solid #E3E6EE',
+                                              borderRadius: '4px',
+                                              width: '24px', height: '24px',
+                                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                              cursor: 'pointer', color: 'var(--brand-dark)'
+                                            }}
+                                          >
+                                            <Edit size={11} />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleDeleteEvent(cam.id, ev.id);
+                                            }}
+                                            title="Hapus Event"
+                                            style={{
+                                              background: '#FEF2F2',
+                                              border: '1px solid #FCA5A5',
+                                              borderRadius: '4px',
+                                              width: '24px', height: '24px',
+                                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                              cursor: 'pointer', color: '#EF4444'
+                                            }}
+                                          >
+                                            <Trash2 size={11} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* Custom AI Event Button & Panel */}
+                                  <div style={{ marginTop: '4px' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        if (expandedCctvId === cam.id) {
+                                          setExpandedCctvId(null);
+                                          setEditingEventId(null);
+                                          setEventCode('');
+                                          setEventDesc('');
+                                          setEventGuidelines('');
+                                        } else {
+                                          setExpandedCctvId(cam.id);
+                                          setEditingEventId(null);
+                                          setEventCode('');
+                                          setEventDesc('');
+                                          setEventGuidelines('');
+                                        }
+                                      }}
+                                      disabled={isOffline}
+                                      style={{
+                                        width: '100%',
+                                        background: expandedCctvId === cam.id ? 'var(--brand-dark)' : 'rgba(13,71,161,0.06)',
+                                        color: expandedCctvId === cam.id ? 'white' : 'var(--brand-primary)',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        padding: '12px 16px',
+                                        fontSize: '12.5px',
+                                        fontWeight: 700,
+                                        cursor: isOffline ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px',
+                                        transition: 'all 0.2s'
+                                      }}
+                                    >
+                                      <Plus size={14} /> 
+                                      {expandedCctvId === cam.id ? (editingEventId ? 'Tutup Form Edit AI Kustom' : 'Tutup Form Input AI Kustom') : 'Tambah Event AI Kustom'}
+                                    </button>
+
+                                    {/* Inline Expanded Custom Event Panel */}
+                                    {expandedCctvId === cam.id && (
+                                      <div style={{
+                                        marginTop: '12px',
+                                        background: '#FAFBFD',
+                                        borderRadius: '8px',
+                                        padding: '16px',
+                                        border: '1.5px solid #E3E6EE',
+                                        color: 'var(--brand-dark)',
+                                        animation: 'tabFade 0.3s ease forwards'
+                                      }}>
+                                        {/* Stream Context Field */}
+                                        <div style={{ marginBottom: '16px' }}>
+                                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '2px' }}>
+                                            Stream Context
+                                          </label>
+                                          <span style={{ display: 'block', fontSize: '10px', color: 'var(--outline)', marginBottom: '6px' }}>
+                                            Provide general context about the video stream to help with detection.
+                                          </span>
+                                          <textarea
+                                            value={cctvContexts[cam.id] || ''}
+                                            onChange={(e) => handleContextChange(cam.id, e.target.value)}
+                                            placeholder="Provide stream context for VLM engine..."
+                                            style={{
+                                              width: '100%',
+                                              minHeight: '64px',
+                                              background: 'white',
+                                              border: '1px solid #C3C6D4',
+                                              borderRadius: '6px',
+                                              padding: '10px',
+                                              color: 'var(--brand-dark)',
+                                              fontSize: '11.5px',
+                                              lineHeight: 1.4,
+                                              resize: 'vertical',
+                                              outline: 'none',
+                                              fontFamily: 'inherit',
+                                              transition: 'border-color 0.2s'
+                                            }}
+                                            onFocus={e => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
+                                            onBlur={e => e.currentTarget.style.borderColor = '#C3C6D4'}
+                                          />
+                                        </div>
+
+                                        {/* Add New Event Form */}
+                                        <div style={{ background: 'white', padding: '14px', borderRadius: '6px', border: '1px solid #E3E6EE' }}>
+                                          <h5 style={{ margin: '0 0 12px', fontSize: '10.5px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            {editingEventId ? 'Edit Event' : 'Add New Event'}
+                                          </h5>
+                                          
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                            <div>
+                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Event Code</label>
+                                              <input
+                                                type="text"
+                                                value={eventCode}
+                                                onChange={(e) => setEventCode(e.target.value)}
+                                                placeholder="e.g. person_detected"
+                                                style={{
+                                                  width: '100%',
+                                                  background: 'white',
+                                                  border: '1px solid #C3C6D4',
+                                                  borderRadius: '6px',
+                                                  padding: '8px 10px',
+                                                  color: 'var(--brand-dark)',
+                                                  fontSize: '11px',
+                                                  outline: 'none'
+                                                }}
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Event Description</label>
+                                              <input
+                                                type="text"
+                                                value={eventDesc}
+                                                onChange={(e) => setEventDesc(e.target.value)}
+                                                placeholder="e.g. Person detected in frame"
+                                                style={{
+                                                  width: '100%',
+                                                  background: 'white',
+                                                  border: '1px solid #C3C6D4',
+                                                  borderRadius: '6px',
+                                                  padding: '8px 10px',
+                                                  color: 'var(--brand-dark)',
+                                                  fontSize: '11px',
+                                                  outline: 'none'
+                                                }}
+                                              />
+                                            </div>
+
+                                            <div>
+                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Detection Guidelines</label>
+                                              <textarea
+                                                value={eventGuidelines}
+                                                onChange={(e) => setEventGuidelines(e.target.value)}
+                                                placeholder="e.g. Look for human shapes, standing or walking"
+                                                style={{
+                                                  width: '100%',
+                                                  minHeight: '50px',
+                                                  background: 'white',
+                                                  border: '1px solid #C3C6D4',
+                                                  borderRadius: '6px',
+                                                  padding: '8px 10px',
+                                                  color: 'var(--brand-dark)',
+                                                  fontSize: '11px',
+                                                  lineHeight: 1.3,
+                                                  resize: 'none',
+                                                  outline: 'none'
+                                                }}
+                                              />
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                              <button
+                                                type="button"
+                                                onClick={() => handleAddEvent(cam.id)}
+                                                style={{
+                                                  background: 'var(--brand-primary)',
+                                                  color: 'white',
+                                                  border: 'none',
+                                                  borderRadius: '6px',
+                                                  padding: '8px 16px',
+                                                  fontSize: '11px',
+                                                  fontWeight: 600,
+                                                  cursor: 'pointer',
+                                                  transition: 'background 0.2s'
+                                                }}
+                                              >
+                                                {editingEventId ? 'Simpan' : 'Tambah'}
+                                              </button>
+                                              {editingEventId && (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setEditingEventId(null);
+                                                    setEventCode('');
+                                                    setEventDesc('');
+                                                    setEventGuidelines('');
+                                                    setExpandedCctvId(null);
+                                                  }}
+                                                  style={{
+                                                    background: '#F4F6FA',
+                                                    color: 'var(--brand-dark)',
+                                                    border: '1px solid #E3E6EE',
+                                                    borderRadius: '6px',
+                                                    padding: '8px 16px',
+                                                    fontSize: '11px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer'
+                                                  }}
+                                                >
+                                                  Batal
+                                                </button>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+            </div>
+
           </div>
         </section>
       )}
