@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, Server, ShieldAlert, LogOut, MapPin, CheckCircle,
   WifiOff, Plus, UserPlus, Users, Map, Activity, Trash2, Clock,
-  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle, Edit
+  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle, Edit, Settings
 } from 'lucide-react';
 
 // Data Lokasi Awal - Sektor Pertambangan Batubara Astra
@@ -221,67 +221,88 @@ const REGION_PRESETS = [
   { label: 'Main Security Gate', x: '15%', y: '75%' }
 ];
 
-// Helper to initialize custom events for all cameras with defaults
-const getInitialCustomEvents = () => {
-  const allCamIds = [
-    'cam-pit-a1', 'cam-pit-a2', 'cam-pit-a3',
-    'cam-sp-1', 'cam-sp-2', 'cam-sp-3',
-    'cam-ws-1', 'cam-ws-2', 'cam-ws-3',
-    'cam-cr-1', 'cam-cr-2', 'cam-cr-3',
-    'cam-gate-1', 'cam-gate-2'
-  ];
+// Initial Workload Groups (Policy Presets)
+const INITIAL_WORKLOAD_GROUPS = [
+  {
+    id: 'group-danger',
+    name: 'Grup Area Bahaya (Default)',
+    description: 'Aturan keselamatan standar untuk memantau area berbahaya tambang.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' }
+    ]
+  },
+  {
+    id: 'group-logistics',
+    name: 'Grup Logistik & Debu',
+    description: 'Aturan operasional untuk mengontrol kelancaran logistik dan kepulan debu.',
+    skills: [
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' },
+      { id: 'skill-dust', code: 'heavy_dust_cloud', description: 'High concentration of coal dust cloud', guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.' }
+    ]
+  },
+  {
+    id: 'group-workshop',
+    name: 'Grup Workshop & Spark',
+    description: 'Aturan keselamatan khusus area workshop dan bahaya percikan api.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-spark', code: 'spark_hazard', description: 'Sparks detected during welding or grinding', guidelines: 'Look for bright flashes of light and flying sparks near equipment.' }
+    ]
+  },
+  {
+    id: 'group-full',
+    name: 'Grup Operasional Lengkap',
+    description: 'Seluruh rule lengkap untuk memantau area pit tambang utama.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' },
+      { id: 'skill-dust', code: 'heavy_dust_cloud', description: 'High concentration of coal dust cloud', guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.' },
+      { id: 'skill-distance', code: 'unsafe_truck_distance', description: 'Haul truck parked too close to excavator swing path', guidelines: 'Identify if any HD785 truck comes within the 10-meter radius boundary of the excavator cabin.' }
+    ]
+  }
+];
 
-  const initial = {};
-  allCamIds.forEach(id => {
-    const isNoHumanActive = id === 'cam-cr-1';
-    const isNoTruckActive = id === 'cam-pit-a2';
-
-    initial[id] = [
-      {
-        id: `default-human-${id}`,
-        code: 'no_human_zone',
-        description: 'Titik ini ga boleh ada manusia (Bahaya)',
-        guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.',
-        active: isNoHumanActive
-      },
-      {
-        id: `default-truck-${id}`,
-        code: 'no_truck_stop',
-        description: 'Titik ini ga boleh ada truk berhenti / stay',
-        guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.',
-        active: isNoTruckActive
-      }
-    ];
-  });
-
-  // Add pre-configured extra custom events
-  initial['cam-pit-a1'].push(
-    {
-      id: 'ev-1',
-      code: 'heavy_dust_cloud',
-      description: 'High concentration of coal dust cloud',
-      guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.',
-      active: true
-    },
-    {
-      id: 'ev-2',
-      code: 'unsafe_truck_distance',
-      description: 'Haul truck parked too close to excavator swing path',
-      guidelines: 'Identify if any HD785 truck comes within the 10-meter radius boundary of the excavator cabin.',
-      active: true
-    }
-  );
-
-  initial['cam-ws-1'].push({
-    id: 'ev-3',
-    code: 'spark_hazard',
-    description: 'Sparks detected during welding or grinding',
-    guidelines: 'Look for bright flashes of light and flying sparks near equipment.',
-    active: true
-  });
-
-  return initial;
+// Initial Group Assignments per CCTV
+const INITIAL_GROUP_ASSIGNMENTS = {
+  'cam-pit-a1': 'group-full',
+  'cam-pit-a2': 'group-danger',
+  'cam-pit-a3': 'group-danger',
+  'cam-sp-1': 'group-danger',
+  'cam-sp-2': 'group-danger',
+  'cam-sp-3': 'group-danger',
+  'cam-ws-1': 'group-workshop',
+  'cam-ws-2': 'group-danger',
+  'cam-ws-3': 'group-danger',
+  'cam-cr-1': 'group-danger',
+  'cam-cr-2': 'group-danger',
+  'cam-cr-3': 'group-danger',
+  'cam-gate-1': 'group-danger',
+  'cam-gate-2': 'group-danger'
 };
+
+// Initial Enabled Skills per CCTV (mapping cctvId -> skillId -> boolean)
+const INITIAL_ENABLED_SKILLS = {
+  'cam-pit-a1': {
+    'skill-human': false,
+    'skill-truck': false,
+    'skill-dust': true,
+    'skill-distance': true
+  },
+  'cam-pit-a2': {
+    'skill-human': false,
+    'skill-truck': true
+  },
+  'cam-cr-1': {
+    'skill-human': true,
+    'skill-truck': false
+  },
+  'cam-ws-1': {
+    'skill-human': false,
+    'skill-spark': true
+  }
+};
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -292,29 +313,24 @@ export default function Dashboard() {
   // Workload States
   const [workloadSelectedSiteId, setWorkloadSelectedSiteId] = useState(INITIAL_SITES[0]?.id || '');
 
-  const toggleCustomEvent = (cctvId, eventId) => {
-    setCctvCustomEvents(prev => {
-      const currentList = prev[cctvId] || [];
-      const updated = currentList.map(ev => 
-        ev.id === eventId 
-          ? { ...ev, active: ev.active === false ? true : false }
-          : ev
-      );
-      return {
-        ...prev,
-        [cctvId]: updated
-      };
-    });
-  };
+  // Workload Groups & Assignments States (AWS Security Group concept)
+  const [workloadGroups, setWorkloadGroups] = useState(INITIAL_WORKLOAD_GROUPS);
+  const [cctvGroupAssignments, setCctvGroupAssignments] = useState(INITIAL_GROUP_ASSIGNMENTS);
+  const [cctvEnabledSkills, setCctvEnabledSkills] = useState(INITIAL_ENABLED_SKILLS);
+
+  // Group Policy Manager Modal States
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState('group-danger');
+  const [editingSkillId, setEditingSkillId] = useState(null);
+  const [skillCode, setSkillCode] = useState('');
+  const [skillDesc, setSkillDesc] = useState('');
+  const [skillGuidelines, setSkillGuidelines] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDesc, setNewGroupDesc] = useState('');
 
   // Expanded CCTV card in Workload Tab
   const [expandedCctvId, setExpandedCctvId] = useState(null);
-
-  // Custom Event Form States
-  const [editingEventId, setEditingEventId] = useState(null);
-  const [eventCode, setEventCode] = useState('');
-  const [eventDesc, setEventDesc] = useState('');
-  const [eventGuidelines, setEventGuidelines] = useState('');
 
   // VLM Stream Contexts State
   const [cctvContexts, setCctvContexts] = useState({
@@ -324,8 +340,26 @@ export default function Dashboard() {
     'cam-ws-1': 'Indoor workshop bay for heavy machinery maintenance, welding, and mechanics repair operations.'
   });
 
-  // VLM Custom Events State
-  const [cctvCustomEvents, setCctvCustomEvents] = useState(getInitialCustomEvents());
+  const toggleCctvSkill = (cctvId, skillId) => {
+    setCctvEnabledSkills(prev => {
+      const cameraSkills = prev[cctvId] || {};
+      const currentVal = cameraSkills[skillId] !== false; // defaults to true
+      return {
+        ...prev,
+        [cctvId]: {
+          ...cameraSkills,
+          [skillId]: !currentVal
+        }
+      };
+    });
+  };
+
+  const handleAssignGroup = (cctvId, groupId) => {
+    setCctvGroupAssignments(prev => ({
+      ...prev,
+      [cctvId]: groupId
+    }));
+  };
 
   // Core States
   const [sites, setSites] = useState(INITIAL_SITES);
@@ -550,69 +584,114 @@ export default function Dashboard() {
     }));
   };
 
-  const handleAddEvent = (cctvId) => {
-    if (!eventCode.trim()) {
+  // Group Policy Manager Action Handlers
+  const handleSaveSkillToGroup = (groupId) => {
+    if (!skillCode.trim()) {
       alert('Event Code tidak boleh kosong!');
       return;
     }
-    if (!eventDesc.trim()) {
+    if (!skillDesc.trim()) {
       alert('Event Description tidak boleh kosong!');
       return;
     }
+    const sanitizedCode = skillCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_');
 
-    setCctvCustomEvents(prev => {
-      const currentList = prev[cctvId] || [];
-      if (editingEventId) {
-        // Edit existing event
-        const updated = currentList.map(ev => 
-          ev.id === editingEventId 
-            ? { ...ev, code: eventCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_'), description: eventDesc.trim(), guidelines: eventGuidelines.trim() }
-            : ev
-        );
-        return { ...prev, [cctvId]: updated };
-      } else {
-        // Add new event
-        const newEvent = {
-          id: 'ev-' + Date.now(),
-          code: eventCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_'),
-          description: eventDesc.trim(),
-          guidelines: eventGuidelines.trim(),
-          active: true
-        };
-        return { ...prev, [cctvId]: [...currentList, newEvent] };
-      }
+    setWorkloadGroups(prev => {
+      return prev.map(group => {
+        if (group.id !== groupId) return group;
+        const currentSkills = group.skills || [];
+        if (editingSkillId) {
+          // Edit existing skill in this group
+          const updated = currentSkills.map(sk => 
+            sk.id === editingSkillId 
+              ? { ...sk, code: sanitizedCode, description: skillDesc.trim(), guidelines: skillGuidelines.trim() }
+              : sk
+          );
+          return { ...group, skills: updated };
+        } else {
+          // Add new skill to this group
+          const newSkill = {
+            id: 'skill-' + Date.now(),
+            code: sanitizedCode,
+            description: skillDesc.trim(),
+            guidelines: skillGuidelines.trim()
+          };
+          return { ...group, skills: [...currentSkills, newSkill] };
+        }
+      });
     });
 
-    // Reset inputs & close form
-    setEventCode('');
-    setEventDesc('');
-    setEventGuidelines('');
-    setEditingEventId(null);
-    setExpandedCctvId(null);
+    // Reset form
+    setSkillCode('');
+    setSkillDesc('');
+    setSkillGuidelines('');
+    setEditingSkillId(null);
   };
 
-  const handleEditEvent = (ev) => {
-    setEditingEventId(ev.id);
-    setEventCode(ev.code);
-    setEventDesc(ev.description);
-    setEventGuidelines(ev.guidelines);
+  const handleEditSkillClick = (skill) => {
+    setEditingSkillId(skill.id);
+    setSkillCode(skill.code);
+    setSkillDesc(skill.description);
+    setSkillGuidelines(skill.guidelines || '');
   };
 
-  const handleDeleteEvent = (cctvId, eventId) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus deteksi event AI kustom ini?')) {
-      setCctvCustomEvents(prev => {
-        const currentList = prev[cctvId] || [];
-        return {
-          ...prev,
-          [cctvId]: currentList.filter(ev => ev.id !== eventId)
-        };
+  const handleDeleteSkillFromGroup = (groupId, skillId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus rule ini dari grup policy?')) {
+      setWorkloadGroups(prev => {
+        return prev.map(group => {
+          if (group.id !== groupId) return group;
+          return {
+            ...group,
+            skills: (group.skills || []).filter(sk => sk.id !== skillId)
+          };
+        });
       });
-      if (editingEventId === eventId) {
-        setEventCode('');
-        setEventDesc('');
-        setEventGuidelines('');
-        setEditingEventId(null);
+      if (editingSkillId === skillId) {
+        setSkillCode('');
+        setSkillDesc('');
+        setSkillGuidelines('');
+        setEditingSkillId(null);
       }
+    }
+  };
+
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) {
+      alert('Nama grup tidak boleh kosong!');
+      return;
+    }
+    const newGroup = {
+      id: 'group-' + Date.now(),
+      name: newGroupName.trim(),
+      description: newGroupDesc.trim(),
+      skills: []
+    };
+    setWorkloadGroups(prev => [...prev, newGroup]);
+    setSelectedGroupId(newGroup.id);
+    setNewGroupName('');
+    setNewGroupDesc('');
+    setIsCreatingGroup(false);
+  };
+
+  const handleDeleteGroup = (groupId) => {
+    if (workloadGroups.length <= 1) {
+      alert('Anda harus menyisakan minimal satu grup policy!');
+      return;
+    }
+    if (window.confirm('Apakah Anda yakin ingin menghapus grup policy ini? Semua CCTV yang menggunakan grup ini akan dialihkan ke grup default.')) {
+      // Find default or another group to reassign CCTVs
+      const otherGroup = workloadGroups.find(g => g.id !== groupId) || workloadGroups[0];
+      setCctvGroupAssignments(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(camId => {
+          if (updated[camId] === groupId) {
+            updated[camId] = otherGroup.id;
+          }
+        });
+        return updated;
+      });
+      setWorkloadGroups(prev => prev.filter(g => g.id !== groupId));
+      setSelectedGroupId(otherGroup.id);
     }
   };
 
@@ -1240,23 +1319,36 @@ export default function Dashboard() {
                                           <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 5px', borderRadius: '3px' }}>
                                             🦺 Keselamatan
                                           </span>
-                                          {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_human_zone' && ev.active !== false) && (
-                                            <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 5px', borderRadius: '3px' }}>
-                                              🛑 Zona Bahaya
-                                            </span>
-                                          )}
-                                          {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_truck_stop' && ev.active !== false) && (
-                                            <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 5px', borderRadius: '3px' }}>
-                                              🚚 No-Stay Truk
-                                            </span>
-                                          )}
-                                          {(cctvCustomEvents[cam.id] || [])
-                                            .filter(ev => ev.active !== false && ev.code !== 'no_human_zone' && ev.code !== 'no_truck_stop')
-                                            .map(ev => (
-                                              <span key={ev.id} style={{ fontSize: '8.5px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
-                                                ✨ {ev.code}
-                                              </span>
-                                            ))}
+                                          {(() => {
+                                            const groupId = cctvGroupAssignments[cam.id];
+                                            const group = workloadGroups.find(g => g.id === groupId);
+                                            if (!group) return null;
+
+                                            const activeSkills = group.skills.filter(sk => cctvEnabledSkills[cam.id]?.[sk.id] !== false);
+                                            const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
+                                            const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
+                                            const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
+
+                                            return (
+                                              <>
+                                                {hasHuman && (
+                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 5px', borderRadius: '3px' }}>
+                                                    🛑 Zona Bahaya
+                                                  </span>
+                                                )}
+                                                {hasTruck && (
+                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 5px', borderRadius: '3px' }}>
+                                                    🚚 No-Stay Truk
+                                                  </span>
+                                                )}
+                                                {otherSkills.map(sk => (
+                                                  <span key={sk.id} style={{ fontSize: '8.5px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                                    ✨ {sk.code}
+                                                  </span>
+                                                ))}
+                                              </>
+                                            );
+                                          })()}
                                         </div>
                                       )}
                                     </div>
@@ -1719,23 +1811,36 @@ export default function Dashboard() {
                                   <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
                                     🦺 Keselamatan
                                   </span>
-                                  {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_human_zone' && ev.active !== false) && (
-                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
-                                      🛑 Zona Bahaya
-                                    </span>
-                                  )}
-                                  {(cctvCustomEvents[cam.id] || []).some(ev => ev.code === 'no_truck_stop' && ev.active !== false) && (
-                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
-                                      🚚 No-Stay Truk
-                                    </span>
-                                  )}
-                                  {(cctvCustomEvents[cam.id] || [])
-                                    .filter(ev => ev.active !== false && ev.code !== 'no_human_zone' && ev.code !== 'no_truck_stop')
-                                    .map(ev => (
-                                      <span key={ev.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
-                                        ✨ {ev.code}
-                                      </span>
-                                    ))}
+                                  {(() => {
+                                    const groupId = cctvGroupAssignments[cam.id];
+                                    const group = workloadGroups.find(g => g.id === groupId);
+                                    if (!group) return null;
+
+                                    const activeSkills = group.skills.filter(sk => cctvEnabledSkills[cam.id]?.[sk.id] !== false);
+                                    const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
+                                    const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
+                                    const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
+
+                                    return (
+                                      <>
+                                        {hasHuman && (
+                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
+                                            🛑 Zona Bahaya
+                                          </span>
+                                        )}
+                                        {hasTruck && (
+                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
+                                            🚚 No-Stay Truk
+                                          </span>
+                                        )}
+                                        {otherSkills.map(sk => (
+                                          <span key={sk.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                            ✨ {sk.code}
+                                          </span>
+                                        ))}
+                                      </>
+                                    );
+                                  })()}
                                 </div>
                               )}
                             </div>
@@ -2378,20 +2483,44 @@ export default function Dashboard() {
                   <Cpu size={20} color="var(--brand-primary)" /> Konfigurasi Workload Agen AI CCTV & Sektor
                 </h3>
                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
-                  Setiap CCTV dipantau secara otomatis untuk deteksi APD (K3) dan Keselamatan Manusia secara default. Tambahkan workload kustom di bawah ini.
+                  Pilih policy group untuk menentukan daftar aturan AI aktif pada setiap kamera, atau buat policy group baru.
                 </p>
               </div>
-              <div style={{
-                background: '#F0FDF4',
-                border: '1.5px solid #DCFCE7',
-                borderRadius: '8px',
-                padding: '8px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'mapPulse 1.5s infinite' }} />
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>AI Agent Status: AKTIF</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={() => setShowPolicyModal(true)}
+                  style={{
+                    background: 'var(--brand-primary)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(13,71,161,0.2)',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = 0.9}
+                  onMouseLeave={e => e.currentTarget.style.opacity = 1}
+                >
+                  <Settings size={15} /> Kelola Policy Group
+                </button>
+                <div style={{
+                  background: '#F0FDF4',
+                  border: '1.5px solid #DCFCE7',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'mapPulse 1.5s infinite' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>AI Agent Status: AKTIF</span>
+                </div>
               </div>
             </div>
 
@@ -2419,7 +2548,16 @@ export default function Dashboard() {
                     // Count how many custom workloads are active in this sector
                     let activeCustomRules = 0;
                     cctvs.forEach(cam => {
-                      activeCustomRules += (cctvCustomEvents[cam.id] || []).filter(ev => ev.active !== false).length;
+                      const groupId = cctvGroupAssignments[cam.id];
+                      const group = workloadGroups.find(g => g.id === groupId);
+                      if (group) {
+                        group.skills.forEach(skill => {
+                          const isEnabled = cctvEnabledSkills[cam.id]?.[skill.id] !== false;
+                          if (isEnabled) {
+                            activeCustomRules++;
+                          }
+                        });
+                      }
                     });
 
                     return (
@@ -2455,11 +2593,11 @@ export default function Dashboard() {
                           </span>
                           {activeCustomRules > 0 ? (
                             <span style={{ fontSize: '10px', fontWeight: 600, background: '#FFF3E0', color: '#E65100', padding: '2px 6px', borderRadius: '4px' }}>
-                              +{activeCustomRules} Rule Kustom
+                              {activeCustomRules} Rule AI Aktif
                             </span>
                           ) : (
                             <span style={{ fontSize: '10px', color: 'var(--outline)', background: '#F0EDED', padding: '2px 6px', borderRadius: '4px' }}>
-                              Hanya Standar
+                              0 Rule AI
                             </span>
                           )}
                         </div>
@@ -2595,120 +2733,112 @@ export default function Dashboard() {
                                     Custom Workload (Tambahan)
                                   </span>
 
-                                  {/* Custom AI Event Cards (Checklist Items) */}
-                                  {(cctvCustomEvents[cam.id] || []).map(ev => {
-                                    const isActive = ev.active !== false;
-                                    
-                                    let activeBg = 'rgba(30,73,226,0.03)';
-                                    let activeBorder = '1.5px solid var(--brand-primary)';
-                                    let badgeColor = 'var(--brand-primary)';
-                                    let badgeBg = 'rgba(30,73,226,0.06)';
-                                    let badgePrefix = '✨ ';
-
-                                    if (ev.code === 'no_human_zone') {
-                                      activeBg = 'rgba(239,68,68,0.03)';
-                                      activeBorder = '1.5px solid #EF4444';
-                                      badgeColor = '#EF4444';
-                                      badgeBg = 'rgba(239,68,68,0.06)';
-                                      badgePrefix = '🚫 ';
-                                    } else if (ev.code === 'no_truck_stop') {
-                                      activeBg = 'rgba(245,127,23,0.03)';
-                                      activeBorder = '1.5px solid #F57F17';
-                                      badgeColor = '#F57F17';
-                                      badgeBg = 'rgba(245,127,23,0.06)';
-                                      badgePrefix = '🛑 ';
-                                    }
+                                  {(() => {
+                                    const assignedGroupId = cctvGroupAssignments[cam.id] || 'group-danger';
+                                    const assignedGroup = workloadGroups.find(g => g.id === assignedGroupId) || workloadGroups[0];
 
                                     return (
-                                      <div key={ev.id} style={{
-                                        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px',
-                                        padding: '12px 16px', background: isActive ? activeBg : 'white',
-                                        border: isActive ? activeBorder : '1.5px solid #E3E6EE',
-                                        borderRadius: '8px', cursor: isOffline ? 'not-allowed' : 'pointer',
-                                        transition: 'all 0.2s', userSelect: 'none'
-                                      }}>
-                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1, minWidth: 0 }}>
-                                          <input
-                                            type="checkbox"
+                                      <>
+                                        {/* Dropdown Group Policy */}
+                                        <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                          <label style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 700 }}>POLICY GROUP TEMPLATE</label>
+                                          <select
+                                            value={assignedGroupId}
+                                            onChange={(e) => handleAssignGroup(cam.id, e.target.value)}
                                             disabled={isOffline}
-                                            checked={isActive}
-                                            onChange={() => toggleCustomEvent(cam.id, ev.id)}
-                                            style={{ marginTop: '3px', cursor: isOffline ? 'not-allowed' : 'pointer' }}
-                                          />
-                                          <div style={{ minWidth: 0 }}>
-                                            <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                              {ev.description}
-                                            </span>
-                                            {ev.guidelines && (
-                                              <span style={{ fontSize: '10.5px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                {ev.guidelines}
-                                              </span>
-                                            )}
-                                          </div>
+                                            style={{
+                                              width: '100%',
+                                              background: 'white',
+                                              border: '1.5px solid #E3E6EE',
+                                              borderRadius: '8px',
+                                              padding: '10px 12px',
+                                              color: 'var(--brand-dark)',
+                                              fontSize: '12.5px',
+                                              fontWeight: 600,
+                                              outline: 'none',
+                                              cursor: isOffline ? 'not-allowed' : 'pointer'
+                                            }}
+                                          >
+                                            {workloadGroups.map(g => (
+                                              <option key={g.id} value={g.id}>
+                                                {g.name} ({g.skills.length} Rule)
+                                              </option>
+                                            ))}
+                                          </select>
                                         </div>
 
-                                        {/* Edit / Delete Actions */}
-                                        <div style={{ display: 'flex', gap: '4px', alignSelf: 'center', flexShrink: 0 }}>
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleEditEvent(ev);
-                                              setExpandedCctvId(cam.id); // open form
-                                            }}
-                                            title="Edit Event"
-                                            style={{
-                                              background: '#F4F6FA',
-                                              border: '1px solid #E3E6EE',
-                                              borderRadius: '4px',
-                                              width: '24px', height: '24px',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                              cursor: 'pointer', color: 'var(--brand-dark)'
-                                            }}
-                                          >
-                                            <Edit size={11} />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleDeleteEvent(cam.id, ev.id);
-                                            }}
-                                            title="Hapus Event"
-                                            style={{
-                                              background: '#FEF2F2',
-                                              border: '1px solid #FCA5A5',
-                                              borderRadius: '4px',
-                                              width: '24px', height: '24px',
-                                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                              cursor: 'pointer', color: '#EF4444'
-                                            }}
-                                          >
-                                            <Trash2 size={11} />
-                                          </button>
+                                        {/* Skills Checklist inside Assigned Group */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                          {assignedGroup.skills.length === 0 ? (
+                                            <div style={{ padding: '16px', background: '#F4F6FA', borderRadius: '8px', textAlign: 'center', border: '1px dashed #E3E6EE' }}>
+                                              <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic' }}>Grup ini belum memiliki rule AI.</span>
+                                            </div>
+                                          ) : (
+                                            assignedGroup.skills.map(skill => {
+                                              const isEnabled = cctvEnabledSkills[cam.id]?.[skill.id] !== false;
+
+                                              let activeBg = 'rgba(30,73,226,0.03)';
+                                              let activeBorder = '1.5px solid var(--brand-primary)';
+
+                                              if (skill.code === 'no_human_zone') {
+                                                activeBg = 'rgba(239,68,68,0.03)';
+                                                activeBorder = '1.5px solid #EF4444';
+                                              } else if (skill.code === 'no_truck_stop') {
+                                                activeBg = 'rgba(245,127,23,0.03)';
+                                                activeBorder = '1.5px solid #F57F17';
+                                              }
+
+                                              return (
+                                                <div
+                                                  key={skill.id}
+                                                  onClick={() => {
+                                                    if (!isOffline) toggleCctvSkill(cam.id, skill.id);
+                                                  }}
+                                                  style={{
+                                                    display: 'flex',
+                                                    alignItems: 'flex-start',
+                                                    gap: '12px',
+                                                    padding: '12px 16px',
+                                                    background: isEnabled ? activeBg : 'white',
+                                                    border: isEnabled ? activeBorder : '1.5px solid #E3E6EE',
+                                                    borderRadius: '8px',
+                                                    cursor: isOffline ? 'not-allowed' : 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    userSelect: 'none'
+                                                  }}
+                                                >
+                                                  <input
+                                                    type="checkbox"
+                                                    disabled={isOffline}
+                                                    checked={isEnabled}
+                                                    onChange={() => {}} // handled by onClick on parent container
+                                                    style={{ marginTop: '3.5px', cursor: isOffline ? 'not-allowed' : 'pointer' }}
+                                                  />
+                                                  <div style={{ minWidth: 0 }}>
+                                                    <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                      {skill.description}
+                                                    </span>
+                                                    {skill.guidelines && (
+                                                      <span style={{ fontSize: '10.5px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                        {skill.guidelines}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              );
+                                            })
+                                          )}
                                         </div>
-                                      </div>
+                                      </>
                                     );
-                                  })}
+                                  })()}
 
                                   {/* Custom AI Event Button & Panel */}
                                   <div style={{ marginTop: '4px' }}>
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        if (expandedCctvId === cam.id) {
-                                          setExpandedCctvId(null);
-                                          setEditingEventId(null);
-                                          setEventCode('');
-                                          setEventDesc('');
-                                          setEventGuidelines('');
-                                        } else {
-                                          setExpandedCctvId(cam.id);
-                                          setEditingEventId(null);
-                                          setEventCode('');
-                                          setEventDesc('');
-                                          setEventGuidelines('');
-                                        }
+                                        setExpandedCctvId(expandedCctvId === cam.id ? null : cam.id);
                                       }}
                                       disabled={isOffline}
                                       style={{
@@ -2728,11 +2858,11 @@ export default function Dashboard() {
                                         transition: 'all 0.2s'
                                       }}
                                     >
-                                      <Plus size={14} /> 
-                                      {expandedCctvId === cam.id ? (editingEventId ? 'Tutup Form Edit AI Kustom' : 'Tutup Form Input AI Kustom') : 'Tambah Event AI Kustom'}
+                                      <Terminal size={14} /> 
+                                      {expandedCctvId === cam.id ? 'Tutup Konfigurasi VLM' : 'Ubah VLM Stream Context'}
                                     </button>
 
-                                    {/* Inline Expanded Custom Event Panel */}
+                                    {/* Inline Expanded Stream Context Panel */}
                                     {expandedCctvId === cam.id && (
                                       <div style={{
                                         marginTop: '12px',
@@ -2744,20 +2874,20 @@ export default function Dashboard() {
                                         animation: 'tabFade 0.3s ease forwards'
                                       }}>
                                         {/* Stream Context Field */}
-                                        <div style={{ marginBottom: '16px' }}>
+                                        <div>
                                           <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '2px' }}>
                                             Stream Context
                                           </label>
                                           <span style={{ display: 'block', fontSize: '10px', color: 'var(--outline)', marginBottom: '6px' }}>
-                                            Provide general context about the video stream to help with detection.
+                                            Berikan konteks umum mengenai video feed ini untuk membantu proses inferensi model VLM.
                                           </span>
                                           <textarea
                                             value={cctvContexts[cam.id] || ''}
                                             onChange={(e) => handleContextChange(cam.id, e.target.value)}
-                                            placeholder="Provide stream context for VLM engine..."
+                                            placeholder="Tuliskan konteks stream, misalnya: Area pengerukan batu bara pit quarry barat..."
                                             style={{
                                               width: '100%',
-                                              minHeight: '64px',
+                                              minHeight: '80px',
                                               background: 'white',
                                               border: '1px solid #C3C6D4',
                                               borderRadius: '6px',
@@ -2773,121 +2903,6 @@ export default function Dashboard() {
                                             onFocus={e => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
                                             onBlur={e => e.currentTarget.style.borderColor = '#C3C6D4'}
                                           />
-                                        </div>
-
-                                        {/* Add New Event Form */}
-                                        <div style={{ background: 'white', padding: '14px', borderRadius: '6px', border: '1px solid #E3E6EE' }}>
-                                          <h5 style={{ margin: '0 0 12px', fontSize: '10.5px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                            {editingEventId ? 'Edit Event' : 'Add New Event'}
-                                          </h5>
-                                          
-                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                            <div>
-                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Event Code</label>
-                                              <input
-                                                type="text"
-                                                value={eventCode}
-                                                onChange={(e) => setEventCode(e.target.value)}
-                                                placeholder="e.g. person_detected"
-                                                style={{
-                                                  width: '100%',
-                                                  background: 'white',
-                                                  border: '1px solid #C3C6D4',
-                                                  borderRadius: '6px',
-                                                  padding: '8px 10px',
-                                                  color: 'var(--brand-dark)',
-                                                  fontSize: '11px',
-                                                  outline: 'none'
-                                                }}
-                                              />
-                                            </div>
-
-                                            <div>
-                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Event Description</label>
-                                              <input
-                                                type="text"
-                                                value={eventDesc}
-                                                onChange={(e) => setEventDesc(e.target.value)}
-                                                placeholder="e.g. Person detected in frame"
-                                                style={{
-                                                  width: '100%',
-                                                  background: 'white',
-                                                  border: '1px solid #C3C6D4',
-                                                  borderRadius: '6px',
-                                                  padding: '8px 10px',
-                                                  color: 'var(--brand-dark)',
-                                                  fontSize: '11px',
-                                                  outline: 'none'
-                                                }}
-                                              />
-                                            </div>
-
-                                            <div>
-                                              <label style={{ display: 'block', fontSize: '10px', color: 'var(--brand-dark)', fontWeight: 600, marginBottom: '4px' }}>Detection Guidelines</label>
-                                              <textarea
-                                                value={eventGuidelines}
-                                                onChange={(e) => setEventGuidelines(e.target.value)}
-                                                placeholder="e.g. Look for human shapes, standing or walking"
-                                                style={{
-                                                  width: '100%',
-                                                  minHeight: '50px',
-                                                  background: 'white',
-                                                  border: '1px solid #C3C6D4',
-                                                  borderRadius: '6px',
-                                                  padding: '8px 10px',
-                                                  color: 'var(--brand-dark)',
-                                                  fontSize: '11px',
-                                                  lineHeight: 1.3,
-                                                  resize: 'none',
-                                                  outline: 'none'
-                                                }}
-                                              />
-                                            </div>
-
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                              <button
-                                                type="button"
-                                                onClick={() => handleAddEvent(cam.id)}
-                                                style={{
-                                                  background: 'var(--brand-primary)',
-                                                  color: 'white',
-                                                  border: 'none',
-                                                  borderRadius: '6px',
-                                                  padding: '8px 16px',
-                                                  fontSize: '11px',
-                                                  fontWeight: 600,
-                                                  cursor: 'pointer',
-                                                  transition: 'background 0.2s'
-                                                }}
-                                              >
-                                                {editingEventId ? 'Simpan' : 'Tambah'}
-                                              </button>
-                                              {editingEventId && (
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setEditingEventId(null);
-                                                    setEventCode('');
-                                                    setEventDesc('');
-                                                    setEventGuidelines('');
-                                                    setExpandedCctvId(null);
-                                                  }}
-                                                  style={{
-                                                    background: '#F4F6FA',
-                                                    color: 'var(--brand-dark)',
-                                                    border: '1px solid #E3E6EE',
-                                                    borderRadius: '6px',
-                                                    padding: '8px 16px',
-                                                    fontSize: '11px',
-                                                    fontWeight: 600,
-                                                    cursor: 'pointer'
-                                                  }}
-                                                >
-                                                  Batal
-                                                </button>
-                                              )}
-                                            </div>
-                                          </div>
                                         </div>
                                       </div>
                                     )}
@@ -2907,6 +2922,368 @@ export default function Dashboard() {
 
           </div>
         </section>
+      )}
+
+      {/* ===== MODAL: KELOLA POLICY GROUP ===== */}
+      {showPolicyModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(11,29,58,0.6)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '16px', width: '100%',
+            maxWidth: '960px', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.25)', border: '1px solid #E3E6EE',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 32px', borderBottom: '1px solid #E3E6EE' }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Settings size={20} color="var(--brand-primary)" /> Pengaturan Group Policy & AI Skills
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--outline)' }}>
+                  Definisikan group template dan kelola rule/skill deteksi AI di dalamnya.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPolicyModal(false);
+                  setEditingSkillId(null);
+                  setSkillCode('');
+                  setSkillDesc('');
+                  setSkillGuidelines('');
+                  setIsCreatingGroup(false);
+                }}
+                style={{
+                  background: 'none', border: 'none', fontSize: '20px', fontWeight: 600,
+                  color: 'var(--outline)', cursor: 'pointer', padding: '4px 8px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content - Two Column Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', flex: 1, overflow: 'hidden' }}>
+              
+              {/* Left Column: Group List */}
+              <div style={{ borderRight: '1px solid #E3E6EE', padding: '24px', overflowY: 'auto', background: '#F8FAFC', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 12px', fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Daftar Group Policy
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {workloadGroups.map(group => {
+                      const isSelected = selectedGroupId === group.id;
+                      return (
+                        <div
+                          key={group.id}
+                          onClick={() => {
+                            setSelectedGroupId(group.id);
+                            setEditingSkillId(null);
+                            setSkillCode('');
+                            setSkillDesc('');
+                            setSkillGuidelines('');
+                          }}
+                          style={{
+                            padding: '12px 16px',
+                            background: isSelected ? 'white' : 'transparent',
+                            border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : 'transparent'}`,
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, fontSize: '13px', color: isSelected ? 'var(--brand-dark)' : 'var(--on-surface-variant)', display: 'block' }}>
+                            {group.name}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--outline)', display: 'block', marginTop: '2px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                            {group.skills.length} Rule AI • {group.description || 'Tidak ada deskripsi'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Create New Group Section */}
+                <div style={{ borderTop: '1px solid #E3E6EE', paddingTop: '20px' }}>
+                  {!isCreatingGroup ? (
+                    <button
+                      onClick={() => setIsCreatingGroup(true)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(13,71,161,0.06)',
+                        color: 'var(--brand-primary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '10px 14px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Plus size={14} /> Buat Group Baru
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'white', padding: '14px', borderRadius: '10px', border: '1px solid #E3E6EE' }}>
+                      <span style={{ fontWeight: 700, fontSize: '11px', color: 'var(--brand-dark)' }}>GROUP BARU</span>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Nama Group..."
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          style={{
+                            width: '100%', padding: '8px 10px', fontSize: '12px',
+                            border: '1px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <textarea
+                          placeholder="Deskripsi..."
+                          value={newGroupDesc}
+                          onChange={(e) => setNewGroupDesc(e.target.value)}
+                          style={{
+                            width: '100%', padding: '8px 10px', fontSize: '12px', minHeight: '48px',
+                            border: '1px solid #C3C6D4', borderRadius: '6px', outline: 'none',
+                            fontFamily: 'inherit', resize: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={handleCreateGroup}
+                          style={{
+                            flex: 1, background: 'var(--brand-primary)', color: 'white',
+                            border: 'none', borderRadius: '6px', padding: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                          }}
+                        >
+                          Simpan
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsCreatingGroup(false);
+                            setNewGroupName('');
+                            setNewGroupDesc('');
+                          }}
+                          style={{
+                            flex: 1, background: '#F4F6FA', color: 'var(--brand-dark)',
+                            border: '1px solid #E3E6EE', borderRadius: '6px', padding: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                          }}
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Group Skills Editor */}
+              <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                {(() => {
+                  const activeGroup = workloadGroups.find(g => g.id === selectedGroupId);
+                  if (!activeGroup) return null;
+
+                  return (
+                    <>
+                      {/* Active Group Title & Delete Option */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #F1F3F9', paddingBottom: '16px' }}>
+                        <div>
+                          <h4 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '16px' }}>
+                            {activeGroup.name}
+                          </h4>
+                          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                            {activeGroup.description || 'Tidak ada deskripsi untuk group policy ini.'}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteGroup(activeGroup.id)}
+                          style={{
+                            background: '#FEF2F2',
+                            color: '#EF4444',
+                            border: '1px solid #FCA5A5',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Trash2 size={13} /> Hapus Group
+                        </button>
+                      </div>
+
+                      {/* Add/Edit Skill Form */}
+                      <div style={{ background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '20px' }}>
+                        <h5 style={{ margin: '0 0 16px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {editingSkillId ? '📝 Edit Rule AI' : '➕ Tambah Rule AI Baru'}
+                        </h5>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Event Code</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. no_human_zone"
+                                value={skillCode}
+                                onChange={(e) => setSkillCode(e.target.value)}
+                                style={{
+                                  width: '100%', padding: '10px', fontSize: '12.5px',
+                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Deskripsi Singkat</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Area terlarang untuk operator jalan kaki"
+                                value={skillDesc}
+                                onChange={(e) => setSkillDesc(e.target.value)}
+                                style={{
+                                  width: '100%', padding: '10px', fontSize: '12.5px',
+                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Petunjuk AI (Detection Guidelines)</label>
+                            <textarea
+                              placeholder="Berikan instruksi operasional untuk AI agent, misal: Cari objek manusia menggunakan rompi oranye di dalam area marka kuning..."
+                              value={skillGuidelines}
+                              onChange={(e) => setSkillGuidelines(e.target.value)}
+                              style={{
+                                width: '100%', padding: '10px', fontSize: '12.5px', minHeight: '94px',
+                                border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none',
+                                fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.4
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                          {editingSkillId && (
+                            <button
+                              onClick={() => {
+                                setEditingSkillId(null);
+                                setSkillCode('');
+                                setSkillDesc('');
+                                setSkillGuidelines('');
+                              }}
+                              style={{
+                                background: 'white', color: 'var(--brand-dark)',
+                                border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 16px',
+                                fontSize: '12.5px', fontWeight: 600, cursor: 'pointer'
+                              }}
+                            >
+                              Batal
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSaveSkillToGroup(activeGroup.id)}
+                            style={{
+                              background: 'var(--brand-primary)', color: 'white',
+                              border: 'none', borderRadius: '8px', padding: '8px 20px',
+                              fontSize: '12.5px', fontWeight: 700, cursor: 'pointer'
+                            }}
+                          >
+                            {editingSkillId ? 'Simpan Perubahan' : 'Tambah Rule'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Skills List in Active Group */}
+                      <div>
+                        <h5 style={{ margin: '0 0 12px', color: 'var(--outline)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          ATURAN DETEKSI AKTIF DALAM GROUP POLICY ({activeGroup.skills.length})
+                        </h5>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {activeGroup.skills.length === 0 ? (
+                            <div style={{ padding: '32px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', border: '1.5px dashed #E3E6EE' }}>
+                              <span style={{ fontSize: '13px', color: 'var(--outline)', fontStyle: 'italic' }}>
+                                Group policy ini belum memiliki rule deteksi AI. Tambahkan rule di atas.
+                              </span>
+                            </div>
+                          ) : (
+                            activeGroup.skills.map(skill => (
+                              <div
+                                key={skill.id}
+                                style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '16px 20px', background: 'white', border: '1.5px solid #E3E6EE',
+                                  borderRadius: '12px'
+                                }}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--brand-dark)' }}>
+                                      {skill.description}
+                                    </span>
+                                    <code style={{ fontSize: '10px', background: '#EEF2F6', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                      {skill.code}
+                                    </code>
+                                  </div>
+                                  {skill.guidelines && (
+                                    <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      Guidelines: {skill.guidelines}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                                  <button
+                                    onClick={() => handleEditSkillClick(skill)}
+                                    style={{
+                                      background: '#F4F6FA', border: '1px solid #E3E6EE', borderRadius: '6px',
+                                      width: '32px', height: '32px', display: 'flex', alignItems: 'center',
+                                      justifyContent: 'center', cursor: 'pointer', color: 'var(--brand-dark)'
+                                    }}
+                                  >
+                                    <Edit size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSkillFromGroup(activeGroup.id, skill.id)}
+                                    style={{
+                                      background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px',
+                                      width: '32px', height: '32px', display: 'flex', alignItems: 'center',
+                                      justifyContent: 'center', cursor: 'pointer', color: '#EF4444'
+                                    }}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ===== MODAL: TAMBAH PENGGUNA ===== */}
