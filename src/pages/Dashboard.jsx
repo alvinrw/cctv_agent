@@ -1195,69 +1195,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* PUSAT PERINGATAN (ALERTS CENTER) UTAMA */}
-            <div style={{
-              background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px',
-              padding: '24px', marginBottom: '28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-            }}>
-              <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
-                <ShieldAlert size={18} color={totalCCTVOffline > 0 ? '#ff4d4d' : '#10b981'} />
-                Pusat Peringatan & Status Operasional Keamanan Aktif
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                {/* Alert 1: CCTV Offline Status */}
-                <div style={{
-                  background: totalCCTVOffline > 0 ? '#FFF5F5' : '#F0FDF4',
-                  border: `1.5px solid ${totalCCTVOffline > 0 ? '#FEE2E2' : '#DCFCE7'}`,
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <WifiOff size={20} color={totalCCTVOffline > 0 ? '#ef4444' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalCCTVOffline > 0 ? '#991B1B' : '#14532D' }}>
-                      {totalCCTVOffline > 0 ? `${totalCCTVOffline} Kamera CCTV Offline` : 'Seluruh Kamera Koneksi Baik'}
-                    </h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalCCTVOffline > 0 ? '#7F1D1D' : '#15803D', lineHeight: 1.4 }}>
-                      {totalCCTVOffline > 0 
-                        ? `Masalah koneksi terdeteksi di: ${sites.flatMap(s => s.details.filter(d => d.type === 'cctv' && d.status === 'OFFLINE').map(d => d.name.replace('CCTV ', ''))).join(', ')}.`
-                        : 'Semua node AI Edge CCTV mengirimkan data telemetry realtime secara optimal.'
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                {/* Alert 2: Agent Status */}
-                <div style={{
-                  background: '#F0FDF4',
-                  border: '1.5px solid #DCFCE7',
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <ShieldCheck size={20} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#14532D' }}>
-                      Status AI Agent: Aktif
-                    </h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#15803D', lineHeight: 1.4 }}>
-                      Sistem AI Agent utama berjalan secara optimal untuk memantau keselamatan & keamanan area tambang.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Alert 3: AI Latency compute */}
-                <div style={{
-                  background: '#F0F9FF', border: '1.5px solid #E0F2FE',
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <Cpu size={20} color="#0284c7" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#075985' }}>Edge Compute Engine (AI)</h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#0369a1', lineHeight: 1.4 }}>
-                      Waktu proses inferensi deteksi objek APD, truk overspeed, & perimeter aman rata-rata: <strong>8ms (Sangat Cepat)</strong>.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* NOTIFIKASI & BROADCAST TELEGRAM */}
             <div style={{
