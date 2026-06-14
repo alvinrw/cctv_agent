@@ -5,6 +5,7 @@ import {
   WifiOff, Plus, UserPlus, Users, Map, Activity, Trash2, Clock,
   Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle, Edit, Settings
 } from 'lucide-react';
+import VideoPlayer from '../components/VideoPlayer';
 
 // Data Lokasi Awal - Sektor Pertambangan Batubara Astra
 const INITIAL_SITES = [
@@ -25,7 +26,7 @@ const INITIAL_SITES = [
         status: 'ONLINE',
         feedDescription: 'Excavator PC2000 loading coal into haul trucks.',
         clippings: [
-          { id: 'clip-a2', time: '12:50:33', title: 'Shovel Overload Trigger', camera: 'CCTV Excavator Shovel 01', duration: '10s', description: 'Kelebihan muatan bucket shovel terdeteksi AI.', type: 'warning' }
+          { id: 'clip-a2', time: '12:50:33', title: 'Safety Violation', camera: 'CCTV Excavator Shovel 01', duration: '10s', description: 'Pekerja melewati batas keamanan', type: 'warning' }
         ]
       },
       {
@@ -1733,11 +1734,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Player Screen */}
-                  <div style={{ height: '200px', background: '#02060f', position: 'relative', display: 'flex', alignItems: 'center', justify: 'center', overflow: 'hidden' }}>
-
-                    {/* CCTV grid effect */}
-                    <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '15px 15px', pointerEvents: 'none' }} />
-
+                  <div style={{ height: '200px', background: '#02060f', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '8px' }}>
                     {/* Error / Offline State */}
                     {activeCctv && activeCctv.status === 'OFFLINE' ? (
                       <div style={{ textAlign: 'center', zIndex: 5, color: '#ff4d4d', padding: '20px' }}>
@@ -1746,86 +1743,76 @@ export default function Dashboard() {
                         <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Signal timeout or hardware offline.</p>
                       </div>
                     ) : (
-                      <>
-                        {/* Bounding Box Visuals */}
-                        {!isPlayingClip ? (
-                          <>
-                            <div style={{ position: 'absolute', top: '40px', left: '60px', width: '120px', height: '100px', border: '1.5px solid #10b981', borderRadius: '3px' }}>
-                              <span style={{ background: '#10b981', color: 'white', fontSize: '8px', fontWeight: 700, padding: '1px 3px', position: 'absolute', top: 0, left: 0 }}>HD785 TRUCK [99.1%]</span>
-                            </div>
-                            <div style={{ position: 'absolute', bottom: '40px', right: '80px', width: '50px', height: '80px', border: '1.5px solid #FFC107', borderRadius: '3px' }}>
-                              <span style={{ background: '#FFC107', color: 'black', fontSize: '8px', fontWeight: 700, padding: '1px 3px', position: 'absolute', top: 0, left: 0 }}>STAFF [98.4%]</span>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div style={{ position: 'absolute', top: '30px', right: '60px', width: '130px', height: '110px', border: '2.5px solid #ff4d4d', borderRadius: '4px', boxShadow: '0 0 10px rgba(255,77,77,0.4)', animation: 'flashRed 1s infinite' }}>
-                              <span style={{ background: '#ff4d4d', color: 'white', fontSize: '8px', fontWeight: 700, padding: '2px 4px', position: 'absolute', top: 0, left: 0, display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                <AlertTriangle size={8} /> {selectedClip.title.toUpperCase()}
-                              </span>
-                            </div>
-                          </>
-                        )}
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+                        {/* Video Player with Overlays */}
+                        <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
+                          <VideoPlayer
+                            isPlaying={isPlayingClip}
+                            onProgress={setClipProgress}
+                            clip={selectedClip}
+                            isLive={!isPlayingClip}
+                          />
 
-                        {/* Status Overlay Badge (Sangat Jelas untuk Live vs Replay) */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '12px',
-                          left: '12px',
-                          background: isPlayingClip ? 'rgba(239, 68, 68, 0.9)' : 'rgba(16, 185, 129, 0.9)',
-                          color: 'white',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                          zIndex: 10,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-                          border: isPlayingClip ? '1.5px solid #ef4444' : '1.5px solid #10b981'
-                        }}>
-                          <span style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: 'white',
-                            animation: 'mapPulse 1s infinite',
-                            display: 'inline-block'
-                          }} />
-                          {isPlayingClip ? 'REPLAY (REKAMAN KEJADIAN)' : 'LIVE STREAM'}
-                        </div>
+                          {/* Status Overlay Badge */}
+                          {/* <div style={{
+                            position: 'absolute',
+                            top: '12px',
+                            left: '12px',
+                            background: isPlayingClip ? 'rgba(239, 68, 68, 0.9)' : 'rgba(16, 185, 129, 0.9)',
+                            color: 'white',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            zIndex: 10,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+                            border: isPlayingClip ? '1.5px solid #ef4444' : '1.5px solid #10b981'
+                          }}>
+                            <span style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: 'white',
+                              animation: 'mapPulse 1s infinite',
+                              display: 'inline-block'
+                            }} />
+                            {isPlayingClip ? 'REPLAY (REKAMAN KEJADIAN)' : 'LIVE STREAM'}
+                          </div> */}
 
-                        {/* Technical Parameters on the top-right */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          color: 'rgba(255,255,255,0.7)',
-                          fontSize: '8px',
-                          fontFamily: 'monospace',
-                          lineHeight: 1.4,
-                          textAlign: 'right',
-                          background: 'rgba(0, 0, 0, 0.4)',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid rgba(255,255,255,0.08)'
-                        }}>
-                          CAM_ID: {activeCctv ? activeCctv.id.toUpperCase() : 'UNKNOWN'}<br />
-                          FPS: 30.0 | RES: 1080P<br />
-                          CODEC: H.265
-                        </div>
-
-                        <div style={{ position: 'absolute', bottom: '10px', left: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '9px', fontWeight: 500 }}>
-                          {activeCctv ? activeCctv.feedDescription : ''}
-                        </div>
-
-                        {isPlayingClip && (
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
-                            <div style={{ width: `${clipProgress}%`, height: '100%', background: '#FFC107', transition: 'width 0.5s linear' }} />
+                          {/* Technical Parameters */}
+                          <div style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '12px',
+                            color: 'rgba(255,255,255,0.7)',
+                            fontSize: '8px',
+                            fontFamily: 'monospace',
+                            lineHeight: 1.4,
+                            textAlign: 'right',
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(255,255,255,0.08)'
+                          }}>
+                            CAM_ID: {activeCctv ? activeCctv.id.toUpperCase() : 'UNKNOWN'}<br />
+                            FPS: 30.0 | RES: 1080P<br />
+                            CODEC: H.265
                           </div>
-                        )}
-                      </>
+
+                          <div style={{ position: 'absolute', bottom: '10px', left: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '9px', fontWeight: 500 }}>
+                            {activeCctv ? activeCctv.feedDescription : ''}
+                          </div>
+
+                          {isPlayingClip && (
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
+                              <div style={{ width: `${clipProgress}%`, height: '100%', background: '#FFC107', transition: 'width 0.5s linear' }} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
