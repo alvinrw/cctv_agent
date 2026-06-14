@@ -26,10 +26,10 @@ export default function Home() {
               Ubah pengawasan pasif menjadi pencegahan aktif dan respon insiden otomatis demi keselamatan kerja maksimal.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '48px' }}>
-              <Link to="/contact" className="btn btn-primary">Jadwalkan Demo</Link>
+              <Link to="/solutions/agent-ai-cctv" className="btn btn-primary">Jadwalkan Demo</Link>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
-              {['Pemantauan 24/7','99.9% Uptime Sistem','Standar Keamanan Astra'].map(c => (
+              {['Pemantauan 24/7', '99.9% Uptime Sistem', 'Standar Keamanan Astra'].map(c => (
                 <div key={c} className="check-item">
                   <CheckCircle2 size={18} color="#FFD600" /><span>{c}</span>
                 </div>
@@ -48,7 +48,7 @@ export default function Home() {
               <div className="glass-card" style={{ padding: '24px', position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '16px', marginBottom: '20px' }}>
                   <h3 style={{ color: 'white', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD600"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD600"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" /></svg>
                     Live Security Radar Scan
                   </h3>
                   <span style={{ position: 'relative', display: 'inline-flex', width: '12px', height: '12px' }}>
@@ -112,7 +112,7 @@ export default function Home() {
       <section style={{ background: 'linear-gradient(135deg, #1A42CC 0%, #1E49E2 100%)', padding: '64px 0' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '40px', textAlign: 'center' }}>
-            {[{num:'99.9%',label:'Uptime Sistem'},{num:'50+',label:'CCTV Terkoneksi'},{num:'24/7',label:'Pemantauan Aktif'}].map(s => (
+            {[{ num: '99.9%', label: 'Uptime Sistem' }, { num: '50+', label: 'CCTV Terkoneksi' }, { num: '24/7', label: 'Pemantauan Aktif' }].map(s => (
               <div key={s.label}>
                 <p style={{ fontSize: '42px', fontWeight: 700, color: '#FFD600', lineHeight: 1.1, marginBottom: '8px' }}>{s.num}</p>
                 <p style={{ color: 'rgba(219,234,254,0.85)', fontSize: '15px', fontWeight: 500 }}>{s.label}</p>
@@ -124,17 +124,17 @@ export default function Home() {
 
       {/* CTA */}
       <section className="cta-section">
-        <div style={{ position:'absolute',top:0,left:0,width:'280px',height:'280px',borderRadius:'50%',background:'#1A42CC',filter:'blur(80px)',opacity:0.5 }} className="animate-blob" />
-        <div style={{ position:'absolute',top:0,right:0,width:'280px',height:'280px',borderRadius:'50%',background:'#FFD600',filter:'blur(80px)',opacity:0.15 }} className="animate-blob animation-delay-2000" />
-        <div style={{ position:'absolute',bottom:'-80px',left:'10%',width:'280px',height:'280px',borderRadius:'50%',background:'#07152C',filter:'blur(80px)',opacity:0.5 }} className="animate-blob animation-delay-4000" />
-        <div className="container" style={{ position:'relative',zIndex:2 }}>
-          <div style={{ display:'flex',flexDirection:'column',alignItems:'center',maxWidth:'680px',margin:'0 auto',textAlign:'center' }}>
-            <Rocket size={48} color="#FFD600" style={{ marginBottom:'24px', filter:'drop-shadow(0 0 12px rgba(255,214,0,0.5))' }} />
-            <h2 style={{ color:'white', marginBottom:'16px' }}>Siap Mengamankan Operasional Tambang Anda?</h2>
-            <p style={{ color:'rgba(219,234,254,0.9)', marginBottom:'40px', fontSize:'16px' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '280px', height: '280px', borderRadius: '50%', background: '#1A42CC', filter: 'blur(80px)', opacity: 0.5 }} className="animate-blob" />
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '280px', height: '280px', borderRadius: '50%', background: '#FFD600', filter: 'blur(80px)', opacity: 0.15 }} className="animate-blob animation-delay-2000" />
+        <div style={{ position: 'absolute', bottom: '-80px', left: '10%', width: '280px', height: '280px', borderRadius: '50%', background: '#07152C', filter: 'blur(80px)', opacity: 0.5 }} className="animate-blob animation-delay-4000" />
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
+            <Rocket size={48} color="#FFD600" style={{ marginBottom: '24px', filter: 'drop-shadow(0 0 12px rgba(255,214,0,0.5))' }} />
+            <h2 style={{ color: 'white', marginBottom: '16px' }}>Siap Mengamankan Operasional Tambang Anda?</h2>
+            <p style={{ color: 'rgba(219,234,254,0.9)', marginBottom: '40px', fontSize: '16px' }}>
               Bergabunglah dengan pengawas site terkemuka yang memercayakan keselamatan area tambang mereka pada sistem pemantauan AI PamAgents.
             </p>
-            <Link to="/contact" className="btn btn-primary" style={{ padding:'16px 48px', fontSize:'17px' }}>
+            <Link to="/contact" className="btn btn-primary" style={{ padding: '16px 48px', fontSize: '17px' }}>
               Jadwalkan Demo Sekarang
             </Link>
           </div>

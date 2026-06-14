@@ -331,7 +331,7 @@ export default function Dashboard() {
   // Edit states for Sectors and CCTV
   const [editingSiteId, setEditingSiteId] = useState(null);
   const [editingSiteName, setEditingSiteName] = useState('');
-  
+
   const [editingCctvId, setEditingCctvId] = useState(null);
   const [editingCctvName, setEditingCctvName] = useState('');
   const [editingCctvDesc, setEditingCctvDesc] = useState('');
@@ -355,7 +355,7 @@ export default function Dashboard() {
 
   // CCTV Video Player State
   const [activeCctv, setActiveCctv] = useState(null);
-  
+
   // Playback/Clippings State
   const [isPlayingClip, setIsPlayingClip] = useState(false);
   const [selectedClip, setSelectedClip] = useState(null);
@@ -516,7 +516,7 @@ export default function Dashboard() {
         // Update target CCTV inside target site
         const updatedSites = prevSites.map((s, idx) => {
           if (idx !== siteIndex) return s;
-          
+
           return {
             ...s,
             details: s.details.map(device => {
@@ -574,8 +574,8 @@ export default function Dashboard() {
         const currentSkills = group.skills || [];
         if (editingSkillId) {
           // Edit existing skill in this group
-          const updated = currentSkills.map(sk => 
-            sk.id === editingSkillId 
+          const updated = currentSkills.map(sk =>
+            sk.id === editingSkillId
               ? { ...sk, code: sanitizedCode, description: skillDesc.trim(), guidelines: skillGuidelines.trim() }
               : sk
           );
@@ -716,7 +716,7 @@ export default function Dashboard() {
 
     setSites(prev => [...prev, newSite]);
     setSelectedSite(newSite);
-    
+
     // Reset inputs
     setNewSiteName('');
     setNewSiteCctvCount(4);
@@ -753,7 +753,7 @@ export default function Dashboard() {
 
     const updatedSites = sites.map(s => {
       if (s.id !== newCctvSiteId) return s;
-      
+
       const isOffline = newCctvStatus === 'OFFLINE';
       return {
         ...s,
@@ -797,7 +797,7 @@ export default function Dashboard() {
     if (window.confirm("Apakah Anda yakin ingin menghapus sektor ini? Semua kamera di dalamnya juga akan terhapus.")) {
       const updatedSites = sites.filter(s => s.id !== siteId);
       setSites(updatedSites);
-      
+
       const time = new Date().toLocaleTimeString('id-ID');
       setLogs(prev => [
         { time, message: `SEKTOR DIHAPUS: Sektor ID ${siteId} berhasil dihapus dari sistem`, type: 'info' },
@@ -871,7 +871,7 @@ export default function Dashboard() {
         if (c.id !== cctvId) return c;
         return { ...c, name: newName.trim(), feedDescription: newDesc.trim(), status: newStatus };
       });
-      
+
       const cctvTotal = updatedDetails.length;
       const cctvOffline = updatedDetails.filter(c => c.status === 'OFFLINE').length;
       const cctvOnline = cctvTotal - cctvOffline;
@@ -960,7 +960,7 @@ export default function Dashboard() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px' }}>
-      
+
       {/* ===== CUSTOM DASHBOARD NAVBAR ===== */}
       <nav style={{
         background: 'var(--brand-dark)',
@@ -1009,7 +1009,7 @@ export default function Dashboard() {
           >
             <Home size={15} /> Utama
           </button>
-          
+
           <button
             onClick={() => { setActiveSubTab('map'); setFilterKPI('ALL'); }}
             style={{
@@ -1069,7 +1069,7 @@ export default function Dashboard() {
           >
             <Cpu size={15} /> Workload Agen
           </button>
-          
+
           <button
             onClick={() => setActiveSubTab('admin')}
             style={{
@@ -1133,7 +1133,7 @@ export default function Dashboard() {
       {activeSubTab === 'overview' && (
         <section style={{ marginTop: '32px' }}>
           <div className="container animate-tab-fade">
-            
+
 
 
             {/* KPI METRICS ROW */}
@@ -1167,7 +1167,7 @@ export default function Dashboard() {
                 }}
                 className="hover-pop"
               >
-                <div style={{ background: totalCCTVOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--outline)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
+                <div style={{ background: totalCCTVOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--outline)', padding: '8px', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <WifiOff size={24} />
                 </div>
                 <div>
@@ -1296,10 +1296,10 @@ export default function Dashboard() {
 
             {/* Grid 2 Columns: System Status & Activity Feed */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }} className="db-layout-grid">
-              
+
               {/* Left Column: ALL SECTOR STATUS WITH CCTV */}
               <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
-                
+
                 {/* Header Row with Title and Selector Tabs */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #F0EDED', paddingBottom: '12px', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1386,9 +1386,9 @@ export default function Dashboard() {
                             {siteCctvs.map(cam => {
                               const isCamOffline = cam.status === 'OFFLINE';
                               const latestClip = cam.clippings && cam.clippings[0];
-                              const reportText = isCamOffline 
-                                ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.' 
-                                : latestClip 
+                              const reportText = isCamOffline
+                                ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.'
+                                : latestClip
                                   ? `[REPLAY] ${latestClip.title}: ${latestClip.description}`
                                   : `Normal: ${cam.feedDescription}`;
 
@@ -1402,7 +1402,7 @@ export default function Dashboard() {
                                     <div>
                                       <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
                                       <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
-                                      
+
                                       {/* Workload Badges */}
                                       {!isCamOffline && (
                                         <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
@@ -1465,7 +1465,7 @@ export default function Dashboard() {
 
               {/* Right Column: CENTRAL INCIDENTS LOGS WITH REDIRECT & AUTOPLAY PLAYBACK */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                
+
                 {/* Global Clippings History Card */}
                 <div style={{
                   background: 'white', borderRadius: '16px', padding: '24px',
@@ -1556,7 +1556,7 @@ export default function Dashboard() {
       {activeSubTab === 'map' && (
         <section style={{ marginTop: '32px' }}>
           <div className="container animate-tab-fade">
-            
+
             {/* Filter tags status */}
             {filterKPI !== 'ALL' && (
               <div style={{ background: '#ff5f5615', border: '1px solid #ff4d4d35', borderRadius: '8px', padding: '12px 20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1573,7 +1573,7 @@ export default function Dashboard() {
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.3fr', gap: '32px' }} className="db-layout-grid">
-              
+
               {/* LEFT: SATELLITE MAP */}
               <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
                 <div style={{ marginBottom: '20px' }}>
@@ -1620,13 +1620,13 @@ export default function Dashboard() {
 
                 {/* Satellite Map Viewbox */}
                 <div style={{
-                  position: 'relative', 
+                  position: 'relative',
                   backgroundImage: 'url("/mine_site_satellite.png")',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   borderRadius: '12px',
-                  height: '520px', 
-                  overflow: 'hidden', 
+                  height: '520px',
+                  overflow: 'hidden',
                   border: '2px solid rgba(13,71,161,0.2)',
                   boxShadow: 'inset 0 0 80px rgba(0,0,0,0.7)'
                 }}>
@@ -1703,7 +1703,7 @@ export default function Dashboard() {
 
               {/* RIGHT: SURVEILLANCE LIVE STREAM & HISTORY CLIPPINGS */}
               <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
-                
+
                 {/* Site Header */}
                 <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1721,7 +1721,7 @@ export default function Dashboard() {
 
                 {/* CCTV Live Video Stream Player (Simulasi) */}
                 <div style={{ background: '#071224', borderRadius: '10px', overflow: 'hidden', border: '1.5px solid rgba(13,71,161,0.2)', marginBottom: '20px' }}>
-                  
+
                   {/* Player header */}
                   <div style={{ background: 'rgba(11,29,58,0.95)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                     <span style={{ color: 'white', fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
@@ -1734,10 +1734,10 @@ export default function Dashboard() {
 
                   {/* Player Screen */}
                   <div style={{ height: '200px', background: '#02060f', position: 'relative', display: 'flex', alignItems: 'center', justify: 'center', overflow: 'hidden' }}>
-                    
+
                     {/* CCTV grid effect */}
                     <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '15px 15px', pointerEvents: 'none' }} />
-                    
+
                     {/* Error / Offline State */}
                     {activeCctv && activeCctv.status === 'OFFLINE' ? (
                       <div style={{ textAlign: 'center', zIndex: 5, color: '#ff4d4d', padding: '20px' }}>
@@ -1857,8 +1857,8 @@ export default function Dashboard() {
                             transition: 'all 0.2s ease',
                           }}
                           className="clickable-cctv-item"
-                          onMouseEnter={e => { if(!isActive) e.currentTarget.style.borderColor = '#C3C6D4'; }}
-                          onMouseLeave={e => { if(!isActive) e.currentTarget.style.borderColor = '#FAFBFD'; }}
+                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = '#C3C6D4'; }}
+                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = '#FAFBFD'; }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
@@ -1866,11 +1866,11 @@ export default function Dashboard() {
                               <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500, display: 'block' }}>
                                 {cam.name}
                               </span>
-                              
+
                               {/* Workload Badges */}
                               {!isOffline && (
                                 <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
+                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
                                     APD
                                   </span>
                                   <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
@@ -1964,7 +1964,7 @@ export default function Dashboard() {
                                 Durasi: {clip.duration}
                               </span>
                             </div>
-                            
+
                             <button
                               onClick={() => handlePlayClip(clip)}
                               disabled={isOffline || isPlayingClip}
@@ -2040,468 +2040,468 @@ export default function Dashboard() {
 
             {/* ---- SECTION: KELOLA TITIK ---- */}
             {adminSection === 'sites' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '32px', alignItems: 'start' }}>
-            
-            {/* COLUMN 1: FORM TAMBAH */}
-            <div style={{
-              background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
-              boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
-            }}>
-              <h3 style={{ margin: '0 0 6px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Tambah Konfigurasi</h3>
-              <p style={{ margin: '0 0 24px', fontSize: '12.5px', color: 'var(--outline)' }}>
-                Daftarkan kamera CCTV baru atau buat sektor tambang baru di sistem monitoring.
-              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '32px', alignItems: 'start' }}>
 
-              {/* Mode Selector Toggle */}
-              <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
-                <button
-                  onClick={() => setAddMode('cctv')}
-                  style={{
-                    flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
-                    background: addMode === 'cctv' ? 'white' : 'transparent',
-                    color: addMode === 'cctv' ? 'var(--brand-dark)' : 'var(--outline)',
-                    fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                    boxShadow: addMode === 'cctv' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Tambah Kamera CCTV
-                </button>
-                <button
-                  onClick={() => setAddMode('sector')}
-                  style={{
-                    flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
-                    background: addMode === 'sector' ? 'white' : 'transparent',
-                    color: addMode === 'sector' ? 'var(--brand-dark)' : 'var(--outline)',
-                    fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                    boxShadow: addMode === 'sector' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Tambah Sektor Baru
-                </button>
-              </div>
+                {/* COLUMN 1: FORM TAMBAH */}
+                <div style={{
+                  background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
+                  boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
+                }}>
+                  <h3 style={{ margin: '0 0 6px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Tambah Konfigurasi</h3>
+                  <p style={{ margin: '0 0 24px', fontSize: '12.5px', color: 'var(--outline)' }}>
+                    Daftarkan kamera CCTV baru atau buat sektor tambang baru di sistem monitoring.
+                  </p>
 
-              {/* FORM 1: TAMBAH CCTV */}
-              {addMode === 'cctv' ? (
-                <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Sektor Penempatan</label>
-                    <select
-                      value={newCctvSiteId}
-                      onChange={e => setNewCctvSiteId(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
+                  {/* Mode Selector Toggle */}
+                  <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
+                    <button
+                      onClick={() => setAddMode('cctv')}
+                      style={{
+                        flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
+                        background: addMode === 'cctv' ? 'white' : 'transparent',
+                        color: addMode === 'cctv' ? 'var(--brand-dark)' : 'var(--outline)',
+                        fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                        boxShadow: addMode === 'cctv' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
-                      {sites.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Kamera CCTV</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: CCTV Area Loading Crusher B"
-                      value={newCctvName}
-                      onChange={e => setNewCctvName(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Status Awal Kamera</label>
-                    <select
-                      value={newCctvStatus}
-                      onChange={e => setNewCctvStatus(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
+                      Tambah Kamera CCTV
+                    </button>
+                    <button
+                      onClick={() => setAddMode('sector')}
+                      style={{
+                        flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
+                        background: addMode === 'sector' ? 'white' : 'transparent',
+                        color: addMode === 'sector' ? 'var(--brand-dark)' : 'var(--outline)',
+                        fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                        boxShadow: addMode === 'sector' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
+                        transition: 'all 0.2s ease'
+                      }}
                     >
-                      <option value="ONLINE">ONLINE (Aktif/Normal)</option>
-                      <option value="OFFLINE">OFFLINE (Dalam Perbaikan/Trouble)</option>
-                    </select>
+                      Tambah Sektor Baru
+                    </button>
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Deskripsi Feed Video / Lokasi Detail</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: Pemantauan area loading coal pile crusher"
-                      value={newCctvDesc}
-                      onChange={e => setNewCctvDesc(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                    />
-                  </div>
+                  {/* FORM 1: TAMBAH CCTV */}
+                  {addMode === 'cctv' ? (
+                    <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Sektor Penempatan</label>
+                        <select
+                          value={newCctvSiteId}
+                          onChange={e => setNewCctvSiteId(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
+                        >
+                          {sites.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
 
-                  <button
-                    type="submit"
-                    style={{
-                      width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
-                      background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                      fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
-                    }}
-                  >
-                    Simpan & Pasang CCTV
-                  </button>
-                </form>
-              ) : (
-                /* FORM 2: TAMBAH SEKTOR */
-                <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Sektor Tambang Baru</label>
-                    <input
-                      type="text"
-                      placeholder="Contoh: Pit B (Quarry Barat)"
-                      value={newSiteName}
-                      onChange={e => setNewSiteName(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                    />
-                  </div>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Kamera CCTV</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: CCTV Area Loading Crusher B"
+                          value={newCctvName}
+                          onChange={e => setNewCctvName(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
+                        />
+                      </div>
 
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Plot Lokasi Koordinat Peta</label>
-                    <select
-                      value={newSiteRegionIdx}
-                      onChange={e => setNewSiteRegionIdx(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
-                    >
-                      {REGION_PRESETS.map((r, idx) => (
-                        <option key={idx} value={idx}>{r.label}</option>
-                      ))}
-                    </select>
-                  </div>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Status Awal Kamera</label>
+                        <select
+                          value={newCctvStatus}
+                          onChange={e => setNewCctvStatus(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
+                        >
+                          <option value="ONLINE">ONLINE (Aktif/Normal)</option>
+                          <option value="OFFLINE">OFFLINE (Dalam Perbaikan/Trouble)</option>
+                        </select>
+                      </div>
 
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Jumlah Kamera CCTV Awal</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={newSiteCctvCount}
-                      onChange={e => setNewSiteCctvCount(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                    />
-                  </div>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Deskripsi Feed Video / Lokasi Detail</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Pemantauan area loading coal pile crusher"
+                          value={newCctvDesc}
+                          onChange={e => setNewCctvDesc(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
+                        />
+                      </div>
 
-                  <div className="form-group">
-                    <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600, fontSize: '13px' }}>Kamera Offline Awal (Trouble)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max={newSiteCctvCount}
-                      value={newSiteOfflineCctv}
-                      onChange={e => setNewSiteOfflineCctv(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                    />
-                  </div>
+                      <button
+                        type="submit"
+                        style={{
+                          width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
+                          background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                        }}
+                      >
+                        Simpan & Pasang CCTV
+                      </button>
+                    </form>
+                  ) : (
+                    /* FORM 2: TAMBAH SEKTOR */
+                    <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Sektor Tambang Baru</label>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Pit B (Quarry Barat)"
+                          value={newSiteName}
+                          onChange={e => setNewSiteName(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
+                        />
+                      </div>
 
-                  <button
-                    type="submit"
-                    style={{
-                      width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
-                      background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                      fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
-                    }}
-                  >
-                    Simpan & Daftarkan Sektor
-                  </button>
-                </form>
-              )}
-            </div>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Plot Lokasi Koordinat Peta</label>
+                        <select
+                          value={newSiteRegionIdx}
+                          onChange={e => setNewSiteRegionIdx(e.target.value)}
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
+                        >
+                          {REGION_PRESETS.map((r, idx) => (
+                            <option key={idx} value={idx}>{r.label}</option>
+                          ))}
+                        </select>
+                      </div>
 
-            {/* COLUMN 2: LIST MANAGE SECTOR & CCTV */}
-            <div style={{
-              background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
-              boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
-            }}>
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                marginBottom: '20px', borderBottom: '1.5px solid #F1F3F9', paddingBottom: '16px'
-              }}>
-                <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Kelola Data Pemantauan</h3>
-                
-                {/* Switch list tabs */}
-                <div style={{ display: 'flex', gap: '8px', background: '#F4F6FA', padding: '4px', borderRadius: '6px' }}>
-                  <button
-                    onClick={() => setManageTab('sectors')}
-                    style={{
-                      padding: '6px 12px', border: 'none', borderRadius: '4px',
-                      background: manageTab === 'sectors' ? 'white' : 'transparent',
-                      color: manageTab === 'sectors' ? 'var(--brand-dark)' : 'var(--outline)',
-                      fontWeight: 700, fontSize: '12px', cursor: 'pointer',
-                      boxShadow: manageTab === 'sectors' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Sektor ({sites.length})
-                  </button>
-                  <button
-                    onClick={() => setManageTab('cctvs')}
-                    style={{
-                      padding: '6px 12px', border: 'none', borderRadius: '4px',
-                      background: manageTab === 'cctvs' ? 'white' : 'transparent',
-                      color: manageTab === 'cctvs' ? 'var(--brand-dark)' : 'var(--outline)',
-                      fontWeight: 700, fontSize: '12px', cursor: 'pointer',
-                      boxShadow: manageTab === 'cctvs' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Kamera CCTV ({sites.reduce((acc, s) => acc + s.details.length, 0)})
-                  </button>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Jumlah Kamera CCTV Awal</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={newSiteCctvCount}
+                          onChange={e => setNewSiteCctvCount(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600, fontSize: '13px' }}>Kamera Offline Awal (Trouble)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max={newSiteCctvCount}
+                          value={newSiteOfflineCctv}
+                          onChange={e => setNewSiteOfflineCctv(e.target.value)}
+                          required
+                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        style={{
+                          width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
+                          background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
+                          fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                        }}
+                      >
+                        Simpan & Daftarkan Sektor
+                      </button>
+                    </form>
+                  )}
                 </div>
-              </div>
 
-              {/* LIST CONTENT: SECTORS */}
-              {manageTab === 'sectors' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {sites.map(s => (
-                    <div key={s.id} style={{
-                      padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
-                      borderRadius: '12px', transition: 'all 0.2s'
-                    }}>
-                      {editingSiteId === s.id ? (
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <input
-                            type="text"
-                            value={editingSiteName}
-                            onChange={e => setEditingSiteName(e.target.value)}
-                            style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
-                          />
-                          <button
-                            onClick={() => handleEditSiteSubmit(s.id, editingSiteName)}
-                            style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                          >
-                            Simpan
-                          </button>
-                          <button
-                            onClick={() => { setEditingSiteId(null); setEditingSiteName(''); }}
-                            style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                          >
-                            Batal
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px', display: 'block' }}>{s.name}</span>
-                            <span style={{ fontSize: '11.5px', color: 'var(--outline)' }}>
-                              Koordinat Peta: <code style={{ background: '#F1F3F9', padding: '1px 4px', borderRadius: '3px' }}>{s.x}, {s.y}</code> • {s.cctvTotal} Kamera
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                              onClick={() => { setEditingSiteId(s.id); setEditingSiteName(s.name); }}
-                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                            >
-                              <Edit size={11} /> Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSite(s.id)}
-                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                            >
-                              <Trash2 size={11} /> Hapus
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                {/* COLUMN 2: LIST MANAGE SECTOR & CCTV */}
+                <div style={{
+                  background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
+                  boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
+                }}>
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    marginBottom: '20px', borderBottom: '1.5px solid #F1F3F9', paddingBottom: '16px'
+                  }}>
+                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Kelola Data Pemantauan</h3>
+
+                    {/* Switch list tabs */}
+                    <div style={{ display: 'flex', gap: '8px', background: '#F4F6FA', padding: '4px', borderRadius: '6px' }}>
+                      <button
+                        onClick={() => setManageTab('sectors')}
+                        style={{
+                          padding: '6px 12px', border: 'none', borderRadius: '4px',
+                          background: manageTab === 'sectors' ? 'white' : 'transparent',
+                          color: manageTab === 'sectors' ? 'var(--brand-dark)' : 'var(--outline)',
+                          fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+                          boxShadow: manageTab === 'sectors' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Sektor ({sites.length})
+                      </button>
+                      <button
+                        onClick={() => setManageTab('cctvs')}
+                        style={{
+                          padding: '6px 12px', border: 'none', borderRadius: '4px',
+                          background: manageTab === 'cctvs' ? 'white' : 'transparent',
+                          color: manageTab === 'cctvs' ? 'var(--brand-dark)' : 'var(--outline)',
+                          fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+                          boxShadow: manageTab === 'cctvs' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Kamera CCTV ({sites.reduce((acc, s) => acc + s.details.length, 0)})
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
 
-              {/* LIST CONTENT: CCTVS */}
-              {manageTab === 'cctvs' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {sites.flatMap(s => s.details.map(cam => ({ ...cam, siteId: s.id, siteName: s.name }))).map(cam => (
-                    <div key={cam.id} style={{
-                      padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
-                      borderRadius: '12px'
-                    }}>
-                      {editingCctvId === cam.id ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <div>
-                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Nama Kamera</label>
+                  {/* LIST CONTENT: SECTORS */}
+                  {manageTab === 'sectors' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {sites.map(s => (
+                        <div key={s.id} style={{
+                          padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
+                          borderRadius: '12px', transition: 'all 0.2s'
+                        }}>
+                          {editingSiteId === s.id ? (
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                               <input
                                 type="text"
-                                value={editingCctvName}
-                                onChange={e => setEditingCctvName(e.target.value)}
-                                style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                                value={editingSiteName}
+                                onChange={e => setEditingSiteName(e.target.value)}
+                                style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
                               />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Status Kamera</label>
-                              <select
-                                value={editingCctvStatus}
-                                onChange={e => setEditingCctvStatus(e.target.value)}
-                                style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px', background: 'white' }}
+                              <button
+                                onClick={() => handleEditSiteSubmit(s.id, editingSiteName)}
+                                style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
                               >
-                                <option value="ONLINE">ONLINE</option>
-                                <option value="OFFLINE">OFFLINE</option>
-                              </select>
+                                Simpan
+                              </button>
+                              <button
+                                onClick={() => { setEditingSiteId(null); setEditingSiteName(''); }}
+                                style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                              >
+                                Batal
+                              </button>
                             </div>
-                          </div>
-                          <div>
-                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Deskripsi Video Feed</label>
-                            <input
-                              type="text"
-                              value={editingCctvDesc}
-                              onChange={e => setEditingCctvDesc(e.target.value)}
-                              style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
-                            />
-                          </div>
-                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                            <button
-                              onClick={() => handleEditCctvSubmit(cam.siteId, cam.id, editingCctvName, editingCctvDesc, editingCctvStatus)}
-                              style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                            >
-                              Simpan
-                            </button>
-                            <button
-                              onClick={() => { setEditingCctvId(null); }}
-                              style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                            >
-                              Batal
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ minWidth: 0, flex: 1, paddingRight: '16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                              <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px' }}>{cam.name}</span>
-                              <span style={{
-                                fontSize: '9px', fontWeight: 700,
-                                color: cam.status === 'OFFLINE' ? '#ff4d4d' : '#10b981',
-                                background: cam.status === 'OFFLINE' ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                                padding: '2px 6px', borderRadius: '3px'
-                              }}>
-                                {cam.status}
-                              </span>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px', display: 'block' }}>{s.name}</span>
+                                <span style={{ fontSize: '11.5px', color: 'var(--outline)' }}>
+                                  Koordinat Peta: <code style={{ background: '#F1F3F9', padding: '1px 4px', borderRadius: '3px' }}>{s.x}, {s.y}</code> • {s.cctvTotal} Kamera
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => { setEditingSiteId(s.id); setEditingSiteName(s.name); }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                                >
+                                  <Edit size={11} /> Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSite(s.id)}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                                >
+                                  <Trash2 size={11} /> Hapus
+                                </button>
+                              </div>
                             </div>
-                            <span style={{ fontSize: '11.5px', color: 'var(--outline)', display: 'block', marginBottom: '2px' }}>
-                              Sektor: <span style={{ fontWeight: 600 }}>{cam.siteName}</span>
-                            </span>
-                            <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {cam.feedDescription}
-                            </span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                            <button
-                              onClick={() => {
-                                setEditingCctvId(cam.id);
-                                setEditingCctvName(cam.name);
-                                setEditingCctvDesc(cam.feedDescription);
-                                setEditingCctvStatus(cam.status);
-                              }}
-                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                            >
-                              <Edit size={11} /> Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCctv(cam.siteId, cam.id)}
-                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                            >
-                              <Trash2 size={11} /> Hapus
-                            </button>
-                          </div>
+                          )}
                         </div>
-                      )}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  )}
 
-          </div>
+                  {/* LIST CONTENT: CCTVS */}
+                  {manageTab === 'cctvs' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {sites.flatMap(s => s.details.map(cam => ({ ...cam, siteId: s.id, siteName: s.name }))).map(cam => (
+                        <div key={cam.id} style={{
+                          padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
+                          borderRadius: '12px'
+                        }}>
+                          {editingCctvId === cam.id ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Nama Kamera</label>
+                                  <input
+                                    type="text"
+                                    value={editingCctvName}
+                                    onChange={e => setEditingCctvName(e.target.value)}
+                                    style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                                  />
+                                </div>
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Status Kamera</label>
+                                  <select
+                                    value={editingCctvStatus}
+                                    onChange={e => setEditingCctvStatus(e.target.value)}
+                                    style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px', background: 'white' }}
+                                  >
+                                    <option value="ONLINE">ONLINE</option>
+                                    <option value="OFFLINE">OFFLINE</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Deskripsi Video Feed</label>
+                                <input
+                                  type="text"
+                                  value={editingCctvDesc}
+                                  onChange={e => setEditingCctvDesc(e.target.value)}
+                                  style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                                />
+                              </div>
+                              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                                <button
+                                  onClick={() => handleEditCctvSubmit(cam.siteId, cam.id, editingCctvName, editingCctvDesc, editingCctvStatus)}
+                                  style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                                >
+                                  Simpan
+                                </button>
+                                <button
+                                  onClick={() => { setEditingCctvId(null); }}
+                                  style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                                >
+                                  Batal
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ minWidth: 0, flex: 1, paddingRight: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                  <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px' }}>{cam.name}</span>
+                                  <span style={{
+                                    fontSize: '9px', fontWeight: 700,
+                                    color: cam.status === 'OFFLINE' ? '#ff4d4d' : '#10b981',
+                                    background: cam.status === 'OFFLINE' ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                                    padding: '2px 6px', borderRadius: '3px'
+                                  }}>
+                                    {cam.status}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: '11.5px', color: 'var(--outline)', display: 'block', marginBottom: '2px' }}>
+                                  Sektor: <span style={{ fontWeight: 600 }}>{cam.siteName}</span>
+                                </span>
+                                <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {cam.feedDescription}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                                <button
+                                  onClick={() => {
+                                    setEditingCctvId(cam.id);
+                                    setEditingCctvName(cam.name);
+                                    setEditingCctvDesc(cam.feedDescription);
+                                    setEditingCctvStatus(cam.status);
+                                  }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                                >
+                                  <Edit size={11} /> Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCctv(cam.siteId, cam.id)}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                                >
+                                  <Trash2 size={11} /> Hapus
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
             )}
 
             {/* ---- SECTION: HAK AKSES & AKUN ---- */}
             {adminSection === 'users' && (
-            <div style={{ background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px' }}>Manajemen Hak Akses & Akun</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
-                    Super Admin dapat menambah, mengedit, atau menghapus kewenangan akses personil monitoring.
-                  </p>
+              <div style={{ background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px' }}>Manajemen Hak Akses & Akun</h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                      Super Admin dapat menambah, mengedit, atau menghapus kewenangan akses personil monitoring.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => setShowAddUserModal(true)}
+                    style={{
+                      background: 'var(--brand-primary)', color: 'white', border: 'none',
+                      borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                      transition: 'all 0.2s ease', boxShadow: '0 4px 12px rgba(13,71,161,0.2)'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--blue-600)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'var(--brand-primary)'}
+                  >
+                    <UserPlus size={16} /> Tambah Hak Akses
+                  </button>
                 </div>
-                
-                <button
-                  onClick={() => setShowAddUserModal(true)}
-                  style={{
-                    background: 'var(--brand-primary)', color: 'white', border: 'none',
-                    borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                    transition: 'all 0.2s ease', boxShadow: '0 4px 12px rgba(13,71,161,0.2)'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--blue-600)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'var(--brand-primary)'}
-                >
-                  <UserPlus size={16} /> Tambah Hak Akses
-                </button>
-              </div>
 
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid #E3E6EE', color: 'var(--brand-dark)' }}>
-                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Username</th>
-                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Nama Lengkap</th>
-                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Peran (Role)</th>
-                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Status</th>
-                      <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map(u => (
-                      <tr key={u.id} style={{ borderBottom: '1px solid #F0EDED', color: 'var(--on-surface-variant)', transition: 'background 0.2s' }} className="user-table-row">
-                        <td style={{ padding: '16px', fontWeight: 600, fontFamily: 'monospace' }}>{u.username}</td>
-                        <td style={{ padding: '16px' }}>{u.fullName}</td>
-                        <td style={{ padding: '16px' }}>
-                          <span style={{
-                            background: u.role === 'Super Admin' ? 'rgba(255,193,7,0.15)' : u.role === 'Supervisor' ? '#E3F2FD' : 'rgba(0,0,0,0.05)',
-                            color: u.role === 'Super Admin' ? 'var(--brand-secondary)' : u.role === 'Supervisor' ? 'var(--brand-primary)' : 'var(--on-surface-variant)',
-                            fontWeight: 700, fontSize: '11px', padding: '4px 10px', borderRadius: '4px'
-                          }}>
-                            {u.role}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '13px', fontWeight: 600 }}>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-                            {u.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px', textAlign: 'center' }}>
-                          {u.username === 'admin' ? (
-                            <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Utama</span>
-                          ) : (
-                            <button
-                              onClick={() => handleDeleteUser(u.id, u.fullName)}
-                              style={{
-                                background: 'none', border: 'none', color: '#ff4d4d',
-                                cursor: 'pointer', padding: '6px', borderRadius: '4px',
-                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'background 0.2s'
-                              }}
-                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,77,77,0.08)'}
-                              onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </td>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #E3E6EE', color: 'var(--brand-dark)' }}>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Username</th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Nama Lengkap</th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Peran (Role)</th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Status</th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {users.map(u => (
+                        <tr key={u.id} style={{ borderBottom: '1px solid #F0EDED', color: 'var(--on-surface-variant)', transition: 'background 0.2s' }} className="user-table-row">
+                          <td style={{ padding: '16px', fontWeight: 600, fontFamily: 'monospace' }}>{u.username}</td>
+                          <td style={{ padding: '16px' }}>{u.fullName}</td>
+                          <td style={{ padding: '16px' }}>
+                            <span style={{
+                              background: u.role === 'Super Admin' ? 'rgba(255,193,7,0.15)' : u.role === 'Supervisor' ? '#E3F2FD' : 'rgba(0,0,0,0.05)',
+                              color: u.role === 'Super Admin' ? 'var(--brand-secondary)' : u.role === 'Supervisor' ? 'var(--brand-primary)' : 'var(--on-surface-variant)',
+                              fontWeight: 700, fontSize: '11px', padding: '4px 10px', borderRadius: '4px'
+                            }}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '13px', fontWeight: 600 }}>
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                              {u.status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px', textAlign: 'center' }}>
+                            {u.username === 'admin' ? (
+                              <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Utama</span>
+                            ) : (
+                              <button
+                                onClick={() => handleDeleteUser(u.id, u.fullName)}
+                                style={{
+                                  background: 'none', border: 'none', color: '#ff4d4d',
+                                  cursor: 'pointer', padding: '6px', borderRadius: '4px',
+                                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                  transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,77,77,0.08)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            </div>
+              </div>
             )}
 
           </div>
@@ -2513,7 +2513,7 @@ export default function Dashboard() {
         <section style={{ marginTop: '32px' }}>
           <div className="container animate-tab-fade">
             <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }} className="db-layout-grid">
-              
+
               {/* Left Column: List of CCTV Cameras to Display */}
               <div style={{
                 background: 'white',
@@ -2566,7 +2566,7 @@ export default function Dashboard() {
 
               {/* Right Column: Custom Grid & Controls */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
+
                 {/* Grid Layout Selector & Top Actions */}
                 <div style={{
                   background: 'white',
@@ -2643,7 +2643,7 @@ export default function Dashboard() {
                 }}>
                   {Array.from({ length: gridSize }).map((_, idx) => {
                     const activeCctvId = selectedCctvIds[idx];
-                    
+
                     // Find actual CCTV object from sites
                     let cam = null;
                     let sectorName = '';
@@ -2756,7 +2756,7 @@ export default function Dashboard() {
                 </div>
 
               </div>
-              
+
             </div>
           </div>
         </section>
@@ -2766,7 +2766,7 @@ export default function Dashboard() {
       {activeSubTab === 'workload' && (
         <section style={{ marginTop: '32px' }}>
           <div className="container animate-tab-fade">
-            
+
             {/* Header info */}
             <div style={{
               background: 'white',
@@ -2829,7 +2829,7 @@ export default function Dashboard() {
 
             {/* Two Column Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '32px' }} className="db-layout-grid">
-              
+
               {/* Left Column: List of Sectors */}
               <div style={{
                 background: 'white',
@@ -2842,12 +2842,12 @@ export default function Dashboard() {
                 <h4 style={{ fontSize: '14px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Sektor Pertambangan
                 </h4>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {sites.map(s => {
                     const isSelected = workloadSelectedSiteId === s.id;
                     const cctvs = s.details.filter(d => d.type === 'cctv');
-                    
+
                     // Count how many custom workloads are active in this sector
                     let activeCustomRules = 0;
                     const sectorGroupId = sectorGroupAssignments[s.id] || 'group-danger';
@@ -2908,7 +2908,7 @@ export default function Dashboard() {
                 {(() => {
                   const selectedSiteObj = sites.find(s => s.id === workloadSelectedSiteId) || sites[0];
                   if (!selectedSiteObj) return null;
-                  
+
                   const cctvs = selectedSiteObj.details.filter(d => d.type === 'cctv');
 
                   return (
@@ -3080,13 +3080,13 @@ export default function Dashboard() {
 
                               {/* Workload Section */}
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="db-layout-grid">
-                                
+
                                 {/* Standard/Wajib Column */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                   <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                     Standard Workload (Selalu Aktif)
                                   </span>
-                                  
+
                                   {/* APD check */}
                                   <div style={{
                                     display: 'flex', alignItems: 'center', gap: '12px',
@@ -3150,7 +3150,7 @@ export default function Dashboard() {
                                       group.skills.map(skill => {
                                         let activeBorder = '1.5px solid #E3E6EE';
                                         let iconColor = 'var(--brand-primary)';
-                                        
+
                                         if (skill.code === 'no_human_zone') {
                                           activeBorder = '1.5px solid #FCA5A5';
                                           iconColor = '#EF4444';
@@ -3245,7 +3245,7 @@ export default function Dashboard() {
 
             {/* Modal Content - Two Column Layout */}
             <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', flex: 1, overflow: 'hidden' }}>
-              
+
               {/* Left Column: Group List */}
               <div style={{ borderRight: '1px solid #E3E6EE', padding: '24px', overflowY: 'auto', background: '#F8FAFC', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
@@ -3411,7 +3411,7 @@ export default function Dashboard() {
                         <h5 style={{ margin: '0 0 16px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {editingSkillId ? '📝 Edit Rule AI' : '➕ Tambah Rule AI Baru'}
                         </h5>
-                        
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px', marginBottom: '16px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             <div>

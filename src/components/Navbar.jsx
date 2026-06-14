@@ -193,7 +193,7 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div id="desktop-cta">
-          <Link to="/contact" className="btn btn-primary" style={{ padding: '10px 22px', fontSize: '14px' }}>
+          <Link to="/solutions/agent-ai-cctv" className="btn btn-primary" style={{ padding: '10px 22px', fontSize: '14px' }}>
             Get Demo
           </Link>
         </div>
