@@ -115,7 +115,6 @@ export default function Navbar() {
                 position: 'absolute',
                 top: 'calc(100% + 12px)',
                 left: '50%',
-                transform: 'translateX(-50%)',
                 minWidth: '260px',
                 background: 'white',
                 borderRadius: '12px',

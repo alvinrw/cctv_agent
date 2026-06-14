@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, Server, ShieldAlert, LogOut, MapPin, CheckCircle,
   WifiOff, Plus, UserPlus, Users, Map, Activity, Trash2, Clock,
-  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle
+  Home, ShieldCheck, Cpu, Terminal, Play, RotateCcw, AlertTriangle, Edit, Settings
 } from 'lucide-react';
 
 // Data Lokasi Awal - Sektor Pertambangan Batubara Astra
@@ -16,8 +16,6 @@ const INITIAL_SITES = [
     cctvTotal: 12,
     cctvOnline: 12,
     cctvOffline: 0,
-    agentsOnline: 10,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -49,8 +47,7 @@ const INITIAL_SITES = [
         clippings: [
           { id: 'clip-a3', time: '11:20:10', title: 'Wall Minor Crack Alert', camera: 'CCTV Pit Face A Area', duration: '12s', description: 'Retakan kecil terdeteksi pada dinding Pit Barat oleh sensor AI.', type: 'warning' }
         ]
-      },
-      { id: 'agent-pit-a', name: 'Agent Safety Guard Pit A', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Patroli lereng barat quarry selesai. Aman.' },
+      }
     ]
   },
   {
@@ -61,8 +58,6 @@ const INITIAL_SITES = [
     cctvTotal: 8,
     cctvOnline: 8,
     cctvOffline: 0,
-    agentsOnline: 8,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -92,8 +87,7 @@ const INITIAL_SITES = [
         status: 'ONLINE',
         feedDescription: 'Stacker reclaimer vehicle stacking coal.',
         clippings: []
-      },
-      { id: 'agent-sp', name: 'Agent Guard Stockpile', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Mengamankan area stockpile utara. Aktivitas conveyor lancar.' },
+      }
     ]
   },
   {
@@ -104,8 +98,6 @@ const INITIAL_SITES = [
     cctvTotal: 6,
     cctvOnline: 6,
     cctvOffline: 0,
-    agentsOnline: 5,
-    agentsOffline: 0,
     status: 'ONLINE',
     details: [
       {
@@ -135,8 +127,7 @@ const INITIAL_SITES = [
         status: 'ONLINE',
         feedDescription: 'Light vehicle parking area outside main workshop.',
         clippings: []
-      },
-      { id: 'agent-ws', name: 'Agent Safety BDG 01', type: 'agent', status: 'ONLINE', workStatus: 'Patroli', lastReport: 'Memeriksa kepatuhan pemakaian APD di Workshop Bay 1.' },
+      }
     ]
   },
   {
@@ -147,8 +138,6 @@ const INITIAL_SITES = [
     cctvTotal: 4,
     cctvOnline: 2,
     cctvOffline: 2,
-    agentsOnline: 2,
-    agentsOffline: 1,
     status: 'ALERT',
     details: [
       {
@@ -178,9 +167,7 @@ const INITIAL_SITES = [
         status: 'OFFLINE',
         feedDescription: 'Screening plant vibrating screens (Offline).',
         clippings: []
-      },
-      { id: 'agent-cr-1', name: 'Agent Core Crusher 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Memantau input hopper crusher. Aman dari sumbatan material.' },
-      { id: 'agent-cr-2', name: 'Agent Core Crusher 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Selesai tugas. Shift malam belum masuk.' },
+      }
     ]
   },
   {
@@ -191,9 +178,7 @@ const INITIAL_SITES = [
     cctvTotal: 2,
     cctvOnline: 2,
     cctvOffline: 0,
-    agentsOnline: 1,
-    agentsOffline: 1,
-    status: 'ALERT',
+    status: 'ONLINE',
     details: [
       {
         id: 'cam-gate-1',
@@ -214,9 +199,7 @@ const INITIAL_SITES = [
         clippings: [
           { id: 'clip-g3', time: '11:05:00', title: 'Scale Sensor Offline', camera: 'CCTV Weighbridge Scale', duration: '8s', description: 'Terjadi kehilangan kalibrasi sensor timbang berat truk.', type: 'warning' }
         ]
-      },
-      { id: 'agent-gate-1', name: 'Agent Guard Gate 01', type: 'agent', status: 'ONLINE', workStatus: 'Siaga', lastReport: 'Pemeriksaan dokumen muatan batubara truk keluar.' },
-      { id: 'agent-gate-2', name: 'Agent Guard Gate 02 (OFFLINE)', type: 'agent', status: 'OFFLINE', workStatus: 'Offline', lastReport: 'Sedang mengambil cuti tahunan.' },
+      }
     ]
   }
 ];
@@ -238,16 +221,122 @@ const REGION_PRESETS = [
   { label: 'Main Security Gate', x: '15%', y: '75%' }
 ];
 
+// Initial Workload Groups (Policy Presets)
+const INITIAL_WORKLOAD_GROUPS = [
+  {
+    id: 'group-danger',
+    name: 'Grup Area Bahaya (Default)',
+    description: 'Aturan keselamatan standar untuk memantau area berbahaya tambang.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' }
+    ]
+  },
+  {
+    id: 'group-logistics',
+    name: 'Grup Logistik & Debu',
+    description: 'Aturan operasional untuk mengontrol kelancaran logistik dan kepulan debu.',
+    skills: [
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' },
+      { id: 'skill-dust', code: 'heavy_dust_cloud', description: 'High concentration of coal dust cloud', guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.' }
+    ]
+  },
+  {
+    id: 'group-workshop',
+    name: 'Grup Workshop & Spark',
+    description: 'Aturan keselamatan khusus area workshop dan bahaya percikan api.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-spark', code: 'spark_hazard', description: 'Sparks detected during welding or grinding', guidelines: 'Look for bright flashes of light and flying sparks near equipment.' }
+    ]
+  },
+  {
+    id: 'group-full',
+    name: 'Grup Operasional Lengkap',
+    description: 'Seluruh rule lengkap untuk memantau area pit tambang utama.',
+    skills: [
+      { id: 'skill-human', code: 'no_human_zone', description: 'Titik ini ga boleh ada manusia (Bahaya)', guidelines: 'AI memicu alarm instan jika kru memasuki area berbahaya.' },
+      { id: 'skill-truck', code: 'no_truck_stop', description: 'Titik ini ga boleh ada truk berhenti / stay', guidelines: 'AI mendeteksi unit truk (HD) diam menghalangi jalur logistik.' },
+      { id: 'skill-dust', code: 'heavy_dust_cloud', description: 'High concentration of coal dust cloud', guidelines: 'Look for dense black or gray clouds obscuring the shovel visibility.' },
+      { id: 'skill-distance', code: 'unsafe_truck_distance', description: 'Haul truck parked too close to excavator swing path', guidelines: 'Identify if any HD785 truck comes within the 10-meter radius boundary of the excavator cabin.' }
+    ]
+  }
+];
+
+// Initial Group Assignments per Sector
+const INITIAL_SECTOR_GROUP_ASSIGNMENTS = {
+  'pit-a': 'group-full',
+  'stockpile-utara': 'group-danger',
+  'workshop-main': 'group-workshop',
+  'processing-crusher': 'group-danger',
+  'main-security-gate': 'group-danger'
+};
+
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv')
+  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv' | 'workload')
   const [activeSubTab, setActiveSubTab] = useState('overview');
+  const [adminSection, setAdminSection] = useState('sites');
+
+  // Workload States
+  const [workloadSelectedSiteId, setWorkloadSelectedSiteId] = useState(INITIAL_SITES[0]?.id || '');
+
+  // Workload Groups & Assignments States (AWS Security Group concept)
+  const [workloadGroups, setWorkloadGroups] = useState(INITIAL_WORKLOAD_GROUPS);
+  const [sectorGroupAssignments, setSectorGroupAssignments] = useState(INITIAL_SECTOR_GROUP_ASSIGNMENTS);
+
+  // Group Policy Manager Modal States
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState('group-danger');
+  const [editingSkillId, setEditingSkillId] = useState(null);
+  const [skillCode, setSkillCode] = useState('');
+  const [skillDesc, setSkillDesc] = useState('');
+  const [skillGuidelines, setSkillGuidelines] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDesc, setNewGroupDesc] = useState('');
+
+  // Expanded CCTV card in Workload Tab
+  const [expandedCctvId, setExpandedCctvId] = useState(null);
+
+  // VLM Stream Contexts State
+  const [cctvContexts, setCctvContexts] = useState({
+    'cam-pit-a1': 'Coal quarry excavation area with high activity of PC2000 excavators and heavy haul trucks loading coal.',
+    'cam-pit-a2': 'Main haul road incline leading to the western quarry pit. Heavy mining trucks transport coal uphill.',
+    'cam-cr-1': 'Primary crusher hopper where haul trucks dump raw coal for processing.',
+    'cam-ws-1': 'Indoor workshop bay for heavy machinery maintenance, welding, and mechanics repair operations.'
+  });
+
+  const getCctvSectorGroup = (cctvId) => {
+    const parentSite = sites.find(s => s.details.some(d => d.id === cctvId));
+    if (!parentSite) return null;
+    const groupId = sectorGroupAssignments[parentSite.id] || 'group-danger';
+    return workloadGroups.find(g => g.id === groupId) || null;
+  };
+
+  const handleAssignSectorGroup = (sectorId, groupId) => {
+    setSectorGroupAssignments(prev => ({
+      ...prev,
+      [sectorId]: groupId
+    }));
+  };
 
   // Core States
   const [sites, setSites] = useState(INITIAL_SITES);
   const [users, setUsers] = useState(INITIAL_USERS);
   const [selectedSite, setSelectedSite] = useState(INITIAL_SITES[0]);
+
+  // Edit states for Sectors and CCTV
+  const [editingSiteId, setEditingSiteId] = useState(null);
+  const [editingSiteName, setEditingSiteName] = useState('');
+  
+  const [editingCctvId, setEditingCctvId] = useState(null);
+  const [editingCctvName, setEditingCctvName] = useState('');
+  const [editingCctvDesc, setEditingCctvDesc] = useState('');
+  const [editingCctvStatus, setEditingCctvStatus] = useState('');
+  const [manageTab, setManageTab] = useState('sectors');
 
   // Live CCTV Layout Grid States
   const [gridSize, setGridSize] = useState(4);
@@ -290,15 +379,14 @@ export default function Dashboard() {
     }
   }, [selectedSite, activeCctv]);
 
-  // Live Activity Logs
   const [logs, setLogs] = useState([
     { time: '13:14:02', message: 'Sistem monitoring PamAgents berhasil diinisialisasi.', type: 'info' },
     { time: '13:14:15', message: 'Pit A: Truk HD785 terdeteksi melaju di atas batas 30 km/jam.', type: 'error' },
-    { time: '13:15:10', message: 'Processing Crusher: Agent Core Crusher 02 terputus (Offline).', type: 'error' },
+    { time: '13:15:10', message: 'Processing Crusher: CCTV Screen Deck Feed terputus (Offline).', type: 'error' },
     { time: '13:16:30', message: 'Processing Crusher: CCTV Crusher Hopper mengalami gangguan sinyal (Offline).', type: 'error' },
   ]);
 
-  // Filter KPI State ('ALL', 'CCTV_OFFLINE', 'AGENT_OFFLINE')
+  // Filter KPI State ('ALL', 'CCTV_OFFLINE')
   const [filterKPI, setFilterKPI] = useState('ALL');
 
   // Overview Panel Filter State
@@ -312,9 +400,7 @@ export default function Dashboard() {
   const [newSiteName, setNewSiteName] = useState('');
   const [newSiteRegionIdx, setNewSiteRegionIdx] = useState(0);
   const [newSiteCctvCount, setNewSiteCctvCount] = useState(4);
-  const [newSiteAgentCount, setNewSiteAgentCount] = useState(2);
   const [newSiteOfflineCctv, setNewSiteOfflineCctv] = useState(0);
-  const [newSiteOfflineAgent, setNewSiteOfflineAgent] = useState(0);
 
   // Form mode for Tambah Titik Tab ('cctv' | 'sector')
   const [addMode, setAddMode] = useState('cctv');
@@ -462,19 +548,133 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  // VLM Custom AI Event Handlers
+  const handleContextChange = (cctvId, val) => {
+    setCctvContexts(prev => ({
+      ...prev,
+      [cctvId]: val
+    }));
+  };
+
+  // Group Policy Manager Action Handlers
+  const handleSaveSkillToGroup = (groupId) => {
+    if (!skillCode.trim()) {
+      alert('Event Code tidak boleh kosong!');
+      return;
+    }
+    if (!skillDesc.trim()) {
+      alert('Event Description tidak boleh kosong!');
+      return;
+    }
+    const sanitizedCode = skillCode.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_');
+
+    setWorkloadGroups(prev => {
+      return prev.map(group => {
+        if (group.id !== groupId) return group;
+        const currentSkills = group.skills || [];
+        if (editingSkillId) {
+          // Edit existing skill in this group
+          const updated = currentSkills.map(sk => 
+            sk.id === editingSkillId 
+              ? { ...sk, code: sanitizedCode, description: skillDesc.trim(), guidelines: skillGuidelines.trim() }
+              : sk
+          );
+          return { ...group, skills: updated };
+        } else {
+          // Add new skill to this group
+          const newSkill = {
+            id: 'skill-' + Date.now(),
+            code: sanitizedCode,
+            description: skillDesc.trim(),
+            guidelines: skillGuidelines.trim()
+          };
+          return { ...group, skills: [...currentSkills, newSkill] };
+        }
+      });
+    });
+
+    // Reset form
+    setSkillCode('');
+    setSkillDesc('');
+    setSkillGuidelines('');
+    setEditingSkillId(null);
+  };
+
+  const handleEditSkillClick = (skill) => {
+    setEditingSkillId(skill.id);
+    setSkillCode(skill.code);
+    setSkillDesc(skill.description);
+    setSkillGuidelines(skill.guidelines || '');
+  };
+
+  const handleDeleteSkillFromGroup = (groupId, skillId) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus rule ini dari grup policy?')) {
+      setWorkloadGroups(prev => {
+        return prev.map(group => {
+          if (group.id !== groupId) return group;
+          return {
+            ...group,
+            skills: (group.skills || []).filter(sk => sk.id !== skillId)
+          };
+        });
+      });
+      if (editingSkillId === skillId) {
+        setSkillCode('');
+        setSkillDesc('');
+        setSkillGuidelines('');
+        setEditingSkillId(null);
+      }
+    }
+  };
+
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) {
+      alert('Nama grup tidak boleh kosong!');
+      return;
+    }
+    const newGroup = {
+      id: 'group-' + Date.now(),
+      name: newGroupName.trim(),
+      description: newGroupDesc.trim(),
+      skills: []
+    };
+    setWorkloadGroups(prev => [...prev, newGroup]);
+    setSelectedGroupId(newGroup.id);
+    setNewGroupName('');
+    setNewGroupDesc('');
+    setIsCreatingGroup(false);
+  };
+
+  const handleDeleteGroup = (groupId) => {
+    if (workloadGroups.length <= 1) {
+      alert('Anda harus menyisakan minimal satu grup policy!');
+      return;
+    }
+    if (window.confirm('Apakah Anda yakin ingin menghapus grup policy ini? Semua CCTV yang menggunakan grup ini akan dialihkan ke grup default.')) {
+      // Find default or another group to reassign CCTVs
+      const otherGroup = workloadGroups.find(g => g.id !== groupId) || workloadGroups[0];
+      setCctvGroupAssignments(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(camId => {
+          if (updated[camId] === groupId) {
+            updated[camId] = otherGroup.id;
+          }
+        });
+        return updated;
+      });
+      setWorkloadGroups(prev => prev.filter(g => g.id !== groupId));
+      setSelectedGroupId(otherGroup.id);
+    }
+  };
+
   // Math totals
   const totalCCTV = sites.reduce((acc, curr) => acc + curr.cctvTotal, 0);
   const totalCCTVOffline = sites.reduce((acc, curr) => acc + curr.cctvOffline, 0);
   const totalCCTVOnline = totalCCTV - totalCCTVOffline;
 
-  const totalAgentsOnline = sites.reduce((acc, curr) => acc + curr.agentsOnline, 0);
-  const totalAgentsOffline = sites.reduce((acc, curr) => acc + curr.agentsOffline, 0);
-  const totalAgents = totalAgentsOnline + totalAgentsOffline;
-
   // Filtered sites for map rendering
   const filteredSites = sites.filter(s => {
     if (filterKPI === 'CCTV_OFFLINE') return s.cctvOffline > 0;
-    if (filterKPI === 'AGENT_OFFLINE') return s.agentsOffline > 0;
     return true;
   });
 
@@ -492,21 +692,14 @@ export default function Dashboard() {
 
     const region = REGION_PRESETS[newSiteRegionIdx];
     const onlineCctv = Math.max(0, newSiteCctvCount - newSiteOfflineCctv);
-    const onlineAgents = Math.max(0, newSiteAgentCount - newSiteOfflineAgent);
 
-    // Generate details list for cctvs and agents
+    // Generate details list for cctvs
     const details = [];
     for (let i = 1; i <= onlineCctv; i++) {
       details.push({ id: `cam-new-${i}`, name: `CCTV ${newSiteName} ${i} (Online)`, type: 'cctv', status: 'ONLINE', feedDescription: `Kamera Pemantauan baru di ${newSiteName}`, clippings: [] });
     }
     for (let i = 1; i <= newSiteOfflineCctv; i++) {
       details.push({ id: `cam-new-off-${i}`, name: `CCTV ${newSiteName} B${i} (Trouble)`, type: 'cctv', status: 'OFFLINE', feedDescription: `Kamera offline baru`, clippings: [] });
-    }
-    for (let i = 1; i <= onlineAgents; i++) {
-      details.push({ id: `agent-new-${i}`, name: `Agent Guard ${newSiteName} ${i} (Online)`, type: 'agent', status: 'ONLINE' });
-    }
-    for (let i = 1; i <= newSiteOfflineAgent; i++) {
-      details.push({ id: `agent-new-off-${i}`, name: `Agent Guard ${newSiteName} B${i} (Trouble)`, type: 'agent', status: 'OFFLINE' });
     }
 
     const newSite = {
@@ -517,9 +710,7 @@ export default function Dashboard() {
       cctvTotal: Number(newSiteCctvCount),
       cctvOnline: onlineCctv,
       cctvOffline: Number(newSiteOfflineCctv),
-      agentsOnline: onlineAgents,
-      agentsOffline: Number(newSiteOfflineAgent),
-      status: (newSiteOfflineCctv > 0 || newSiteOfflineAgent > 0) ? 'ALERT' : 'ONLINE',
+      status: (newSiteOfflineCctv > 0) ? 'ALERT' : 'ONLINE',
       details
     };
 
@@ -529,9 +720,7 @@ export default function Dashboard() {
     // Reset inputs
     setNewSiteName('');
     setNewSiteCctvCount(4);
-    setNewSiteAgentCount(2);
     setNewSiteOfflineCctv(0);
-    setNewSiteOfflineAgent(0);
 
     // Dynamic logging
     const time = new Date().toLocaleTimeString('id-ID');
@@ -571,7 +760,7 @@ export default function Dashboard() {
         cctvTotal: s.cctvTotal + 1,
         cctvOnline: s.cctvOnline + (isOffline ? 0 : 1),
         cctvOffline: s.cctvOffline + (isOffline ? 1 : 0),
-        status: (s.cctvOffline + (isOffline ? 1 : 0) > 0 || s.agentsOffline > 0) ? 'ALERT' : 'ONLINE',
+        status: (s.cctvOffline + (isOffline ? 1 : 0) > 0) ? 'ALERT' : 'ONLINE',
         details: [...s.details, newCctvObj]
       };
     });
@@ -601,6 +790,112 @@ export default function Dashboard() {
     // Redirect to Map tab
     setFilterKPI('ALL');
     setActiveSubTab('map');
+  };
+
+  // Action: Delete Sector
+  const handleDeleteSite = (siteId) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus sektor ini? Semua kamera di dalamnya juga akan terhapus.")) {
+      const updatedSites = sites.filter(s => s.id !== siteId);
+      setSites(updatedSites);
+      
+      const time = new Date().toLocaleTimeString('id-ID');
+      setLogs(prev => [
+        { time, message: `SEKTOR DIHAPUS: Sektor ID ${siteId} berhasil dihapus dari sistem`, type: 'info' },
+        ...prev
+      ]);
+
+      if (selectedSite.id === siteId && updatedSites.length > 0) {
+        setSelectedSite(updatedSites[0]);
+      }
+    }
+  };
+
+  // Action: Edit Sector
+  const handleEditSiteSubmit = (siteId, newName) => {
+    if (!newName.trim()) return;
+    const updatedSites = sites.map(s => {
+      if (s.id !== siteId) return s;
+      return { ...s, name: newName.trim() };
+    });
+    setSites(updatedSites);
+    setEditingSiteId(null);
+    setEditingSiteName('');
+
+    const updatedSelectedSite = updatedSites.find(s => s.id === selectedSite.id);
+    if (updatedSelectedSite) {
+      setSelectedSite(updatedSelectedSite);
+    }
+  };
+
+  // Action: Delete CCTV
+  const handleDeleteCctv = (siteId, cctvId) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus kamera CCTV ini?")) {
+      const updatedSites = sites.map(s => {
+        if (s.id !== siteId) return s;
+        const targetCam = s.details.find(c => c.id === cctvId);
+        if (!targetCam) return s;
+        const isOffline = targetCam.status === 'OFFLINE';
+        const updatedDetails = s.details.filter(c => c.id !== cctvId);
+        return {
+          ...s,
+          cctvTotal: s.cctvTotal - 1,
+          cctvOnline: s.cctvOnline - (isOffline ? 0 : 1),
+          cctvOffline: s.cctvOffline - (isOffline ? 1 : 0),
+          details: updatedDetails
+        };
+      });
+      setSites(updatedSites);
+
+      const time = new Date().toLocaleTimeString('id-ID');
+      setLogs(prev => [
+        { time, message: `KAMERA DIHAPUS: CCTV ID ${cctvId} berhasil dihapus dari sektor`, type: 'info' },
+        ...prev
+      ]);
+
+      const updatedSelectedSite = updatedSites.find(s => s.id === selectedSite.id);
+      if (updatedSelectedSite) {
+        setSelectedSite(updatedSelectedSite);
+        if (activeCctv && activeCctv.id === cctvId) {
+          setActiveCctv(updatedSelectedSite.details[0] || null);
+        }
+      }
+    }
+  };
+
+  // Action: Edit CCTV
+  const handleEditCctvSubmit = (siteId, cctvId, newName, newDesc, newStatus) => {
+    if (!newName.trim()) return;
+    const updatedSites = sites.map(s => {
+      if (s.id !== siteId) return s;
+      const updatedDetails = s.details.map(c => {
+        if (c.id !== cctvId) return c;
+        return { ...c, name: newName.trim(), feedDescription: newDesc.trim(), status: newStatus };
+      });
+      
+      const cctvTotal = updatedDetails.length;
+      const cctvOffline = updatedDetails.filter(c => c.status === 'OFFLINE').length;
+      const cctvOnline = cctvTotal - cctvOffline;
+
+      return {
+        ...s,
+        cctvTotal,
+        cctvOnline,
+        cctvOffline,
+        status: (cctvOffline > 0) ? 'ALERT' : 'ONLINE',
+        details: updatedDetails
+      };
+    });
+    setSites(updatedSites);
+    setEditingCctvId(null);
+
+    const updatedSelectedSite = updatedSites.find(s => s.id === selectedSite.id);
+    if (updatedSelectedSite) {
+      setSelectedSite(updatedSelectedSite);
+      const updatedCam = updatedSelectedSite.details.find(c => c.id === cctvId);
+      if (updatedCam && activeCctv && activeCctv.id === cctvId) {
+        setActiveCctv(updatedCam);
+      }
+    }
   };
 
   // Action: Add User
@@ -646,16 +941,8 @@ export default function Dashboard() {
     setActiveSubTab('map');
   };
 
-  // Filter CCTV and Agent list for Right Panel Detail
+  // Filter CCTV list for Right Panel Detail
   const sectorCctvs = selectedSite.details.filter(d => d.type === 'cctv');
-  const sectorAgents = selectedSite.details.filter(d => d.type === 'agent');
-
-  // Gather all agents globally from all sites
-  const allAgents = sites.flatMap(s =>
-    s.details
-      .filter(d => d.type === 'agent')
-      .map(ag => ({ ...ag, sectorName: s.name, sectorId: s.id }))
-  );
 
   // Gather all incidents/clippings globally from all CCTVs in all sites
   const allIncidents = sites.flatMap(s =>
@@ -762,15 +1049,15 @@ export default function Dashboard() {
           >
             <Camera size={15} /> Live Multi-CCTV
           </button>
-          
+
           <button
-            onClick={() => setActiveSubTab('add-site')}
+            onClick={() => setActiveSubTab('workload')}
             style={{
-              background: activeSubTab === 'add-site' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.1)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
               padding: '10px 18px',
-              color: activeSubTab === 'add-site' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              color: activeSubTab === 'workload' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -780,17 +1067,17 @@ export default function Dashboard() {
               transition: 'all 0.25s ease'
             }}
           >
-            <Plus size={15} /> Tambah Titik
+            <Cpu size={15} /> Workload Agen
           </button>
           
           <button
-            onClick={() => setActiveSubTab('users')}
+            onClick={() => setActiveSubTab('admin')}
             style={{
-              background: activeSubTab === 'users' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'admin' ? 'rgba(255,255,255,0.1)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
               padding: '10px 18px',
-              color: activeSubTab === 'users' ? '#FFD600' : 'rgba(255,255,255,0.7)',
+              color: activeSubTab === 'admin' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -800,7 +1087,7 @@ export default function Dashboard() {
               transition: 'all 0.25s ease'
             }}
           >
-            <Users size={15} /> Hak Akses / Akun
+            <Settings size={15} /> Administrasi
           </button>
         </div>
 
@@ -870,25 +1157,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Online Agents */}
-              <div
-                onClick={() => triggerKPIFilter('ALL')}
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
-                  transition: 'transform 0.2s'
-                }}
-                className="hover-pop"
-              >
-                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Server size={24} />
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Lapangan</p>
-                  <h3 style={{ fontSize: '26px', color: 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOnline} <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 500 }}>/ {totalAgents} Aktif</span></h3>
-                </div>
-              </div>
-
               {/* Offline CCTV */}
               <div
                 onClick={() => triggerKPIFilter('CCTV_OFFLINE')}
@@ -908,88 +1176,119 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Offline Agents */}
+              {/* Status AI Agent */}
               <div
-                onClick={() => triggerKPIFilter('AGENT_OFFLINE')}
                 style={{
                   background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: totalAgentsOffline > 0 ? '1px solid #ff4d4d' : '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px',
                   transition: 'transform 0.2s'
                 }}
                 className="hover-pop"
               >
-                <div style={{ background: totalAgentsOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--outline)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justify: 'center', flexShrink: 0 }}>
-                  <ShieldAlert size={24} />
+                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Agent Offline</p>
-                  <h3 style={{ fontSize: '26px', color: totalAgentsOffline > 0 ? '#ff4d4d' : 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalAgentsOffline}</h3>
+                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status AI Agent</p>
+                  <h3 style={{ fontSize: '24px', color: '#10b981', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>AKTIF</h3>
                 </div>
               </div>
             </div>
 
-            {/* PUSAT PERINGATAN (ALERTS CENTER) UTAMA */}
+
+            {/* NOTIFIKASI & BROADCAST TELEGRAM */}
             <div style={{
               background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px',
               padding: '24px', marginBottom: '28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
             }}>
-              <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
-                <ShieldAlert size={18} color={totalCCTVOffline > 0 || totalAgentsOffline > 0 ? '#ff4d4d' : '#10b981'} />
-                Pusat Peringatan & Status Operasional Keamanan Aktif
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
+                <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
+                  <AlertTriangle size={18} color="#f59e0b" />
+                  Notifikasi Kejadian & Broadcast Telegram
+                </h3>
+                <span style={{ fontSize: '11px', color: 'var(--outline)', background: '#F4F6FA', padding: '4px 10px', borderRadius: '4px', fontWeight: 600 }}>
+                  Terhubung ke Bot @PamAgents_AlertBot
+                </span>
+              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                {/* Alert 1: CCTV Offline Status */}
-                <div style={{
-                  background: totalCCTVOffline > 0 ? '#FFF5F5' : '#F0FDF4',
-                  border: `1.5px solid ${totalCCTVOffline > 0 ? '#FEE2E2' : '#DCFCE7'}`,
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <WifiOff size={20} color={totalCCTVOffline > 0 ? '#ef4444' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalCCTVOffline > 0 ? '#991B1B' : '#14532D' }}>
-                      {totalCCTVOffline > 0 ? `${totalCCTVOffline} Kamera CCTV Offline` : 'Seluruh Kamera Koneksi Baik'}
-                    </h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalCCTVOffline > 0 ? '#7F1D1D' : '#15803D', lineHeight: 1.4 }}>
-                      {totalCCTVOffline > 0 
-                        ? `Masalah koneksi terdeteksi di: ${sites.flatMap(s => s.details.filter(d => d.type === 'cctv' && d.status === 'OFFLINE').map(d => d.name.replace('CCTV ', ''))).join(', ')}.`
-                        : 'Semua node AI Edge CCTV mengirimkan data telemetry realtime secara optimal.'
-                      }
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                {/* Notification Item 1 */}
+                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#FFF7ED', border: '1px solid #FFEDD5', borderRadius: '10px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AlertTriangle size={16} color="#d97706" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#92400e' }}>Pelanggaran APD Terdeteksi</span>
+                      <span style={{ fontSize: '10px', color: '#b45309', background: 'rgba(217,119,6,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>13:14:02</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#78350f', lineHeight: 1.4 }}>
+                      CCTV Haul Road Incline A mendeteksi pekerja tanpa helm safety di zona loading. Notifikasi dikirim ke Grup Telegram <strong>K3 Pit A</strong>.
                     </p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
+                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#b45309', background: 'rgba(217,119,6,0.08)', padding: '2px 8px', borderRadius: '3px' }}>Sektor: Pit A</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Alert 2: Agent Status */}
-                <div style={{
-                  background: totalAgentsOffline > 0 ? '#FFFBEB' : '#F0FDF4',
-                  border: `1.5px solid ${totalAgentsOffline > 0 ? '#FEF3C7' : '#DCFCE7'}`,
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <Users size={20} color={totalAgentsOffline > 0 ? '#d97706' : '#16a34a'} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: totalAgentsOffline > 0 ? '#92400E' : '#14532D' }}>
-                      {totalAgentsOffline > 0 ? `${totalAgentsOffline} Agent Security Offline` : 'Personel Keamanan Siaga'}
-                    </h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: totalAgentsOffline > 0 ? '#78350F' : '#15803D', lineHeight: 1.4 }}>
-                      {totalAgentsOffline > 0 
-                        ? `Agent berikut sedang tidak aktif di posnya: ${allAgents.filter(ag => ag.status === 'OFFLINE').map(ag => ag.name).join(', ')}.`
-                        : 'Seluruh agent patroli tambang terhubung melalui link radio suara & telemetry.'
-                      }
+                {/* Notification Item 2 */}
+                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: '10px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <ShieldAlert size={16} color="#dc2626" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#991b1b' }}>Truk Overspeed di Haul Road</span>
+                      <span style={{ fontSize: '10px', color: '#dc2626', background: 'rgba(220,38,38,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>12:50:33</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#7f1d1d', lineHeight: 1.4 }}>
+                      Truk HD785 terdeteksi melaju di atas batas 30 km/jam pada jalur incline. Alert <strong>CRITICAL</strong> dikirim ke Grup Telegram <strong>Dispatcher & Safety Officer</strong>.
                     </p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
+                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#dc2626', background: 'rgba(220,38,38,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Prioritas: CRITICAL</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Alert 3: AI Latency compute */}
-                <div style={{
-                  background: '#F0F9FF', border: '1.5px solid #E0F2FE',
-                  borderRadius: '10px', padding: '16px', display: 'flex', gap: '12px'
-                }}>
-                  <Cpu size={20} color="#0284c7" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#075985' }}>Edge Compute Engine (AI)</h4>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#0369a1', lineHeight: 1.4 }}>
-                      Waktu proses inferensi deteksi objek APD, truk overspeed, & perimeter aman rata-rata: **8ms (Sangat Cepat)**.
+                {/* Notification Item 3 */}
+                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: '10px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Activity size={16} color="#2563eb" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#1e40af' }}>Dust Suppression Auto-Trigger</span>
+                      <span style={{ fontSize: '10px', color: '#2563eb', background: 'rgba(37,99,235,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>13:01:10</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#1e3a5f', lineHeight: 1.4 }}>
+                      Sistem penyiram debu otomatis aktif di Stockpile Utara. Kepekatan debu melampaui ambang batas 80%. Notifikasi dikirim ke <strong>Tim Lingkungan</strong>.
                     </p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
+                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#2563eb', background: 'rgba(37,99,235,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Sektor: Stockpile Utara</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notification Item 4 */}
+                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: '10px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <CheckCircle size={16} color="#16a34a" />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#14532d' }}>Kamera Crusher Hopper Kembali Online</span>
+                      <span style={{ fontSize: '10px', color: '#16a34a', background: 'rgba(22,163,106,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>10:22:15</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#15803d', lineHeight: 1.4 }}>
+                      CCTV Crusher Hopper berhasil terkoneksi kembali setelah gangguan jaringan 12 menit. Notifikasi recovery dikirim ke <strong>Admin IT</strong>.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
+                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#16a34a', background: 'rgba(22,163,106,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Status: Recovery</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -998,7 +1297,7 @@ export default function Dashboard() {
             {/* Grid 2 Columns: System Status & Activity Feed */}
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }} className="db-layout-grid">
               
-              {/* Left Column: ALL SECTOR STATUS WITH CCTV & AGENTS */}
+              {/* Left Column: ALL SECTOR STATUS WITH CCTV */}
               <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
                 
                 {/* Header Row with Title and Selector Tabs */}
@@ -1006,7 +1305,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Activity size={18} color="var(--brand-primary)" />
                     <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0 }}>
-                      Status & Kabar Terkini Sektor (CCTV & Agent)
+                      Status & Kabar Terkini Sektor (CCTV)
                     </h3>
                   </div>
 
@@ -1063,7 +1362,6 @@ export default function Dashboard() {
                     .filter(site => overviewFilterMode === 'all' || site.id === overviewSelectedSiteId)
                     .map(site => {
                       const siteCctvs = site.details.filter(d => d.type === 'cctv');
-                      const siteAgents = site.details.filter(d => d.type === 'agent');
 
                       return (
                         <div key={site.id} style={{
@@ -1082,7 +1380,7 @@ export default function Dashboard() {
                             </span>
                           </div>
 
-                          {/* List of CCTVs and Agents inside this site */}
+                          {/* List of CCTVs inside this site */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {/* CCTVs */}
                             {siteCctvs.map(cam => {
@@ -1091,7 +1389,7 @@ export default function Dashboard() {
                               const reportText = isCamOffline 
                                 ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.' 
                                 : latestClip 
-                                  ? `⚠️ [REPLAY] ${latestClip.title}: ${latestClip.description}`
+                                  ? `[REPLAY] ${latestClip.title}: ${latestClip.description}`
                                   : `Normal: ${cam.feedDescription}`;
 
                               return (
@@ -1104,6 +1402,47 @@ export default function Dashboard() {
                                     <div>
                                       <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
                                       <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
+                                      
+                                      {/* Workload Badges */}
+                                      {!isCamOffline && (
+                                        <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 5px', borderRadius: '3px' }}>
+                                            APD
+                                          </span>
+                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 5px', borderRadius: '3px' }}>
+                                            Keselamatan
+                                          </span>
+                                          {(() => {
+                                            const group = getCctvSectorGroup(cam.id);
+                                            if (!group) return null;
+
+                                            const activeSkills = group.skills;
+                                            const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
+                                            const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
+                                            const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
+
+                                            return (
+                                              <>
+                                                {hasHuman && (
+                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 5px', borderRadius: '3px' }}>
+                                                    Zona Bahaya
+                                                  </span>
+                                                )}
+                                                {hasTruck && (
+                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 5px', borderRadius: '3px' }}>
+                                                    No-Stay Truk
+                                                  </span>
+                                                )}
+                                                {otherSkills.map(sk => (
+                                                  <span key={sk.id} style={{ fontSize: '8.5px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                                    {sk.code}
+                                                  </span>
+                                                ))}
+                                              </>
+                                            );
+                                          })()}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <span style={{
@@ -1113,33 +1452,6 @@ export default function Dashboard() {
                                     padding: '2px 6px', borderRadius: '4px'
                                   }}>
                                     {cam.status}
-                                  </span>
-                                </div>
-                              );
-                            })}
-
-                            {/* Agents */}
-                            {siteAgents.map(agent => {
-                              const isAgentOffline = agent.status === 'OFFLINE';
-                              return (
-                                <div key={agent.id} style={{
-                                  background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <Users size={14} color={isAgentOffline ? '#ff4d4d' : '#10b981'} />
-                                    <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{agent.name}</span>
-                                      <span style={{ fontSize: '11px', color: 'var(--outline)' }}>{agent.lastReport || 'Menunggu laporan dari lapangan...'}</span>
-                                    </div>
-                                  </div>
-                                  <span style={{
-                                    fontSize: '9px', fontWeight: 700,
-                                    color: isAgentOffline ? '#6B7280' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
-                                    background: isAgentOffline ? '#E5E7EB' : agent.workStatus === 'Patroli' ? '#0284c7' : '#16a34a',
-                                    padding: '2px 6px', borderRadius: '4px'
-                                  }}>
-                                    {isAgentOffline ? 'OFFLINE' : agent.workStatus}
                                   </span>
                                 </div>
                               );
@@ -1229,34 +1541,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* System Raw Logs Feed */}
-                <div style={{
-                  background: '#0B1D3A', borderRadius: '16px', padding: '20px',
-                  border: '1.5px solid rgba(13,71,161,0.15)', boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                  display: 'flex', flexDirection: 'column'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', color: 'white' }}>
-                    <Terminal size={16} color="#FFC107" />
-                    <h3 style={{ fontSize: '12.5px', fontWeight: 700, margin: 0, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Log Aktivitas Survelans Live</h3>
-                  </div>
-                  <div style={{
-                    background: '#030811', borderRadius: '8px', padding: '12px',
-                    fontFamily: 'monospace', fontSize: '10.5px', height: '140px', overflowY: 'auto',
-                    display: 'flex', flexDirection: 'column', gap: '6px', border: '1px solid rgba(255,255,255,0.05)'
-                  }}>
-                    {logs.map((log, index) => (
-                      <div key={index} style={{ display: 'flex', gap: '10px', lineHeight: 1.4 }}>
-                        <span style={{ color: '#FFC107', flexShrink: 0 }}>[{log.time}]</span>
-                        <span style={{
-                          color: log.type === 'error' ? '#ff4d4d' : log.type === 'success' ? '#10b981' : 'rgba(255,255,255,0.85)',
-                          fontWeight: log.type !== 'info' ? 'bold' : 'normal'
-                        }}>
-                          {log.message}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+
 
               </div>
 
@@ -1276,7 +1561,7 @@ export default function Dashboard() {
             {filterKPI !== 'ALL' && (
               <div style={{ background: '#ff5f5615', border: '1px solid #ff4d4d35', borderRadius: '8px', padding: '12px 20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: '#ff4d4d', fontSize: '13px', fontWeight: 600 }}>
-                  ⚠️ Menampilkan filter lokasi yang memiliki perangkat {filterKPI === 'CCTV_OFFLINE' ? 'CCTV' : 'Agent'} offline saja.
+                  Menampilkan filter lokasi yang memiliki perangkat CCTV offline saja.
                 </span>
                 <button
                   onClick={() => setFilterKPI('ALL')}
@@ -1440,7 +1725,7 @@ export default function Dashboard() {
                   {/* Player header */}
                   <div style={{ background: 'rgba(11,29,58,0.95)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                     <span style={{ color: 'white', fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
-                      {isPlayingClip ? '🔴 PLAYBACK MODE' : '🟢 LIVE CCTV FEED'}
+                      {isPlayingClip ? 'REC PLAYBACK MODE' : 'LIVE CCTV FEED'}
                     </span>
                     <span style={{ color: isPlayingClip ? '#ff4d4d' : '#FFC107', fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold' }}>
                       {activeCctv ? activeCctv.name : 'NO CAMERA SELECTED'}
@@ -1577,9 +1862,52 @@ export default function Dashboard() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
-                            <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500 }}>
-                              {cam.name}
-                            </span>
+                            <div>
+                              <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500, display: 'block' }}>
+                                {cam.name}
+                              </span>
+                              
+                              {/* Workload Badges */}
+                              {!isOffline && (
+                                <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
+                                    APD
+                                  </span>
+                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
+                                    Keselamatan
+                                  </span>
+                                  {(() => {
+                                    const group = getCctvSectorGroup(cam.id);
+                                    if (!group) return null;
+
+                                    const activeSkills = group.skills;
+                                    const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
+                                    const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
+                                    const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
+
+                                    return (
+                                      <>
+                                        {hasHuman && (
+                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
+                                            Zona Bahaya
+                                          </span>
+                                        )}
+                                        {hasTruck && (
+                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
+                                            No-Stay Truk
+                                          </span>
+                                        )}
+                                        {otherSkills.map(sk => (
+                                          <span key={sk.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                            {sk.code}
+                                          </span>
+                                        ))}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <span style={{
                             fontSize: '9px',
@@ -1673,23 +2001,59 @@ export default function Dashboard() {
         </section>
       )}
 
-      {/* ===== TAB 3: TAMBAH TITIK PEMANTAUAN (DEDICATED PAGE TAB) ===== */}
-      {activeSubTab === 'add-site' && (
+      {/* ===== TAB: ADMINISTRASI (KELOLA TITIK + HAK AKSES) ===== */}
+      {activeSubTab === 'admin' && (
         <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade" style={{ display: 'flex', justifyContent: 'center' }}>
-            
+          <div className="container animate-tab-fade">
+
+            {/* Admin Section Toggle Bar */}
             <div style={{
-              background: 'white', borderRadius: '16px', width: '100%',
-              maxWidth: '560px', padding: '40px', border: '1px solid #E3E6EE',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'white', borderRadius: '12px', padding: '8px 16px',
+              border: '1px solid #E3E6EE', marginBottom: '24px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}>
+              <div style={{ display: 'flex', gap: '6px', background: '#F4F6FA', padding: '4px', borderRadius: '8px' }}>
+                {[
+                  { key: 'sites', label: 'Kelola Titik & Sektor', icon: <MapPin size={14} /> },
+                  { key: 'users', label: 'Hak Akses & Akun', icon: <Users size={14} /> }
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setAdminSection(tab.key)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      padding: '9px 18px', border: 'none', borderRadius: '6px',
+                      background: adminSection === tab.key ? 'white' : 'transparent',
+                      color: adminSection === tab.key ? 'var(--brand-dark)' : 'var(--outline)',
+                      fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                      boxShadow: adminSection === tab.key ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {tab.icon} {tab.label}
+                  </button>
+                ))}
+              </div>
+              <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Panel Administrasi Sistem</span>
+            </div>
+
+            {/* ---- SECTION: KELOLA TITIK ---- */}
+            {adminSection === 'sites' && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '32px', alignItems: 'start' }}>
+            
+            {/* COLUMN 1: FORM TAMBAH */}
+            <div style={{
+              background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
               boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
             }}>
-              <h3 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px', textAlign: 'center' }}>Tambah Konfigurasi Pemantauan</h3>
-              <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--outline)', textAlign: 'center' }}>
-                Tambahkan kamera CCTV baru ke sektor terdaftar atau buat sektor tambang baru di peta.
+              <h3 style={{ margin: '0 0 6px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Tambah Konfigurasi</h3>
+              <p style={{ margin: '0 0 24px', fontSize: '12.5px', color: 'var(--outline)' }}>
+                Daftarkan kamera CCTV baru atau buat sektor tambang baru di sistem monitoring.
               </p>
 
               {/* Mode Selector Toggle */}
-              <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
                 <button
                   onClick={() => setAddMode('cctv')}
                   style={{
@@ -1720,13 +2084,13 @@ export default function Dashboard() {
 
               {/* FORM 1: TAMBAH CCTV */}
               {addMode === 'cctv' ? (
-                <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Sektor Penempatan</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Sektor Penempatan</label>
                     <select
                       value={newCctvSiteId}
                       onChange={e => setNewCctvSiteId(e.target.value)}
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
                     >
                       {sites.map(s => (
                         <option key={s.id} value={s.id}>{s.name}</option>
@@ -1735,23 +2099,23 @@ export default function Dashboard() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Nama Kamera CCTV</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Kamera CCTV</label>
                     <input
                       type="text"
                       placeholder="Contoh: CCTV Area Loading Crusher B"
                       value={newCctvName}
                       onChange={e => setNewCctvName(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Status Awal Kamera</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Status Awal Kamera</label>
                     <select
                       value={newCctvStatus}
                       onChange={e => setNewCctvStatus(e.target.value)}
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
                     >
                       <option value="ONLINE">ONLINE (Aktif/Normal)</option>
                       <option value="OFFLINE">OFFLINE (Dalam Perbaikan/Trouble)</option>
@@ -1759,22 +2123,22 @@ export default function Dashboard() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Deskripsi Feed Video / Lokasi Detail</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Deskripsi Feed Video / Lokasi Detail</label>
                     <input
                       type="text"
                       placeholder="Contoh: Pemantauan area loading coal pile crusher"
                       value={newCctvDesc}
                       onChange={e => setNewCctvDesc(e.target.value)}
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
                     />
                   </div>
 
                   <button
                     type="submit"
                     style={{
-                      width: '100%', padding: '14px', border: 'none', borderRadius: '8px',
+                      width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
                       background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                      fontSize: '15px', marginTop: '12px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                      fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
                     }}
                   >
                     Simpan & Pasang CCTV
@@ -1782,25 +2146,25 @@ export default function Dashboard() {
                 </form>
               ) : (
                 /* FORM 2: TAMBAH SEKTOR */
-                <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Nama Sektor Tambang Baru</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Sektor Tambang Baru</label>
                     <input
                       type="text"
-                      placeholder="Contoh: Pit B (Quarry Barat), Stockpile Barat"
+                      placeholder="Contoh: Pit B (Quarry Barat)"
                       value={newSiteName}
                       onChange={e => setNewSiteName(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Plot Lokasi Koordinat Peta</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Plot Lokasi Koordinat Peta</label>
                     <select
                       value={newSiteRegionIdx}
                       onChange={e => setNewSiteRegionIdx(e.target.value)}
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
                     >
                       {REGION_PRESETS.map((r, idx) => (
                         <option key={idx} value={idx}>{r.label}</option>
@@ -1809,19 +2173,19 @@ export default function Dashboard() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600 }}>Jumlah Kamera CCTV Awal</label>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Jumlah Kamera CCTV Awal</label>
                     <input
                       type="number"
                       min="1"
                       value={newSiteCctvCount}
                       onChange={e => setNewSiteCctvCount(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
                     />
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600 }}>Kamera Offline Awal (Trouble)</label>
+                    <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600, fontSize: '13px' }}>Kamera Offline Awal (Trouble)</label>
                     <input
                       type="number"
                       min="0"
@@ -1829,32 +2193,233 @@ export default function Dashboard() {
                       value={newSiteOfflineCctv}
                       onChange={e => setNewSiteOfflineCctv(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '12px 16px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
                     />
                   </div>
 
                   <button
                     type="submit"
                     style={{
-                      width: '100%', padding: '14px', border: 'none', borderRadius: '8px',
+                      width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
                       background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                      fontSize: '15px', marginTop: '12px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
+                      fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
                     }}
                   >
-                    Simpan & Daftarkan Sektor Baru
+                    Simpan & Daftarkan Sektor
                   </button>
                 </form>
               )}
-
             </div>
-          </div>
-        </section>
-      )}
 
-      {/* ===== TAB 4: USER MANAGEMENT & HAK AKSES ===== */}
-      {activeSubTab === 'users' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
+            {/* COLUMN 2: LIST MANAGE SECTOR & CCTV */}
+            <div style={{
+              background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
+              boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
+            }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                marginBottom: '20px', borderBottom: '1.5px solid #F1F3F9', paddingBottom: '16px'
+              }}>
+                <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Kelola Data Pemantauan</h3>
+                
+                {/* Switch list tabs */}
+                <div style={{ display: 'flex', gap: '8px', background: '#F4F6FA', padding: '4px', borderRadius: '6px' }}>
+                  <button
+                    onClick={() => setManageTab('sectors')}
+                    style={{
+                      padding: '6px 12px', border: 'none', borderRadius: '4px',
+                      background: manageTab === 'sectors' ? 'white' : 'transparent',
+                      color: manageTab === 'sectors' ? 'var(--brand-dark)' : 'var(--outline)',
+                      fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+                      boxShadow: manageTab === 'sectors' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Sektor ({sites.length})
+                  </button>
+                  <button
+                    onClick={() => setManageTab('cctvs')}
+                    style={{
+                      padding: '6px 12px', border: 'none', borderRadius: '4px',
+                      background: manageTab === 'cctvs' ? 'white' : 'transparent',
+                      color: manageTab === 'cctvs' ? 'var(--brand-dark)' : 'var(--outline)',
+                      fontWeight: 700, fontSize: '12px', cursor: 'pointer',
+                      boxShadow: manageTab === 'cctvs' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Kamera CCTV ({sites.reduce((acc, s) => acc + s.details.length, 0)})
+                  </button>
+                </div>
+              </div>
+
+              {/* LIST CONTENT: SECTORS */}
+              {manageTab === 'sectors' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {sites.map(s => (
+                    <div key={s.id} style={{
+                      padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
+                      borderRadius: '12px', transition: 'all 0.2s'
+                    }}>
+                      {editingSiteId === s.id ? (
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={editingSiteName}
+                            onChange={e => setEditingSiteName(e.target.value)}
+                            style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                          />
+                          <button
+                            onClick={() => handleEditSiteSubmit(s.id, editingSiteName)}
+                            style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Simpan
+                          </button>
+                          <button
+                            onClick={() => { setEditingSiteId(null); setEditingSiteName(''); }}
+                            style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px', display: 'block' }}>{s.name}</span>
+                            <span style={{ fontSize: '11.5px', color: 'var(--outline)' }}>
+                              Koordinat Peta: <code style={{ background: '#F1F3F9', padding: '1px 4px', borderRadius: '3px' }}>{s.x}, {s.y}</code> • {s.cctvTotal} Kamera
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                              onClick={() => { setEditingSiteId(s.id); setEditingSiteName(s.name); }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                            >
+                              <Edit size={11} /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSite(s.id)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                            >
+                              <Trash2 size={11} /> Hapus
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* LIST CONTENT: CCTVS */}
+              {manageTab === 'cctvs' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {sites.flatMap(s => s.details.map(cam => ({ ...cam, siteId: s.id, siteName: s.name }))).map(cam => (
+                    <div key={cam.id} style={{
+                      padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
+                      borderRadius: '12px'
+                    }}>
+                      {editingCctvId === cam.id ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Nama Kamera</label>
+                              <input
+                                type="text"
+                                value={editingCctvName}
+                                onChange={e => setEditingCctvName(e.target.value)}
+                                style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Status Kamera</label>
+                              <select
+                                value={editingCctvStatus}
+                                onChange={e => setEditingCctvStatus(e.target.value)}
+                                style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px', background: 'white' }}
+                              >
+                                <option value="ONLINE">ONLINE</option>
+                                <option value="OFFLINE">OFFLINE</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Deskripsi Video Feed</label>
+                            <input
+                              type="text"
+                              value={editingCctvDesc}
+                              onChange={e => setEditingCctvDesc(e.target.value)}
+                              style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
+                            />
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                            <button
+                              onClick={() => handleEditCctvSubmit(cam.siteId, cam.id, editingCctvName, editingCctvDesc, editingCctvStatus)}
+                              style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                            >
+                              Simpan
+                            </button>
+                            <button
+                              onClick={() => { setEditingCctvId(null); }}
+                              style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                            >
+                              Batal
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{ minWidth: 0, flex: 1, paddingRight: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px' }}>{cam.name}</span>
+                              <span style={{
+                                fontSize: '9px', fontWeight: 700,
+                                color: cam.status === 'OFFLINE' ? '#ff4d4d' : '#10b981',
+                                background: cam.status === 'OFFLINE' ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                                padding: '2px 6px', borderRadius: '3px'
+                              }}>
+                                {cam.status}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '11.5px', color: 'var(--outline)', display: 'block', marginBottom: '2px' }}>
+                              Sektor: <span style={{ fontWeight: 600 }}>{cam.siteName}</span>
+                            </span>
+                            <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {cam.feedDescription}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                            <button
+                              onClick={() => {
+                                setEditingCctvId(cam.id);
+                                setEditingCctvName(cam.name);
+                                setEditingCctvDesc(cam.feedDescription);
+                                setEditingCctvStatus(cam.status);
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                            >
+                              <Edit size={11} /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCctv(cam.siteId, cam.id)}
+                              style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
+                            >
+                              <Trash2 size={11} /> Hapus
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+            )}
+
+            {/* ---- SECTION: HAK AKSES & AKUN ---- */}
+            {adminSection === 'users' && (
             <div style={{ background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
@@ -1937,6 +2502,8 @@ export default function Dashboard() {
               </div>
 
             </div>
+            )}
+
           </div>
         </section>
       )}
@@ -2183,8 +2750,8 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '100px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '10px' }}>
                     <div style={{ color: '#4ADE80' }}>&gt; [12:08:01] Monitor 1: objek excavator terdeteksi (98.5% akurasi)</div>
                     <div style={{ color: '#4ADE80' }}>&gt; [12:08:04] Monitor 2: objek truk batubara terdeteksi (99.1% akurasi)</div>
-                    <div style={{ color: '#FFD600' }}>&gt; [12:08:12] Monitor 3: keselamatan - sensor pembagi debu menyala (⚠️)</div>
-                    <div style={{ color: '#EF4444' }}>&gt; [12:08:18] Monitor 4: ANCAMAN - kamera crusher terputus dari signal (🚨)</div>
+                    <div style={{ color: '#FFD600' }}>&gt; [12:08:12] Monitor 3: keselamatan - sensor pembagi debu menyala (WARNING)</div>
+                    <div style={{ color: '#EF4444' }}>&gt; [12:08:18] Monitor 4: ANCAMAN - kamera crusher terputus dari signal (ALERT)</div>
                   </div>
                 </div>
 
@@ -2193,6 +2760,808 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* ===== TAB 6: WORKLOAD AGEN AI CONFIGURATION ===== */}
+      {activeSubTab === 'workload' && (
+        <section style={{ marginTop: '32px' }}>
+          <div className="container animate-tab-fade">
+            
+            {/* Header info */}
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              border: '1px solid #E3E6EE',
+              marginBottom: '28px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <div>
+                <h3 style={{ fontSize: '18px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Cpu size={20} color="var(--brand-primary)" /> Konfigurasi Workload Agen AI CCTV & Sektor
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                  Pilih policy group untuk menentukan daftar aturan AI aktif pada setiap kamera, atau buat policy group baru.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={() => setShowPolicyModal(true)}
+                  style={{
+                    background: 'var(--brand-primary)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 18px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(13,71,161,0.2)',
+                    transition: 'opacity 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = 0.9}
+                  onMouseLeave={e => e.currentTarget.style.opacity = 1}
+                >
+                  <Settings size={15} /> Kelola Policy Group
+                </button>
+                <div style={{
+                  background: '#F0FDF4',
+                  border: '1.5px solid #DCFCE7',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'mapPulse 1.5s infinite' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>AI Agent Status: AKTIF</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Two Column Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '32px' }} className="db-layout-grid">
+              
+              {/* Left Column: List of Sectors */}
+              <div style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '24px',
+                border: '1px solid #E3E6EE',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+                alignSelf: 'start'
+              }}>
+                <h4 style={{ fontSize: '14px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Sektor Pertambangan
+                </h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {sites.map(s => {
+                    const isSelected = workloadSelectedSiteId === s.id;
+                    const cctvs = s.details.filter(d => d.type === 'cctv');
+                    
+                    // Count how many custom workloads are active in this sector
+                    let activeCustomRules = 0;
+                    const sectorGroupId = sectorGroupAssignments[s.id] || 'group-danger';
+                    const group = workloadGroups.find(g => g.id === sectorGroupId);
+                    if (group) {
+                      activeCustomRules = group.skills.length;
+                    }
+
+                    return (
+                      <div
+                        key={s.id}
+                        onClick={() => setWorkloadSelectedSiteId(s.id)}
+                        style={{
+                          background: isSelected ? 'rgba(13,71,161,0.04)' : '#FAFBFD',
+                          border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : '#E3E6EE'}`,
+                          borderRadius: '12px',
+                          padding: '16px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{s.name}</span>
+                          <span style={{
+                            fontSize: '9px', fontWeight: 700,
+                            color: s.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
+                            background: s.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
+                            padding: '2px 8px', borderRadius: '4px'
+                          }}>
+                            ● {s.status}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', color: 'var(--outline)' }}>
+                            {cctvs.length} CCTV Terpasang
+                          </span>
+                          {activeCustomRules > 0 ? (
+                            <span style={{ fontSize: '10px', fontWeight: 600, background: '#FFF3E0', color: '#E65100', padding: '2px 6px', borderRadius: '4px' }}>
+                              {activeCustomRules} Rule AI Aktif
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: '10px', color: 'var(--outline)', background: '#F0EDED', padding: '2px 6px', borderRadius: '4px' }}>
+                              0 Rule AI
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: CCTV Workload Configuration */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {(() => {
+                  const selectedSiteObj = sites.find(s => s.id === workloadSelectedSiteId) || sites[0];
+                  if (!selectedSiteObj) return null;
+                  
+                  const cctvs = selectedSiteObj.details.filter(d => d.type === 'cctv');
+
+                  return (
+                    <div style={{
+                      background: 'white',
+                      borderRadius: '16px',
+                      padding: '28px',
+                      border: '1px solid #E3E6EE',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
+                    }}>
+                      <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '16px', fontWeight: 700 }}>
+                            Daftar Kamera Sektor: {selectedSiteObj.name}
+                          </h3>
+                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--outline)' }}>
+                            Aturan deteksi AI yang aktif di bawah ini diwariskan dari Group Policy sektor.
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '11px', fontWeight: 600, background: '#F4F6FA', color: 'var(--brand-dark)', padding: '4px 10px', borderRadius: '6px' }}>
+                          Total: {cctvs.length} CCTV
+                        </span>
+                      </div>
+
+                      {/* Sector Group Assignment Header */}
+                      <div style={{
+                        background: '#FAFBFD',
+                        border: '1.5px solid #E3E6EE',
+                        borderRadius: '12px',
+                        padding: '20px 24px',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '14px'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                          <div>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              SECTOR GROUP POLICY TEMPLATE
+                            </span>
+                            <h4 style={{ margin: '2px 0 0', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '14px' }}>
+                              Pilih Group Policy untuk Sektor {selectedSiteObj.name}
+                            </h4>
+                          </div>
+
+                          {/* Sector Policy Dropdown */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <select
+                              value={sectorGroupAssignments[selectedSiteObj.id] || 'group-danger'}
+                              onChange={(e) => handleAssignSectorGroup(selectedSiteObj.id, e.target.value)}
+                              style={{
+                                padding: '8px 16px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: 'var(--brand-dark)',
+                                border: '1.5px solid #C3C6D4',
+                                borderRadius: '8px',
+                                background: 'white',
+                                outline: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                              }}
+                            >
+                              {workloadGroups.map(g => (
+                                <option key={g.id} value={g.id}>
+                                  {g.name} ({g.skills.length} Rule)
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Active Sector Rules Preview */}
+                        {(() => {
+                          const assignedGroupId = sectorGroupAssignments[selectedSiteObj.id] || 'group-danger';
+                          const groupObj = workloadGroups.find(g => g.id === assignedGroupId);
+                          if (!groupObj) return null;
+
+                          return (
+                            <div style={{ borderTop: '1px solid #E3E6EE', paddingTop: '12px' }}>
+                              <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>
+                                Seluruh CCTV di sektor ini otomatis mewarisi rule berikut dari <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>{groupObj.name}</span>:
+                              </p>
+                              {groupObj.skills.length === 0 ? (
+                                <span style={{ fontSize: '12.5px', color: 'var(--outline)', fontStyle: 'italic' }}>Grup ini belum memiliki rule AI.</span>
+                              ) : (
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  {groupObj.skills.map(skill => (
+                                    <span
+                                      key={skill.id}
+                                      style={{
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        background: 'white',
+                                        color: 'var(--brand-dark)',
+                                        border: '1px solid #E3E6EE',
+                                        padding: '4px 10px',
+                                        borderRadius: '6px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                      }}
+                                      title={skill.guidelines}
+                                    >
+                                      <span style={{ color: '#4F46E5', fontWeight: 800 }}>{skill.code}</span>
+                                      <span>({skill.description})</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {cctvs.map(cam => {
+                          const isOffline = cam.status === 'OFFLINE';
+                          const group = getCctvSectorGroup(cam.id);
+
+                          return (
+                            <div key={cam.id} style={{
+                              background: '#FAFBFD',
+                              border: '1px solid #E3E6EE',
+                              borderRadius: '12px',
+                              padding: '20px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '16px',
+                              opacity: isOffline ? 0.75 : 1,
+                              transition: 'all 0.2s'
+                            }}>
+                              {/* CCTV info */}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dashed #E3E6EE', paddingBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{
+                                    background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(13,71,161,0.06)',
+                                    color: isOffline ? '#ff4d4d' : 'var(--brand-primary)',
+                                    width: '36px', height: '36px', borderRadius: '8px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                  }}>
+                                    <Camera size={18} />
+                                  </div>
+                                  <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>
+                                        {cam.name}
+                                      </span>
+                                      {group && (
+                                        <span style={{ fontSize: '10px', fontWeight: 700, background: 'rgba(79,70,229,0.08)', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px' }}>
+                                          {group.name}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span style={{ fontSize: '11px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
+                                      {cam.feedDescription}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span style={{
+                                  fontSize: '9px', fontWeight: 700,
+                                  color: isOffline ? '#ff4d4d' : '#10b981',
+                                  background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
+                                  padding: '3px 8px', borderRadius: '4px'
+                                }}>
+                                  {cam.status}
+                                </span>
+                              </div>
+
+                              {/* Workload Section */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="db-layout-grid">
+                                
+                                {/* Standard/Wajib Column */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Standard Workload (Selalu Aktif)
+                                  </span>
+                                  
+                                  {/* APD check */}
+                                  <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
+                                    borderRadius: '8px', opacity: 0.9
+                                  }}>
+                                    <ShieldCheck size={18} color="#16A34A" style={{ flexShrink: 0 }} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
+                                        Deteksi Kepatuhan APD (K3)
+                                      </span>
+                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
+                                        Verifikasi otomatis rompi & helm safety.
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Keselamatan Manusia */}
+                                  <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
+                                    borderRadius: '8px', opacity: 0.9
+                                  }}>
+                                    <Activity size={18} color="#16A34A" style={{ flexShrink: 0 }} />
+                                    <div>
+                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
+                                        Deteksi Keselamatan Manusia
+                                      </span>
+                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
+                                        Perlindungan kru di dekat peralatan berat.
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Group Workload Column */}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Group Workload ({group ? group.name : 'No Group'})
+                                  </span>
+
+                                  <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px',
+                                    maxHeight: '150px',
+                                    overflowY: 'auto',
+                                    paddingRight: '6px'
+                                  }}>
+                                    {!group || group.skills.length === 0 ? (
+                                      <div style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        padding: '24px 16px', background: '#F4F6FA', border: '1.5px dashed #E3E6EE',
+                                        borderRadius: '8px', height: '100%'
+                                      }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic' }}>
+                                          Grup ini belum memiliki rule AI.
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      group.skills.map(skill => {
+                                        let activeBorder = '1.5px solid #E3E6EE';
+                                        let iconColor = 'var(--brand-primary)';
+                                        
+                                        if (skill.code === 'no_human_zone') {
+                                          activeBorder = '1.5px solid #FCA5A5';
+                                          iconColor = '#EF4444';
+                                        } else if (skill.code === 'no_truck_stop') {
+                                          activeBorder = '1.5px solid #FDE047';
+                                          iconColor = '#F57F17';
+                                        }
+
+                                        return (
+                                          <div
+                                            key={skill.id}
+                                            style={{
+                                              display: 'flex', alignItems: 'center', gap: '12px',
+                                              padding: '12px 16px', background: 'white', border: activeBorder,
+                                              borderRadius: '8px', opacity: 0.9
+                                            }}
+                                          >
+                                            <Settings size={18} color={iconColor} style={{ flexShrink: 0 }} />
+                                            <div>
+                                              <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
+                                                {skill.description}
+                                              </span>
+                                              {skill.guidelines && (
+                                                <span style={{ fontSize: '10.5px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
+                                                  {skill.guidelines}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+      )}
+
+      {/* ===== MODAL: KELOLA POLICY GROUP ===== */}
+      {showPolicyModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(11,29,58,0.6)',
+          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
+          justifyContent: 'center', zIndex: 1000, padding: '20px'
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '16px', width: '100%',
+            maxWidth: '960px', maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.25)', border: '1px solid #E3E6EE',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 32px', borderBottom: '1px solid #E3E6EE' }}>
+              <div>
+                <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Settings size={20} color="var(--brand-primary)" /> Pengaturan Group Policy & AI Skills
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--outline)' }}>
+                  Definisikan group template dan kelola rule/skill deteksi AI di dalamnya.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPolicyModal(false);
+                  setEditingSkillId(null);
+                  setSkillCode('');
+                  setSkillDesc('');
+                  setSkillGuidelines('');
+                  setIsCreatingGroup(false);
+                }}
+                style={{
+                  background: 'none', border: 'none', fontSize: '20px', fontWeight: 600,
+                  color: 'var(--outline)', cursor: 'pointer', padding: '4px 8px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content - Two Column Layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', flex: 1, overflow: 'hidden' }}>
+              
+              {/* Left Column: Group List */}
+              <div style={{ borderRight: '1px solid #E3E6EE', padding: '24px', overflowY: 'auto', background: '#F8FAFC', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 12px', fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Daftar Group Policy
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {workloadGroups.map(group => {
+                      const isSelected = selectedGroupId === group.id;
+                      return (
+                        <div
+                          key={group.id}
+                          onClick={() => {
+                            setSelectedGroupId(group.id);
+                            setEditingSkillId(null);
+                            setSkillCode('');
+                            setSkillDesc('');
+                            setSkillGuidelines('');
+                          }}
+                          style={{
+                            padding: '12px 16px',
+                            background: isSelected ? 'white' : 'transparent',
+                            border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : 'transparent'}`,
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: isSelected ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, fontSize: '13px', color: isSelected ? 'var(--brand-dark)' : 'var(--on-surface-variant)', display: 'block' }}>
+                            {group.name}
+                          </span>
+                          <span style={{ fontSize: '11px', color: 'var(--outline)', display: 'block', marginTop: '2px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                            {group.skills.length} Rule AI • {group.description || 'Tidak ada deskripsi'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Create New Group Section */}
+                <div style={{ borderTop: '1px solid #E3E6EE', paddingTop: '20px' }}>
+                  {!isCreatingGroup ? (
+                    <button
+                      onClick={() => setIsCreatingGroup(true)}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(13,71,161,0.06)',
+                        color: 'var(--brand-primary)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '10px 14px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <Plus size={14} /> Buat Group Baru
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'white', padding: '14px', borderRadius: '10px', border: '1px solid #E3E6EE' }}>
+                      <span style={{ fontWeight: 700, fontSize: '11px', color: 'var(--brand-dark)' }}>GROUP BARU</span>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Nama Group..."
+                          value={newGroupName}
+                          onChange={(e) => setNewGroupName(e.target.value)}
+                          style={{
+                            width: '100%', padding: '8px 10px', fontSize: '12px',
+                            border: '1px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <textarea
+                          placeholder="Deskripsi..."
+                          value={newGroupDesc}
+                          onChange={(e) => setNewGroupDesc(e.target.value)}
+                          style={{
+                            width: '100%', padding: '8px 10px', fontSize: '12px', minHeight: '48px',
+                            border: '1px solid #C3C6D4', borderRadius: '6px', outline: 'none',
+                            fontFamily: 'inherit', resize: 'none'
+                          }}
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={handleCreateGroup}
+                          style={{
+                            flex: 1, background: 'var(--brand-primary)', color: 'white',
+                            border: 'none', borderRadius: '6px', padding: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                          }}
+                        >
+                          Simpan
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsCreatingGroup(false);
+                            setNewGroupName('');
+                            setNewGroupDesc('');
+                          }}
+                          style={{
+                            flex: 1, background: '#F4F6FA', color: 'var(--brand-dark)',
+                            border: '1px solid #E3E6EE', borderRadius: '6px', padding: '6px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer'
+                          }}
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Group Skills Editor */}
+              <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                {(() => {
+                  const activeGroup = workloadGroups.find(g => g.id === selectedGroupId);
+                  if (!activeGroup) return null;
+
+                  return (
+                    <>
+                      {/* Active Group Title & Delete Option */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #F1F3F9', paddingBottom: '16px' }}>
+                        <div>
+                          <h4 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '16px' }}>
+                            {activeGroup.name}
+                          </h4>
+                          <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                            {activeGroup.description || 'Tidak ada deskripsi untuk group policy ini.'}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteGroup(activeGroup.id)}
+                          style={{
+                            background: '#FEF2F2',
+                            color: '#EF4444',
+                            border: '1px solid #FCA5A5',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Trash2 size={13} /> Hapus Group
+                        </button>
+                      </div>
+
+                      {/* Add/Edit Skill Form */}
+                      <div style={{ background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '20px' }}>
+                        <h5 style={{ margin: '0 0 16px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {editingSkillId ? '📝 Edit Rule AI' : '➕ Tambah Rule AI Baru'}
+                        </h5>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px', marginBottom: '16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Event Code</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. no_human_zone"
+                                value={skillCode}
+                                onChange={(e) => setSkillCode(e.target.value)}
+                                style={{
+                                  width: '100%', padding: '10px', fontSize: '12.5px',
+                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Deskripsi Singkat</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Area terlarang untuk operator jalan kaki"
+                                value={skillDesc}
+                                onChange={(e) => setSkillDesc(e.target.value)}
+                                style={{
+                                  width: '100%', padding: '10px', fontSize: '12.5px',
+                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Petunjuk AI (Detection Guidelines)</label>
+                            <textarea
+                              placeholder="Berikan instruksi operasional untuk AI agent, misal: Cari objek manusia menggunakan rompi oranye di dalam area marka kuning..."
+                              value={skillGuidelines}
+                              onChange={(e) => setSkillGuidelines(e.target.value)}
+                              style={{
+                                width: '100%', padding: '10px', fontSize: '12.5px', minHeight: '94px',
+                                border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none',
+                                fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.4
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                          {editingSkillId && (
+                            <button
+                              onClick={() => {
+                                setEditingSkillId(null);
+                                setSkillCode('');
+                                setSkillDesc('');
+                                setSkillGuidelines('');
+                              }}
+                              style={{
+                                background: 'white', color: 'var(--brand-dark)',
+                                border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 16px',
+                                fontSize: '12.5px', fontWeight: 600, cursor: 'pointer'
+                              }}
+                            >
+                              Batal
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSaveSkillToGroup(activeGroup.id)}
+                            style={{
+                              background: 'var(--brand-primary)', color: 'white',
+                              border: 'none', borderRadius: '8px', padding: '8px 20px',
+                              fontSize: '12.5px', fontWeight: 700, cursor: 'pointer'
+                            }}
+                          >
+                            {editingSkillId ? 'Simpan Perubahan' : 'Tambah Rule'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Skills List in Active Group */}
+                      <div>
+                        <h5 style={{ margin: '0 0 12px', color: 'var(--outline)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          ATURAN DETEKSI AKTIF DALAM GROUP POLICY ({activeGroup.skills.length})
+                        </h5>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {activeGroup.skills.length === 0 ? (
+                            <div style={{ padding: '32px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', border: '1.5px dashed #E3E6EE' }}>
+                              <span style={{ fontSize: '13px', color: 'var(--outline)', fontStyle: 'italic' }}>
+                                Group policy ini belum memiliki rule deteksi AI. Tambahkan rule di atas.
+                              </span>
+                            </div>
+                          ) : (
+                            activeGroup.skills.map(skill => (
+                              <div
+                                key={skill.id}
+                                style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '16px 20px', background: 'white', border: '1.5px solid #E3E6EE',
+                                  borderRadius: '12px'
+                                }}
+                              >
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--brand-dark)' }}>
+                                      {skill.description}
+                                    </span>
+                                    <code style={{ fontSize: '10px', background: '#EEF2F6', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                      {skill.code}
+                                    </code>
+                                  </div>
+                                  {skill.guidelines && (
+                                    <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      Guidelines: {skill.guidelines}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                                  <button
+                                    onClick={() => handleEditSkillClick(skill)}
+                                    style={{
+                                      background: '#F4F6FA', border: '1px solid #E3E6EE', borderRadius: '6px',
+                                      width: '32px', height: '32px', display: 'flex', alignItems: 'center',
+                                      justifyContent: 'center', cursor: 'pointer', color: 'var(--brand-dark)'
+                                    }}
+                                  >
+                                    <Edit size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteSkillFromGroup(activeGroup.id, skill.id)}
+                                    style={{
+                                      background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px',
+                                      width: '32px', height: '32px', display: 'flex', alignItems: 'center',
+                                      justifyContent: 'center', cursor: 'pointer', color: '#EF4444'
+                                    }}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ===== MODAL: TAMBAH PENGGUNA ===== */}
