@@ -968,2659 +968,1459 @@ export default function Dashboard() {
       )
   ).sort((a, b) => b.time.localeCompare(a.time));
 
-  return (
-    <main style={{ minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px' }}>
 
-      {/* ===== CUSTOM DASHBOARD NAVBAR ===== */}
-      <nav style={{
-        background: 'var(--brand-dark)',
-        padding: '16px 40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        borderBottom: '2.5px solid var(--brand-secondary)'
-      }}>
-        {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            padding: '3px 8px',
-            borderRadius: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <img src="/logo.png" alt="PamAgents" style={{ height: '22px', width: 'auto' }} />
-          </div>
-          <div style={{ width: '1.5px', height: '24px', background: 'rgba(255,255,255,0.2)' }} />
-          <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '0.05em' }}>MONITOR PORTAL</span>
+  // Selected Alert for Escalate tab
+  const [selectedAlertIdx, setSelectedAlertIdx] = useState(0);
+
+  // Selected Incident for Respond tab
+  const [selectedIncidentIdx, setSelectedIncidentIdx] = useState(0);
+
+  // Active CCTV for Detect tab
+  const [detectGridSize, setDetectGridSize] = useState(4);
+
+  // Active camera edit states
+  const [isEditingCctv, setIsEditingCctv] = useState(false);
+
+  return (
+    <div className="bg-background text-on-surface font-body-md min-h-screen flex antialiased">
+      {/* ===== SIDEBAR NAVIGATION ===== */}
+      <nav className="bg-surface-container-low h-screen w-64 fixed left-0 top-0 shadow-sm flex flex-col p-sm gap-base border-r border-outline-variant/20 z-40 hidden md:flex">
+        <div className="px-sm py-md">
+          <h1 className="font-headline-md text-headline-md font-bold text-primary flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>analytics</span>
+            PAMAgents
+          </h1>
+          <p className="font-body-sm text-body-sm text-on-surface-variant">Mining Intel v2.4</p>
         </div>
 
-        {/* 4 Dedicated Tabs */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <button 
+          onClick={() => setActiveSubTab('policy_studio')}
+          className="bg-primary text-on-primary font-label-md text-label-md py-sm px-md rounded-lg flex items-center justify-center gap-xs w-full mb-md hover:bg-on-primary-fixed hover:text-white transition-colors"
+        >
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add</span>
+          New Policy
+        </button>
+
+        <div className="flex-1 flex flex-col gap-xs overflow-y-auto">
           <button
             onClick={() => setActiveSubTab('overview')}
-            style={{
-              background: activeSubTab === 'overview' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'overview' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'overview' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
           >
-            <Home size={15} /> Utama
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'overview' ? "'FILL' 1" : "'FILL' 0" }}>dashboard</span>
+            <span>Dashboard</span>
           </button>
 
           <button
-            onClick={() => { setActiveSubTab('map'); setFilterKPI('ALL'); }}
-            style={{
-              background: activeSubTab === 'map' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'map' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
+            onClick={() => setActiveSubTab('detect')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'detect' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
           >
-            <Map size={15} /> Peta Pemantauan
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'detect' ? "'FILL' 1" : "'FILL' 0" }}>search_check</span>
+            <span>Detect</span>
           </button>
 
           <button
-            onClick={() => setActiveSubTab('live-cctv')}
-            style={{
-              background: activeSubTab === 'live-cctv' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'live-cctv' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
+            onClick={() => setActiveSubTab('escalate')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'escalate' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
           >
-            <Camera size={15} /> Live Multi-CCTV
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'escalate' ? "'FILL' 1" : "'FILL' 0" }}>priority_high</span>
+            <span>Escalate</span>
           </button>
 
           <button
-            onClick={() => setActiveSubTab('workload')}
-            style={{
-              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'workload' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
+            onClick={() => setActiveSubTab('respond')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'respond' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
           >
-            <Cpu size={15} /> Workload Agen
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'respond' ? "'FILL' 1" : "'FILL' 0" }}>quick_reorder</span>
+            <span>Respond</span>
           </button>
 
           <button
-            onClick={() => setActiveSubTab('admin')}
-            style={{
-              background: activeSubTab === 'admin' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'admin' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
+            onClick={() => setActiveSubTab('analyze')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'analyze' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
           >
-            <Settings size={15} /> Administrasi
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'analyze' ? "'FILL' 1" : "'FILL' 0" }}>analytics</span>
+            <span>Analyze</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('policy_studio')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'policy_studio' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'policy_studio' ? "'FILL' 1" : "'FILL' 0" }}>smart_toy</span>
+            <span>Policy Studio</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('camera_management')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'camera_management' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'camera_management' ? "'FILL' 1" : "'FILL' 0" }}>videocam</span>
+            <span>Camera Management</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('settings')}
+            className={`flex items-center gap-sm px-md py-sm rounded-lg font-label-md text-label-md hover:scale-[1.02] transition-transform duration-150 text-left w-full ${
+              activeSubTab === 'settings' ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-high'
+            }`}
+          >
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: activeSubTab === 'settings' ? "'FILL' 1" : "'FILL' 0" }}>settings</span>
+            <span>Settings</span>
           </button>
         </div>
 
-        {/* Profile Clock */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '12px', fontFamily: 'monospace' }}>
-            <Clock size={14} color="#FFC107" />
-            <span>{timeStr}</span>
+        <div className="mt-auto pt-sm border-t border-outline-variant/20 flex items-center gap-sm">
+          <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-label-md font-bold text-xs">
+            AN
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>Alvin Nugraha</span>
-              <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>Super Admin</span>
-            </div>
-            <div style={{
-              width: '38px', height: '38px', borderRadius: '50%', background: '#FFC107',
-              color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '15px', border: '1.5px solid rgba(255,255,255,0.2)'
-            }}>
-              AN
-            </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-label-md text-label-md text-on-surface block truncate">Alvin Nugraha</span>
+            <span className="font-body-sm text-body-sm text-on-surface-variant block truncate">Owner (Super Admin)</span>
           </div>
-
-          <button
+          <button 
             onClick={handleLogout}
-            style={{
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', padding: '6px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = '#ff4d4d'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+            className="p-1 text-on-surface-variant hover:text-error transition-colors"
             title="Keluar dari Portal"
           >
-            <LogOut size={20} />
+            <span className="material-symbols-outlined text-[20px]">logout</span>
           </button>
         </div>
       </nav>
 
-      {/* ===== TAB 1: RINGKASAN UTAMA (OVERVIEW) ===== */}
-      {activeSubTab === 'overview' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
-
-
-
-            {/* KPI METRICS ROW */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-              {/* Total CCTV */}
-              <div
-                onClick={() => triggerKPIFilter('ALL')}
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
-                  transition: 'transform 0.2s'
-                }}
-                className="hover-pop"
-              >
-                <div style={{ background: 'rgba(13,71,161,0.08)', color: 'var(--brand-primary)', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Camera size={24} />
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Semua CCTV</p>
-                  <h3 style={{ fontSize: '26px', color: 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalCCTV} <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 500 }}>({totalCCTVOnline} Online)</span></h3>
-                </div>
-              </div>
-
-              {/* Offline CCTV */}
-              <div
-                onClick={() => triggerKPIFilter('CCTV_OFFLINE')}
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: totalCCTVOffline > 0 ? '1px solid #ff4d4d' : '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
-                  transition: 'transform 0.2s'
-                }}
-                className="hover-pop"
-              >
-                <div style={{ background: totalCCTVOffline > 0 ? 'rgba(255,77,77,0.08)' : 'rgba(0,0,0,0.04)', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--outline)', padding: '8px', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <WifiOff size={24} />
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>CCTV Offline</p>
-                  <h3 style={{ fontSize: '26px', color: totalCCTVOffline > 0 ? '#ff4d4d' : 'var(--brand-dark)', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>{totalCCTVOffline}</h3>
-                </div>
-              </div>
-
-              {/* Status AI Agent */}
-              <div
-                style={{
-                  background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  border: '1px solid #E3E6EE', display: 'flex', alignItems: 'center', gap: '16px',
-                  transition: 'transform 0.2s'
-                }}
-                className="hover-pop"
-              >
-                <div style={{ background: 'rgba(16,185,129,0.08)', color: '#10b981', width: '48px', height: '48px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <ShieldCheck size={24} />
-                </div>
-                <div>
-                  <p style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status AI Agent</p>
-                  <h3 style={{ fontSize: '24px', color: '#10b981', fontWeight: 700, margin: '4px 0 0', lineHeight: 1 }}>AKTIF</h3>
-                </div>
-              </div>
-            </div>
-
-
-            {/* NOTIFIKASI & BROADCAST TELEGRAM */}
-            <div style={{
-              background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px',
-              padding: '24px', marginBottom: '28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
-                <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-                  <AlertTriangle size={18} color="#f59e0b" />
-                  Notifikasi Kejadian & Broadcast Telegram
-                </h3>
-                <span style={{ fontSize: '11px', color: 'var(--outline)', background: '#F4F6FA', padding: '4px 10px', borderRadius: '4px', fontWeight: 600 }}>
-                  Terhubung ke Bot @PamAgents_AlertBot
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
-                {/* Notification Item 1 */}
-                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#FFF7ED', border: '1px solid #FFEDD5', borderRadius: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <AlertTriangle size={16} color="#d97706" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#92400e' }}>Pelanggaran APD Terdeteksi</span>
-                      <span style={{ fontSize: '10px', color: '#b45309', background: 'rgba(217,119,6,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>13:14:02</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '11.5px', color: '#78350f', lineHeight: 1.4 }}>
-                      CCTV Haul Road Incline A mendeteksi pekerja tanpa helm safety di zona loading. Notifikasi dikirim ke Grup Telegram <strong>K3 Pit A</strong>.
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
-                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#b45309', background: 'rgba(217,119,6,0.08)', padding: '2px 8px', borderRadius: '3px' }}>Sektor: Pit A</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notification Item 2 */}
-                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <ShieldAlert size={16} color="#dc2626" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#991b1b' }}>Truk Overspeed di Haul Road</span>
-                      <span style={{ fontSize: '10px', color: '#dc2626', background: 'rgba(220,38,38,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>12:50:33</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '11.5px', color: '#7f1d1d', lineHeight: 1.4 }}>
-                      Truk HD785 terdeteksi melaju di atas batas 30 km/jam pada jalur incline. Alert <strong>CRITICAL</strong> dikirim ke Grup Telegram <strong>Dispatcher & Safety Officer</strong>.
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
-                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#dc2626', background: 'rgba(220,38,38,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Prioritas: CRITICAL</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notification Item 3 */}
-                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#F0F9FF', border: '1px solid #E0F2FE', borderRadius: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Activity size={16} color="#2563eb" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#1e40af' }}>Dust Suppression Auto-Trigger</span>
-                      <span style={{ fontSize: '10px', color: '#2563eb', background: 'rgba(37,99,235,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>13:01:10</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '11.5px', color: '#1e3a5f', lineHeight: 1.4 }}>
-                      Sistem penyiram debu otomatis aktif di Stockpile Utara. Kepekatan debu melampaui ambang batas 80%. Notifikasi dikirim ke <strong>Tim Lingkungan</strong>.
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
-                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#2563eb', background: 'rgba(37,99,235,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Sektor: Stockpile Utara</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Notification Item 4 */}
-                <div style={{ display: 'flex', gap: '14px', padding: '14px', background: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: '10px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <CheckCircle size={16} color="#16a34a" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '13px', color: '#14532d' }}>Kamera Crusher Hopper Kembali Online</span>
-                      <span style={{ fontSize: '10px', color: '#16a34a', background: 'rgba(22,163,106,0.1)', padding: '2px 8px', borderRadius: '3px', fontWeight: 600 }}>10:22:15</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '11.5px', color: '#15803d', lineHeight: 1.4 }}>
-                      CCTV Crusher Hopper berhasil terkoneksi kembali setelah gangguan jaringan 12 menit. Notifikasi recovery dikirim ke <strong>Admin IT</strong>.
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '9px', fontWeight: 700, color: 'white', background: '#0088cc', padding: '2px 8px', borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>Terkirim via Telegram</span>
-                      <span style={{ fontSize: '9px', fontWeight: 600, color: '#16a34a', background: 'rgba(22,163,106,0.06)', padding: '2px 8px', borderRadius: '3px' }}>Status: Recovery</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Grid 2 Columns: System Status & Activity Feed */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px' }} className="db-layout-grid">
-
-              {/* Left Column: ALL SECTOR STATUS WITH CCTV */}
-              <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '16px', padding: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
-
-                {/* Header Row with Title and Selector Tabs */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #F0EDED', paddingBottom: '12px', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Activity size={18} color="var(--brand-primary)" />
-                    <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0 }}>
-                      Status & Kabar Terkini Sektor (CCTV)
-                    </h3>
-                  </div>
-
-                  {/* Selector Mode (Gabungan vs Per Sektor) */}
-                  <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '6px', padding: '2px' }}>
-                    <button
-                      onClick={() => setOverviewFilterMode('all')}
-                      style={{
-                        padding: '6px 12px', border: 'none', borderRadius: '4px',
-                        background: overviewFilterMode === 'all' ? 'white' : 'transparent',
-                        color: overviewFilterMode === 'all' ? 'var(--brand-dark)' : 'var(--outline)',
-                        fontWeight: 600, fontSize: '11px', cursor: 'pointer',
-                        boxShadow: overviewFilterMode === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      Gabungan Semua
-                    </button>
-                    <button
-                      onClick={() => setOverviewFilterMode('single')}
-                      style={{
-                        padding: '6px 12px', border: 'none', borderRadius: '4px',
-                        background: overviewFilterMode === 'single' ? 'white' : 'transparent',
-                        color: overviewFilterMode === 'single' ? 'var(--brand-dark)' : 'var(--outline)',
-                        fontWeight: 600, fontSize: '11px', cursor: 'pointer',
-                        boxShadow: overviewFilterMode === 'single' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      Per Sektor
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dropdown Selector if Per Sektor mode is active */}
-                {overviewFilterMode === 'single' && (
-                  <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--brand-dark)' }}>Pilih Sektor Tambang:</span>
-                    <select
-                      value={overviewSelectedSiteId}
-                      onChange={e => setOverviewSelectedSiteId(e.target.value)}
-                      style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '12px', background: 'white' }}
-                    >
-                      {sites.map(s => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Scrollable nodes list */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '440px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {sites
-                    .filter(site => overviewFilterMode === 'all' || site.id === overviewSelectedSiteId)
-                    .map(site => {
-                      const siteCctvs = site.details.filter(d => d.type === 'cctv');
-
-                      return (
-                        <div key={site.id} style={{
-                          background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px'
-                        }}>
-                          {/* Sector Header */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #E3E6EE', paddingBottom: '8px' }}>
-                            <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{site.name}</span>
-                            <span style={{
-                              fontSize: '9px', fontWeight: 700,
-                              color: site.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
-                              background: site.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
-                              padding: '2px 8px', borderRadius: '4px'
-                            }}>
-                              ● {site.status}
-                            </span>
-                          </div>
-
-                          {/* List of CCTVs inside this site */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {/* CCTVs */}
-                            {siteCctvs.map(cam => {
-                              const isCamOffline = cam.status === 'OFFLINE';
-                              const latestClip = cam.clippings && cam.clippings[0];
-                              const reportText = isCamOffline
-                                ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.'
-                                : latestClip
-                                  ? `[REPLAY] ${latestClip.title}: ${latestClip.description}`
-                                  : `Normal: ${cam.feedDescription}`;
-
-                              return (
-                                <div key={cam.id} style={{
-                                  background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <Camera size={14} color={isCamOffline ? '#ff4d4d' : 'var(--brand-primary)'} />
-                                    <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
-                                      <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
-
-                                      {/* Workload Badges */}
-                                      {!isCamOffline && (
-                                        <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 5px', borderRadius: '3px' }}>
-                                            APD
-                                          </span>
-                                          <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 5px', borderRadius: '3px' }}>
-                                            Keselamatan
-                                          </span>
-                                          {(() => {
-                                            const group = getCctvSectorGroup(cam.id);
-                                            if (!group) return null;
-
-                                            const activeSkills = group.skills;
-                                            const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
-                                            const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
-                                            const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
-
-                                            return (
-                                              <>
-                                                {hasHuman && (
-                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 5px', borderRadius: '3px' }}>
-                                                    Zona Bahaya
-                                                  </span>
-                                                )}
-                                                {hasTruck && (
-                                                  <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 5px', borderRadius: '3px' }}>
-                                                    No-Stay Truk
-                                                  </span>
-                                                )}
-                                                {otherSkills.map(sk => (
-                                                  <span key={sk.id} style={{ fontSize: '8.5px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
-                                                    {sk.code}
-                                                  </span>
-                                                ))}
-                                              </>
-                                            );
-                                          })()}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <span style={{
-                                    fontSize: '9px', fontWeight: 700,
-                                    color: isCamOffline ? '#ff4d4d' : '#10b981',
-                                    background: isCamOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                                    padding: '2px 6px', borderRadius: '4px'
-                                  }}>
-                                    {cam.status}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* Right Column: CENTRAL INCIDENTS LOGS WITH REDIRECT & AUTOPLAY PLAYBACK */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-                {/* Global Clippings History Card */}
-                <div style={{
-                  background: 'white', borderRadius: '16px', padding: '24px',
-                  border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
-                  display: 'flex', flexDirection: 'column'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #F0EDED', paddingBottom: '12px' }}>
-                    <Activity size={18} color="var(--brand-primary)" />
-                    <h3 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: 'var(--brand-dark)', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                      Riwayat Insiden & Kejadian Global (CCTV)
-                    </h3>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '2px' }}>
-                    {allIncidents.length > 0 ? (
-                      allIncidents.slice(0, 10).map((incident, idx) => (
-                        <div
-                          key={incident.id || idx}
-                          style={{
-                            background: '#FAFBFD', border: '1.5px solid #F0EDED',
-                            borderRadius: '8px', padding: '12px 14px',
-                            display: 'flex', justify: 'space-between', alignItems: 'center', gap: '16px',
-                            transition: 'border-color 0.2s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = '#C3C6D4'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = '#F0EDED'}
-                        >
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
-                              <span style={{
-                                background: incident.type === 'danger' ? 'rgba(255,77,77,0.1)' : 'rgba(255,193,7,0.1)',
-                                color: incident.type === 'danger' ? '#ff4d4d' : '#F57F17',
-                                fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px'
-                              }}>
-                                {incident.title}
-                              </span>
-                              <span style={{ fontSize: '10px', color: 'var(--outline)', fontFamily: 'monospace' }}>[{incident.time}]</span>
-                            </div>
-                            <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', margin: 0 }}>
-                              {incident.description}
-                            </p>
-                            <span style={{ fontSize: '9.5px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
-                              Sektor: {incident.sectorName} ({incident.cameraObj?.name || incident.camera})
-                            </span>
-                          </div>
-
-                          <button
-                            onClick={() => {
-                              setSelectedSite(sites.find(s => s.id === incident.sectorId));
-                              setActiveCctv(incident.cameraObj);
-                              setActiveSubTab('map');
-                              handlePlayClip(incident);
-                            }}
-                            style={{
-                              background: 'var(--brand-primary)',
-                              color: 'white',
-                              border: 'none', borderRadius: '50%', width: '32px', height: '32px',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s ease',
-                              boxShadow: '0 2px 6px rgba(13,71,161,0.2)'
-                            }}
-                            title="Putar Rekaman Video di Peta"
-                          >
-                            <Play size={14} style={{ marginLeft: '2px' }} />
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #C3C6D4', borderRadius: '8px', color: 'var(--outline)', fontSize: '11px' }}>
-                        Tidak ada rekaman klip insiden yang terdeteksi hari ini.
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-
-
-              </div>
-
-            </div>
-
+      {/* ===== MAIN WORKSPACE AREA ===== */}
+      <div className="flex-1 flex flex-col md:ml-64 min-w-0 min-h-screen">
+        {/* TOP BAR */}
+        <header className="bg-surface-container-lowest shadow-sm flex justify-between items-center w-full px-gutter h-16 sticky top-0 z-30 flex-shrink-0">
+          <div className="flex items-center gap-sm md:hidden">
+            <span className="material-symbols-outlined text-primary text-2xl">menu</span>
+            <span className="font-headline-md text-headline-md font-bold text-primary">PAMAgents</span>
           </div>
-        </section>
-      )}
 
+          <div className="hidden md:flex flex-1">
+            <div className="relative w-96">
+              <span className="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+              <input 
+                className="w-full pl-xl pr-sm py-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                placeholder="Search operational intel..." 
+                type="text"
+              />
+            </div>
+          </div>
 
-      {/* ===== TAB 2: PETA PEMANTAUAN (SATELLITE & VIDEO) ===== */}
-      {activeSubTab === 'map' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
+          <div className="flex items-center gap-md">
+            <div className="flex items-center gap-1 font-mono-data text-mono-data text-on-surface-variant text-xs bg-surface-container-low px-2 py-1 rounded">
+              <span className="material-symbols-outlined text-xs text-[#FFC107] animate-pulse">schedule</span>
+              <span>{timeStr}</span>
+            </div>
+            
+            <button className="text-on-surface-variant hover:text-primary transition-colors duration-200 relative">
+              <span className="material-symbols-outlined">notifications</span>
+              {allIncidents.length > 0 && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-error rounded-full border border-surface-container-lowest"></span>
+              )}
+            </button>
+            <button className="text-on-surface-variant hover:text-primary transition-colors duration-200">
+              <span className="material-symbols-outlined">help_outline</span>
+            </button>
+            <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden border border-outline-variant cursor-pointer">
+              <span className="material-symbols-outlined text-sm">person</span>
+            </div>
+          </div>
+        </header>
 
-            {/* Filter tags status */}
-            {filterKPI !== 'ALL' && (
-              <div style={{ background: '#ff5f5615', border: '1px solid #ff4d4d35', borderRadius: '8px', padding: '12px 20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#ff4d4d', fontSize: '13px', fontWeight: 600 }}>
-                  Menampilkan filter lokasi yang memiliki perangkat CCTV offline saja.
-                </span>
-                <button
-                  onClick={() => setFilterKPI('ALL')}
-                  style={{ background: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 10px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Reset Filter
-                </button>
+        {/* CONTAINER FOR ACTIVE TAB CONTENT */}
+        <main className="flex-1 p-gutter max-w-container-max mx-auto w-full flex flex-col gap-md">
+          {/* TAB 1: OVERVIEW */}
+          {activeSubTab === 'overview' && (
+            <div className="flex flex-col gap-md">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Operational Overview</h2>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-1">Real-time telemetry and incident tracking across active zones.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="px-4 py-2 border border-[#0D47A1] text-[#0D47A1] rounded-lg font-label-md text-label-md hover:bg-primary-fixed transition-colors">Generate Report</button>
+                  <button className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-[#1565C0] transition-colors flex items-center gap-2 shadow-sm ai-glow">
+                    <span className="material-symbols-outlined text-sm">smart_toy</span>
+                    AI Assist
+                  </button>
+                </div>
               </div>
-            )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.3fr', gap: '32px' }} className="db-layout-grid">
-
-              {/* LEFT: SATELLITE MAP */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
-                <div style={{ marginBottom: '20px' }}>
-                  <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700 }}>Peta Satelit Sektor Pertambangan</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>Pilih pin sektor tambang pada peta atau tombol di bawah untuk detail pemantauan CCTV.</p>
+              {/* Bento KPI Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-sm md:gap-md">
+                <div onClick={() => setActiveSubTab('camera_management')} className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 flex flex-col gap-2 cursor-pointer hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-between items-center">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Cameras</span>
+                    <span className="material-symbols-outlined text-primary bg-primary-fixed p-1.5 rounded-full" style={{ fontVariationSettings: "'FILL' 1" }}>videocam</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display-lg text-display-lg text-on-surface">{totalCCTVOnline}</span>
+                    <span className="font-label-md text-label-md text-[#4CAF50] bg-[#E8F5E9] px-1.5 py-0.5 rounded flex items-center">
+                      /{totalCCTV}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Clickable Sectors List (Chips) */}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
-                  {filteredSites.map(s => {
-                    const isSelected = selectedSite.id === s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedSite(s)}
-                        style={{
-                          background: isSelected ? 'var(--brand-primary)' : '#FAFBFD',
-                          color: isSelected ? 'white' : 'var(--brand-dark)',
-                          border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : '#E3E6EE'}`,
-                          borderRadius: '6px',
-                          padding: '6px 12px',
-                          fontSize: '12px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          boxShadow: isSelected ? '0 2px 6px rgba(13,71,161,0.15)' : 'none',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}
-                      >
-                        <span style={{
-                          width: '6px',
-                          height: '6px',
-                          borderRadius: '50%',
-                          background: s.status === 'ALERT' ? '#ff4d4d' : '#10b981',
-                          display: 'inline-block'
-                        }} />
-                        {s.name}
-                      </button>
-                    );
-                  })}
+                <div onClick={() => setActiveSubTab('policy_studio')} className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 flex flex-col gap-2 cursor-pointer hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-between items-center">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Policies</span>
+                    <span className="material-symbols-outlined text-secondary bg-secondary-fixed p-1.5 rounded-full" style={{ fontVariationSettings: "'FILL' 1" }}>policy</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display-lg text-display-lg text-on-surface">{workloadGroups.length}</span>
+                    <span className="font-label-md text-label-md text-on-surface-variant">Groups</span>
+                  </div>
                 </div>
 
-                {/* Satellite Map Viewbox */}
-                <div style={{
-                  position: 'relative',
-                  backgroundImage: 'url("/mine_site_satellite.png")',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  borderRadius: '12px',
-                  height: '520px',
-                  overflow: 'hidden',
-                  border: '2px solid rgba(13,71,161,0.2)',
-                  boxShadow: 'inset 0 0 80px rgba(0,0,0,0.7)'
-                }}>
-                  {/* Grid overlay */}
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-                    backgroundSize: '40px 40px', pointerEvents: 'none'
-                  }} />
+                <div onClick={() => setActiveSubTab('escalate')} className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border-l-4 border-l-[#FFC107] flex flex-col gap-2 cursor-pointer hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-between items-center">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Alerts</span>
+                    <span className="material-symbols-outlined text-tertiary-fixed-dim bg-tertiary-fixed/30 p-1.5 rounded-full" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display-lg text-display-lg text-on-surface">
+                      {allIncidents.filter(i => i.type === 'danger' || i.type === 'warning').length}
+                    </span>
+                    <span className="font-label-md text-label-md text-tertiary-fixed-dim bg-tertiary-fixed/20 px-1.5 py-0.5 rounded">Action Req</span>
+                  </div>
+                </div>
 
-                  {/* Active SVG lines connecting to office HQ */}
-                  <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
-                    {filteredSites.map(s => {
-                      if (s.id === 'workshop-main') return null;
+                <div onClick={() => setActiveSubTab('respond')} className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border-l-4 border-l-error flex flex-col gap-2 cursor-pointer hover:scale-[1.02] transition-transform">
+                  <div className="flex justify-between items-center">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Open Incidents</span>
+                    <span className="material-symbols-outlined text-error bg-error-container p-1.5 rounded-full" style={{ fontVariationSettings: "'FILL' 1" }}>report</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display-lg text-display-lg text-on-surface">{allIncidents.length}</span>
+                    <span className="font-label-md text-label-md text-error bg-error-container/50 px-1.5 py-0.5 rounded">Total</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2-Column layout: Map & Logs */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-md">
+                {/* Dynamic Map Card */}
+                <div className="lg:col-span-2 bg-surface-container-lowest rounded-[16px] shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 flex flex-col overflow-hidden relative min-h-[420px]">
+                  <div className="p-md pb-0 flex justify-between items-center absolute top-0 w-full z-10 bg-gradient-to-b from-surface-container-lowest/90 to-transparent">
+                    <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Mine Site Alpha Coordinates Map</h3>
+                    <div className="flex gap-2">
+                      <span className="flex items-center gap-1 font-body-sm text-body-sm bg-surface-container-lowest/80 px-2 py-1 rounded backdrop-blur-sm shadow-sm"><span className="w-2 h-2 rounded-full bg-[#4CAF50]"></span> Normal</span>
+                      <span className="flex items-center gap-1 font-body-sm text-body-sm bg-surface-container-lowest/80 px-2 py-1 rounded backdrop-blur-sm shadow-sm"><span className="w-2 h-2 rounded-full bg-[#BA1A1A]"></span> Alarm</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 bg-surface-container-low relative" style={{ backgroundImage: "url('/mine_site_satellite.png')", backgroundSize: 'cover', backgroundPosition: 'center', minHeight: '380px' }}>
+                    {/* SVG Connections from office HQ to other sites */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                      {sites.map(s => {
+                        if (s.id === 'workshop-main') return null;
+                        return (
+                          <line 
+                            key={s.id} 
+                            x1="45%" y1="55%" 
+                            x2={s.x} y2={s.y} 
+                            stroke={s.status === 'ALERT' ? 'rgba(186,26,26,0.6)' : 'rgba(13,71,161,0.4)'} 
+                            strokeWidth="2" 
+                            strokeDasharray="4 4"
+                          />
+                        );
+                      })}
+                    </svg>
+
+                    {/* Interactive pins */}
+                    {sites.map(s => {
+                      const isSelected = selectedSite.id === s.id;
+                      const isAlert = s.status === 'ALERT' || s.cctvOffline > 0;
                       return (
-                        <line
+                        <button
                           key={s.id}
-                          x1="45%" y1="55%"
-                          x2={s.x} y2={s.y}
-                          stroke={s.status === 'ALERT' ? 'rgba(255,77,77,0.5)' : 'rgba(255,193,7,0.5)'}
-                          strokeWidth="2"
-                          strokeDasharray="4 4"
-                        />
+                          onClick={() => setSelectedSite(s)}
+                          className="absolute flex flex-col items-center cursor-pointer group"
+                          style={{ left: s.x, top: s.y, transform: 'translate(-50%, -50%)', background: 'none', border: 'none', outline: 'none' }}
+                        >
+                          <div className="relative w-8 h-8 flex items-center justify-center">
+                            <span className={`absolute w-full h-full rounded-full opacity-40 animate-pulse ${isAlert ? 'bg-error' : 'bg-primary'}`}></span>
+                            <span className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-md transition-transform group-hover:scale-125 ${isAlert ? 'bg-error' : 'bg-primary'} ${isSelected ? 'scale-110 ring-2 ring-primary ring-offset-1' : ''}`}></span>
+                          </div>
+                          <span className={`mt-1 font-label-md text-[10px] text-white px-2 py-0.5 rounded shadow-md border ${isSelected ? 'bg-primary border-primary-fixed-dim' : 'bg-inverse-surface border-transparent opacity-85 group-hover:opacity-100'} transition-all`}>
+                            {s.name}
+                          </span>
+                        </button>
                       );
                     })}
-                  </svg>
+                  </div>
+                </div>
 
-                  {/* Pins */}
-                  {filteredSites.map(s => {
-                    const isSelected = selectedSite.id === s.id;
-                    const isAlert = s.status === 'ALERT';
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedSite(s)}
-                        style={{
-                          position: 'absolute', left: s.x, top: s.y,
-                          transform: 'translate(-50%, -50%)', background: 'none',
-                          border: 'none', cursor: 'pointer', padding: 0,
-                          display: 'flex', flexDirection: 'column', alignItems: 'center',
-                          zIndex: isSelected ? 10 : 2
-                        }}
+                {/* Recent Alerts Feed */}
+                <div className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 flex flex-col h-[420px] overflow-hidden">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Recent Activity Logs</h3>
+                    <button onClick={() => setActiveSubTab('escalate')} className="font-label-md text-label-md text-primary hover:underline">View All</button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto flex flex-col gap-2 pr-2 custom-scrollbar">
+                    {logs.map((log, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`p-sm bg-surface-container-low rounded-lg border-l-2 transition-colors cursor-pointer hover:bg-surface-container ${
+                          log.type === 'error' ? 'border-error' : log.type === 'success' ? 'border-green-500' : 'border-outline-variant'
+                        }`}
                       >
-                        <div style={{
-                          position: 'relative', width: '28px', height: '28px',
-                          display: 'flex', alignItems: 'center', justify: 'center'
-                        }}>
-                          <div style={{
-                            position: 'absolute', width: '100%', height: '100%',
-                            borderRadius: '50%', background: isAlert ? '#ff4d4d' : '#FFC107',
-                            animation: 'mapPulse 1.8s infinite', opacity: 0.45
-                          }} />
-                          <div style={{
-                            width: '14px', height: '14px', borderRadius: '50%',
-                            background: isAlert ? '#ff4d4d' : '#FFC107',
-                            border: isSelected ? '2.5px solid white' : '1px solid rgba(0,0,0,0.5)',
-                            boxShadow: '0 0 10px rgba(0,0,0,0.6)'
-                          }} />
-                        </div>
-                        <span style={{
-                          marginTop: '4px', background: isSelected ? 'var(--brand-primary)' : 'rgba(11,29,58,0.9)',
-                          color: 'white', fontSize: '9px', fontWeight: 700, padding: '3px 8px',
-                          borderRadius: '4px', whiteSpace: 'nowrap', border: isSelected ? '1px solid #FFC107' : '1px solid rgba(255,255,255,0.1)',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                          backdropFilter: isSelected ? 'none' : 'blur(4px)'
-                        }}>
-                          {s.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* RIGHT: SURVEILLANCE LIVE STREAM & HISTORY CLIPPINGS */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
-
-                {/* Site Header */}
-                <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '18px', fontWeight: 700 }}>{selectedSite.name}</h3>
-                    <span style={{
-                      background: selectedSite.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
-                      border: `1px solid ${selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'}`,
-                      borderRadius: '4px', padding: '3px 10px', fontSize: '10px', fontWeight: 700,
-                      color: selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'
-                    }}>
-                      ● {selectedSite.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* CCTV Live Video Stream Player (Simulasi) */}
-                <div style={{ background: '#071224', borderRadius: '10px', overflow: 'hidden', border: '1.5px solid rgba(13,71,161,0.2)', marginBottom: '20px' }}>
-
-                  {/* Player header */}
-                  <div style={{ background: 'rgba(11,29,58,0.95)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span style={{ color: 'white', fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
-                      {isPlayingClip ? 'REC PLAYBACK MODE' : 'LIVE CCTV FEED'}
-                    </span>
-                    <span style={{ color: isPlayingClip ? '#ff4d4d' : '#FFC107', fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                      {activeCctv ? activeCctv.name : 'NO CAMERA SELECTED'}
-                    </span>
-                  </div>
-
-                  {/* Player Screen */}
-                  <div style={{ height: '200px', background: '#02060f', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '8px' }}>
-                    {/* Error / Offline State */}
-                    {activeCctv && activeCctv.status === 'OFFLINE' ? (
-                      <div style={{ textAlign: 'center', zIndex: 5, color: '#ff4d4d', padding: '20px' }}>
-                        <WifiOff size={40} style={{ marginBottom: '10px', opacity: 0.8 }} />
-                        <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>CCTV DISCONNECTED</h4>
-                        <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Signal timeout or hardware offline.</p>
-                      </div>
-                    ) : (
-                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
-                        {/* Video Player with Overlays */}
-                        <div style={{ position: 'relative', flex: 1, overflow: 'hidden' }}>
-                          <VideoPlayer
-                            isPlaying={isPlayingClip}
-                            onProgress={setClipProgress}
-                            clip={selectedClip}
-                            isLive={!isPlayingClip}
-                          />
-
-                          {/* Status Overlay Badge */}
-                          {/* <div style={{
-                            position: 'absolute',
-                            top: '12px',
-                            left: '12px',
-                            background: isPlayingClip ? 'rgba(239, 68, 68, 0.9)' : 'rgba(16, 185, 129, 0.9)',
-                            color: 'white',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            zIndex: 10,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-                            border: isPlayingClip ? '1.5px solid #ef4444' : '1.5px solid #10b981'
-                          }}>
-                            <span style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
-                              background: 'white',
-                              animation: 'mapPulse 1s infinite',
-                              display: 'inline-block'
-                            }} />
-                            {isPlayingClip ? 'REPLAY (REKAMAN KEJADIAN)' : 'LIVE STREAM'}
-                          </div> */}
-
-                          {/* Technical Parameters */}
-                          <div style={{
-                            position: 'absolute',
-                            top: '12px',
-                            right: '12px',
-                            color: 'rgba(255,255,255,0.7)',
-                            fontSize: '8px',
-                            fontFamily: 'monospace',
-                            lineHeight: 1.4,
-                            textAlign: 'right',
-                            background: 'rgba(0, 0, 0, 0.4)',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            border: '1px solid rgba(255,255,255,0.08)'
-                          }}>
-                            CAM_ID: {activeCctv ? activeCctv.id.toUpperCase() : 'UNKNOWN'}<br />
-                            FPS: 30.0 | RES: 1080P<br />
-                            CODEC: H.265
-                          </div>
-
-                          <div style={{ position: 'absolute', bottom: '10px', left: '12px', color: 'rgba(255,255,255,0.7)', fontSize: '9px', fontWeight: 500 }}>
-                            {activeCctv ? activeCctv.feedDescription : ''}
-                          </div>
-
-                          {isPlayingClip && (
-                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
-                              <div style={{ width: `${clipProgress}%`, height: '100%', background: '#FFC107', transition: 'width 0.5s linear' }} />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* DEVICE LIST WITH CLICKABLE CCTV CHANNELS */}
-                <div style={{ marginBottom: '24px' }}>
-                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Daftar Kamera CCTV
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '2px' }}>
-                    {sectorCctvs.map(cam => {
-                      const isActive = activeCctv && activeCctv.id === cam.id;
-                      const isOffline = cam.status === 'OFFLINE';
-                      return (
-                        <div
-                          key={cam.id}
-                          onClick={() => { setActiveCctv(cam); setIsPlayingClip(false); setSelectedClip(null); }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            background: isActive ? 'rgba(13,71,161,0.06)' : 'white',
-                            border: `1.5px solid ${isActive ? 'var(--brand-primary)' : '#FAFBFD'}`,
-                            borderRadius: '8px',
-                            padding: '12px 14px',
-                            fontSize: '13px',
-                            cursor: 'pointer',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-                            transition: 'all 0.2s ease',
-                          }}
-                          className="clickable-cctv-item"
-                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = '#C3C6D4'; }}
-                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = '#FAFBFD'; }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
-                            <div>
-                              <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500, display: 'block' }}>
-                                {cam.name}
-                              </span>
-
-                              {/* Workload Badges */}
-                              {!isOffline && (
-                                <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
-                                    APD
-                                  </span>
-                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
-                                    Keselamatan
-                                  </span>
-                                  {(() => {
-                                    const group = getCctvSectorGroup(cam.id);
-                                    if (!group) return null;
-
-                                    const activeSkills = group.skills;
-                                    const hasHuman = activeSkills.some(sk => sk.code === 'no_human_zone');
-                                    const hasTruck = activeSkills.some(sk => sk.code === 'no_truck_stop');
-                                    const otherSkills = activeSkills.filter(sk => sk.code !== 'no_human_zone' && sk.code !== 'no_truck_stop');
-
-                                    return (
-                                      <>
-                                        {hasHuman && (
-                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
-                                            Zona Bahaya
-                                          </span>
-                                        )}
-                                        {hasTruck && (
-                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
-                                            No-Stay Truk
-                                          </span>
-                                        )}
-                                        {otherSkills.map(sk => (
-                                          <span key={sk.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
-                                            {sk.code}
-                                          </span>
-                                        ))}
-                                      </>
-                                    );
-                                  })()}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <span style={{
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            color: isOffline ? '#ff4d4d' : '#10b981',
-                            background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                            padding: '3px 8px',
-                            borderRadius: '4px'
-                          }}>
-                            {cam.status}
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-label-md text-label-md text-on-surface font-semibold">{log.time}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                            log.type === 'error' ? 'bg-error/10 text-error' : log.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                            {log.type === 'error' ? 'Alert' : log.type === 'success' ? 'Info' : 'Log'}
                           </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* ACTIVE CCTV HISTORY CLIPPINGS LIST PANEL */}
-                <div style={{ borderTop: '1px solid #F0EDED', paddingTop: '20px' }}>
-                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Activity size={14} color="var(--brand-primary)" />
-                    Riwayat Rekaman Kamera ({activeCctv ? activeCctv.name.replace('CCTV ', '') : 'Tidak Ada'})
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '2px' }}>
-                    {activeCctv && activeCctv.clippings && activeCctv.clippings.length > 0 ? (
-                      activeCctv.clippings.map(clip => {
-                        const isCurrentClip = selectedClip && selectedClip.id === clip.id;
-                        const isOffline = activeCctv.status === 'OFFLINE';
-                        return (
-                          <div
-                            key={clip.id}
-                            style={{
-                              border: `1px solid ${isCurrentClip ? '#FFC107' : '#E3E6EE'}`,
-                              borderRadius: '8px', padding: '12px 14px', background: isCurrentClip ? 'rgba(255,193,7,0.05)' : '#FAFBFD',
-                              display: 'flex', justify: 'space-between', alignItems: 'center', gap: '12px',
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                <span style={{
-                                  background: clip.type === 'danger' ? 'rgba(255,77,77,0.1)' : 'rgba(255,193,7,0.1)',
-                                  color: clip.type === 'danger' ? '#ff4d4d' : '#F57F17',
-                                  fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px'
-                                }}>
-                                  {clip.title}
-                                </span>
-                                <span style={{ fontSize: '10px', color: 'var(--outline)', fontFamily: 'monospace' }}>[{clip.time}]</span>
-                              </div>
-                              <p style={{ fontSize: '12px', color: 'var(--on-surface-variant)', margin: 0 }}>
-                                {clip.description}
-                              </p>
-                              <span style={{ fontSize: '10px', color: 'var(--outline)', display: 'block', marginTop: '4px' }}>
-                                Durasi: {clip.duration}
-                              </span>
-                            </div>
-
-                            <button
-                              onClick={() => handlePlayClip(clip)}
-                              disabled={isOffline || isPlayingClip}
-                              style={{
-                                background: isCurrentClip ? '#FFC107' : 'var(--brand-primary)',
-                                color: isCurrentClip ? 'var(--brand-dark)' : 'white',
-                                border: 'none', borderRadius: '50%', width: '32px', height: '32px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: (isOffline || isPlayingClip) ? 'not-allowed' : 'pointer',
-                                flexShrink: 0, transition: 'all 0.2s ease',
-                                opacity: (isOffline || isPlayingClip) ? 0.4 : 1
-                              }}
-                              title="Putar klip rekaman"
-                            >
-                              {isCurrentClip ? <RotateCcw size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
-                            </button>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div style={{ textAlign: 'center', padding: '20px', border: '1px dashed #C3C6D4', borderRadius: '8px', color: 'var(--outline)', fontSize: '11px' }}>
-                        Tidak ada rekaman klip insiden untuk kamera ini hari ini.
+                        <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">{log.message}</p>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
-
-
-
               </div>
 
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ===== TAB: ADMINISTRASI (KELOLA TITIK + HAK AKSES) ===== */}
-      {activeSubTab === 'admin' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
-
-            {/* Admin Section Toggle Bar */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'white', borderRadius: '12px', padding: '8px 16px',
-              border: '1px solid #E3E6EE', marginBottom: '24px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-            }}>
-              <div style={{ display: 'flex', gap: '6px', background: '#F4F6FA', padding: '4px', borderRadius: '8px' }}>
-                {[
-                  { key: 'sites', label: 'Kelola Titik & Sektor', icon: <MapPin size={14} /> },
-                  { key: 'users', label: 'Hak Akses & Akun', icon: <Users size={14} /> }
-                ].map(tab => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setAdminSection(tab.key)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '9px 18px', border: 'none', borderRadius: '6px',
-                      background: adminSection === tab.key ? 'white' : 'transparent',
-                      color: adminSection === tab.key ? 'var(--brand-dark)' : 'var(--outline)',
-                      fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                      boxShadow: adminSection === tab.key ? '0 2px 6px rgba(0,0,0,0.06)' : 'none',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {tab.icon} {tab.label}
-                  </button>
-                ))}
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Panel Administrasi Sistem</span>
-            </div>
-
-            {/* ---- SECTION: KELOLA TITIK ---- */}
-            {adminSection === 'sites' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '32px', alignItems: 'start' }}>
-
-                {/* COLUMN 1: FORM TAMBAH */}
-                <div style={{
-                  background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
-                  boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
-                }}>
-                  <h3 style={{ margin: '0 0 6px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Tambah Konfigurasi</h3>
-                  <p style={{ margin: '0 0 24px', fontSize: '12.5px', color: 'var(--outline)' }}>
-                    Daftarkan kamera CCTV baru atau buat sektor tambang baru di sistem monitoring.
-                  </p>
-
-                  {/* Mode Selector Toggle */}
-                  <div style={{ display: 'flex', background: '#F4F6FA', borderRadius: '8px', padding: '4px', marginBottom: '24px' }}>
-                    <button
-                      onClick={() => setAddMode('cctv')}
-                      style={{
-                        flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
-                        background: addMode === 'cctv' ? 'white' : 'transparent',
-                        color: addMode === 'cctv' ? 'var(--brand-dark)' : 'var(--outline)',
-                        fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                        boxShadow: addMode === 'cctv' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      Tambah Kamera CCTV
-                    </button>
-                    <button
-                      onClick={() => setAddMode('sector')}
-                      style={{
-                        flex: 1, padding: '10px', border: 'none', borderRadius: '6px',
-                        background: addMode === 'sector' ? 'white' : 'transparent',
-                        color: addMode === 'sector' ? 'var(--brand-dark)' : 'var(--outline)',
-                        fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                        boxShadow: addMode === 'sector' ? '0 2px 6px rgba(0,0,0,0.05)' : 'none',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      Tambah Sektor Baru
-                    </button>
+              {/* Bottom Section: Table & Charts preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                {/* Incidents Table */}
+                <div className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 overflow-x-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Incident Summary</h3>
+                    <button onClick={() => setActiveSubTab('respond')} className="text-primary font-label-md text-label-md hover:underline">Full Log</button>
                   </div>
-
-                  {/* FORM 1: TAMBAH CCTV */}
-                  {addMode === 'cctv' ? (
-                    <form onSubmit={handleAddCctvSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Sektor Penempatan</label>
-                        <select
-                          value={newCctvSiteId}
-                          onChange={e => setNewCctvSiteId(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
-                        >
-                          {sites.map(s => (
-                            <option key={s.id} value={s.id}>{s.name}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Kamera CCTV</label>
-                        <input
-                          type="text"
-                          placeholder="Contoh: CCTV Area Loading Crusher B"
-                          value={newCctvName}
-                          onChange={e => setNewCctvName(e.target.value)}
-                          required
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Status Awal Kamera</label>
-                        <select
-                          value={newCctvStatus}
-                          onChange={e => setNewCctvStatus(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
-                        >
-                          <option value="ONLINE">ONLINE (Aktif/Normal)</option>
-                          <option value="OFFLINE">OFFLINE (Dalam Perbaikan/Trouble)</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Deskripsi Feed Video / Lokasi Detail</label>
-                        <input
-                          type="text"
-                          placeholder="Contoh: Pemantauan area loading coal pile crusher"
-                          value={newCctvDesc}
-                          onChange={e => setNewCctvDesc(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        style={{
-                          width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
-                          background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                          fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
-                        }}
-                      >
-                        Simpan & Pasang CCTV
-                      </button>
-                    </form>
-                  ) : (
-                    /* FORM 2: TAMBAH SEKTOR */
-                    <form onSubmit={handleAddSiteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Nama Sektor Tambang Baru</label>
-                        <input
-                          type="text"
-                          placeholder="Contoh: Pit B (Quarry Barat)"
-                          value={newSiteName}
-                          onChange={e => setNewSiteName(e.target.value)}
-                          required
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Plot Lokasi Koordinat Peta</label>
-                        <select
-                          value={newSiteRegionIdx}
-                          onChange={e => setNewSiteRegionIdx(e.target.value)}
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px', background: 'white' }}
-                        >
-                          {REGION_PRESETS.map((r, idx) => (
-                            <option key={idx} value={idx}>{r.label}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>Jumlah Kamera CCTV Awal</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={newSiteCctvCount}
-                          onChange={e => setNewSiteCctvCount(e.target.value)}
-                          required
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label" style={{ color: '#ff4d4d', fontWeight: 600, fontSize: '13px' }}>Kamera Offline Awal (Trouble)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max={newSiteCctvCount}
-                          value={newSiteOfflineCctv}
-                          onChange={e => setNewSiteOfflineCctv(e.target.value)}
-                          required
-                          style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '13px' }}
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        style={{
-                          width: '100%', padding: '12px', border: 'none', borderRadius: '8px',
-                          background: 'var(--brand-primary)', color: 'white', fontWeight: 700, cursor: 'pointer',
-                          fontSize: '14px', marginTop: '8px', boxShadow: '0 4px 14px rgba(13,71,161,0.25)'
-                        }}
-                      >
-                        Simpan & Daftarkan Sektor
-                      </button>
-                    </form>
-                  )}
-                </div>
-
-                {/* COLUMN 2: LIST MANAGE SECTOR & CCTV */}
-                <div style={{
-                  background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE',
-                  boxShadow: '0 8px 24 rgba(0,0,0,0.02)'
-                }}>
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    marginBottom: '20px', borderBottom: '1.5px solid #F1F3F9', paddingBottom: '16px'
-                  }}>
-                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '18px' }}>Kelola Data Pemantauan</h3>
-
-                    {/* Switch list tabs */}
-                    <div style={{ display: 'flex', gap: '8px', background: '#F4F6FA', padding: '4px', borderRadius: '6px' }}>
-                      <button
-                        onClick={() => setManageTab('sectors')}
-                        style={{
-                          padding: '6px 12px', border: 'none', borderRadius: '4px',
-                          background: manageTab === 'sectors' ? 'white' : 'transparent',
-                          color: manageTab === 'sectors' ? 'var(--brand-dark)' : 'var(--outline)',
-                          fontWeight: 700, fontSize: '12px', cursor: 'pointer',
-                          boxShadow: manageTab === 'sectors' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        Sektor ({sites.length})
-                      </button>
-                      <button
-                        onClick={() => setManageTab('cctvs')}
-                        style={{
-                          padding: '6px 12px', border: 'none', borderRadius: '4px',
-                          background: manageTab === 'cctvs' ? 'white' : 'transparent',
-                          color: manageTab === 'cctvs' ? 'var(--brand-dark)' : 'var(--outline)',
-                          fontWeight: 700, fontSize: '12px', cursor: 'pointer',
-                          boxShadow: manageTab === 'cctvs' ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        Kamera CCTV ({sites.reduce((acc, s) => acc + s.details.length, 0)})
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* LIST CONTENT: SECTORS */}
-                  {manageTab === 'sectors' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
-                      {sites.map(s => (
-                        <div key={s.id} style={{
-                          padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
-                          borderRadius: '12px', transition: 'all 0.2s'
-                        }}>
-                          {editingSiteId === s.id ? (
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                              <input
-                                type="text"
-                                value={editingSiteName}
-                                onChange={e => setEditingSiteName(e.target.value)}
-                                style={{ flex: 1, padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
-                              />
-                              <button
-                                onClick={() => handleEditSiteSubmit(s.id, editingSiteName)}
-                                style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                              >
-                                Simpan
-                              </button>
-                              <button
-                                onClick={() => { setEditingSiteId(null); setEditingSiteName(''); }}
-                                style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                              >
-                                Batal
-                              </button>
-                            </div>
-                          ) : (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div>
-                                <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px', display: 'block' }}>{s.name}</span>
-                                <span style={{ fontSize: '11.5px', color: 'var(--outline)' }}>
-                                  Koordinat Peta: <code style={{ background: '#F1F3F9', padding: '1px 4px', borderRadius: '3px' }}>{s.x}, {s.y}</code> • {s.cctvTotal} Kamera
-                                </span>
-                              </div>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button
-                                  onClick={() => { setEditingSiteId(s.id); setEditingSiteName(s.name); }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                                >
-                                  <Edit size={11} /> Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteSite(s.id)}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                                >
-                                  <Trash2 size={11} /> Hapus
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* LIST CONTENT: CCTVS */}
-                  {manageTab === 'cctvs' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '480px', overflowY: 'auto', paddingRight: '4px' }}>
-                      {sites.flatMap(s => s.details.map(cam => ({ ...cam, siteId: s.id, siteName: s.name }))).map(cam => (
-                        <div key={cam.id} style={{
-                          padding: '16px', background: '#FAFBFD', border: '1px solid #E3E6EE',
-                          borderRadius: '12px'
-                        }}>
-                          {editingCctvId === cam.id ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                                <div>
-                                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Nama Kamera</label>
-                                  <input
-                                    type="text"
-                                    value={editingCctvName}
-                                    onChange={e => setEditingCctvName(e.target.value)}
-                                    style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
-                                  />
-                                </div>
-                                <div>
-                                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Status Kamera</label>
-                                  <select
-                                    value={editingCctvStatus}
-                                    onChange={e => setEditingCctvStatus(e.target.value)}
-                                    style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px', background: 'white' }}
-                                  >
-                                    <option value="ONLINE">ONLINE</option>
-                                    <option value="OFFLINE">OFFLINE</option>
-                                  </select>
-                                </div>
-                              </div>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--outline)', marginBottom: '4px' }}>Deskripsi Video Feed</label>
-                                <input
-                                  type="text"
-                                  value={editingCctvDesc}
-                                  onChange={e => setEditingCctvDesc(e.target.value)}
-                                  style={{ width: '100%', padding: '8px 12px', border: '1.5px solid #C3C6D4', borderRadius: '6px', fontSize: '13px' }}
-                                />
-                              </div>
-                              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                                <button
-                                  onClick={() => handleEditCctvSubmit(cam.siteId, cam.id, editingCctvName, editingCctvDesc, editingCctvStatus)}
-                                  style={{ padding: '8px 14px', background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                                >
-                                  Simpan
-                                </button>
-                                <button
-                                  onClick={() => { setEditingCctvId(null); }}
-                                  style={{ padding: '8px 14px', background: '#F4F6FA', color: 'var(--outline)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
-                                >
-                                  Batal
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ minWidth: 0, flex: 1, paddingRight: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                  <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '14px' }}>{cam.name}</span>
-                                  <span style={{
-                                    fontSize: '9px', fontWeight: 700,
-                                    color: cam.status === 'OFFLINE' ? '#ff4d4d' : '#10b981',
-                                    background: cam.status === 'OFFLINE' ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                                    padding: '2px 6px', borderRadius: '3px'
-                                  }}>
-                                    {cam.status}
-                                  </span>
-                                </div>
-                                <span style={{ fontSize: '11.5px', color: 'var(--outline)', display: 'block', marginBottom: '2px' }}>
-                                  Sektor: <span style={{ fontWeight: 600 }}>{cam.siteName}</span>
-                                </span>
-                                <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {cam.feedDescription}
-                                </span>
-                              </div>
-                              <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                                <button
-                                  onClick={() => {
-                                    setEditingCctvId(cam.id);
-                                    setEditingCctvName(cam.name);
-                                    setEditingCctvDesc(cam.feedDescription);
-                                    setEditingCctvStatus(cam.status);
-                                  }}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(13,71,161,0.06)', color: 'var(--brand-primary)', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                                >
-                                  <Edit size={11} /> Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteCctv(cam.siteId, cam.id)}
-                                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', background: 'rgba(239,68,68,0.06)', color: '#EF4444', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}
-                                >
-                                  <Trash2 size={11} /> Hapus
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-              </div>
-            )}
-
-            {/* ---- SECTION: HAK AKSES & AKUN ---- */}
-            {adminSection === 'users' && (
-              <div style={{ background: 'white', borderRadius: '16px', padding: '32px', border: '1px solid #E3E6EE', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-                  <div>
-                    <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 700, fontSize: '20px' }}>Manajemen Hak Akses & Akun</h3>
-                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
-                      Super Admin dapat menambah, mengedit, atau menghapus kewenangan akses personil monitoring.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setShowAddUserModal(true)}
-                    style={{
-                      background: 'var(--brand-primary)', color: 'white', border: 'none',
-                      borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600,
-                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                      transition: 'all 0.2s ease', boxShadow: '0 4px 12px rgba(13,71,161,0.2)'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--blue-600)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'var(--brand-primary)'}
-                  >
-                    <UserPlus size={16} /> Tambah Hak Akses
-                  </button>
-                </div>
-
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #E3E6EE', color: 'var(--brand-dark)' }}>
-                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Username</th>
-                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Nama Lengkap</th>
-                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Peran (Role)</th>
-                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase' }}>Status</th>
-                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
+                      <tr className="border-b border-outline-variant/20">
+                        <th className="py-2 px-2 font-label-md text-label-md text-on-surface-variant">ID</th>
+                        <th className="py-2 px-2 font-label-md text-label-md text-on-surface-variant">Type</th>
+                        <th className="py-2 px-2 font-label-md text-label-md text-on-surface-variant">Location</th>
+                        <th className="py-2 px-2 font-label-md text-label-md text-on-surface-variant">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {users.map(u => (
-                        <tr key={u.id} style={{ borderBottom: '1px solid #F0EDED', color: 'var(--on-surface-variant)', transition: 'background 0.2s' }} className="user-table-row">
-                          <td style={{ padding: '16px', fontWeight: 600, fontFamily: 'monospace' }}>{u.username}</td>
-                          <td style={{ padding: '16px' }}>{u.fullName}</td>
-                          <td style={{ padding: '16px' }}>
-                            <span style={{
-                              background: u.role === 'Super Admin' ? 'rgba(255,193,7,0.15)' : u.role === 'Supervisor' ? '#E3F2FD' : 'rgba(0,0,0,0.05)',
-                              color: u.role === 'Super Admin' ? 'var(--brand-secondary)' : u.role === 'Supervisor' ? 'var(--brand-primary)' : 'var(--on-surface-variant)',
-                              fontWeight: 700, fontSize: '11px', padding: '4px 10px', borderRadius: '4px'
-                            }}>
-                              {u.role}
+                    <tbody className="font-body-sm text-body-sm">
+                      {allIncidents.slice(0, 4).map((inc, index) => (
+                        <tr 
+                          key={index} 
+                          onClick={() => {
+                            setSelectedIncidentIdx(index);
+                            setActiveSubTab('respond');
+                          }}
+                          className="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors cursor-pointer"
+                        >
+                          <td className="py-3 px-2 font-mono-data text-on-surface font-semibold">INC-{inc.id.substring(inc.id.length - 4)}</td>
+                          <td className="py-3 px-2 text-on-surface font-medium">{inc.title}</td>
+                          <td className="py-3 px-2 text-on-surface-variant">{inc.camera}</td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                              inc.type === 'danger' ? 'bg-error-container text-error' : 'bg-tertiary-fixed text-tertiary-container'
+                            }`}>
+                              Open
                             </span>
-                          </td>
-                          <td style={{ padding: '16px' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#10b981', fontSize: '13px', fontWeight: 600 }}>
-                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-                              {u.status}
-                            </span>
-                          </td>
-                          <td style={{ padding: '16px', textAlign: 'center' }}>
-                            {u.username === 'admin' ? (
-                              <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Utama</span>
-                            ) : (
-                              <button
-                                onClick={() => handleDeleteUser(u.id, u.fullName)}
-                                style={{
-                                  background: 'none', border: 'none', color: '#ff4d4d',
-                                  cursor: 'pointer', padding: '6px', borderRadius: '4px',
-                                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                  transition: 'background 0.2s'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,77,77,0.08)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
                           </td>
                         </tr>
                       ))}
+                      {allIncidents.length === 0 && (
+                        <tr>
+                          <td colSpan="4" className="text-center py-4 text-outline font-body-sm">No incidents reported today.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
 
-              </div>
-            )}
-
-          </div>
-        </section>
-      )}
-
-      {/* ===== TAB 5: MULTI-STREAM LIVE CCTV ===== */}
-      {activeSubTab === 'live-cctv' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
-            <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }} className="db-layout-grid">
-
-              {/* Left Column: List of CCTV Cameras to Display */}
-              <div style={{
-                background: 'white',
-                borderRadius: '12px',
-                padding: '20px',
-                border: '1px solid #E3E6EE',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                alignSelf: 'start',
-                maxHeight: '620px',
-                overflowY: 'auto'
-              }}>
-                <h4 style={{ color: 'var(--brand-dark)', margin: '0 0 4px', fontSize: '14px', fontWeight: 700 }}>Daftar Kamera CCTV</h4>
-                <p style={{ color: 'var(--outline)', fontSize: '11px', margin: '0 0 16px' }}>Centang kamera yang ingin ditampilkan pada monitor.</p>
-
-                {sites.map(s => {
-                  const cctvs = s.details.filter(d => d.type === 'cctv');
-                  if (cctvs.length === 0) return null;
-                  return (
-                    <div key={s.id} style={{ marginBottom: '16px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', textTransform: 'uppercase', marginBottom: '8px', paddingBottom: '2px', borderBottom: '1px solid #F0EDED' }}>
-                        {s.name}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {cctvs.map(cam => {
-                          const isChecked = selectedCctvIds.includes(cam.id);
-                          return (
-                            <label key={cam.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: 'var(--on-surface-variant)', padding: '4px 0' }}>
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => {
-                                  if (isChecked) {
-                                    setSelectedCctvIds(prev => prev.filter(id => id !== cam.id));
-                                  } else {
-                                    setSelectedCctvIds(prev => [...prev, cam.id]);
-                                  }
-                                }}
-                                style={{ cursor: 'pointer' }}
-                              />
-                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: cam.status === 'ONLINE' ? '#10B981' : '#EF4444', flexShrink: 0 }} />
-                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{cam.name}</span>
-                            </label>
-                          );
-                        })}
+                {/* Simple analytics placeholder */}
+                <div className="bg-surface-container-lowest rounded-[16px] p-md shadow-[0px_4px_20px_rgba(13,71,161,0.05)] border border-outline-variant/10 flex flex-col">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider">Analytics Trends</h3>
+                    <button onClick={() => setActiveSubTab('analyze')} className="text-primary font-label-md text-label-md hover:underline">Analyze Module</button>
+                  </div>
+                  <div className="flex-1 flex gap-4">
+                    <div className="flex-1 bg-surface-container-low rounded-lg border border-outline-variant/20 flex items-center justify-center p-4 relative min-h-[140px]">
+                      <span className="font-body-sm text-body-sm text-on-surface-variant absolute top-2 left-2">Incident Trend</span>
+                      <div className="flex items-end gap-2 h-20 w-full justify-center mt-6">
+                        <div className="w-5 bg-primary-fixed-dim rounded-t h-1/3"></div>
+                        <div className="w-5 bg-primary-fixed rounded-t h-1/2"></div>
+                        <div className="w-5 bg-primary rounded-t h-3/4"></div>
+                        <div className="w-5 bg-secondary rounded-t h-1/4"></div>
+                        <div className="w-5 bg-error rounded-t h-full"></div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Right Column: Custom Grid & Controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
-                {/* Grid Layout Selector & Top Actions */}
-                <div style={{
-                  background: 'white',
-                  borderRadius: '12px',
-                  padding: '16px 24px',
-                  border: '1px solid #E3E6EE',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '16px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--brand-dark)' }}>Layout Monitor:</span>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      {[
-                        { size: 1, label: '1 Layar' },
-                        { size: 2, label: '2 Layar' },
-                        { size: 4, label: '4 Layar' },
-                        { size: 6, label: '6 Layar' }
-                      ].map(opt => (
-                        <button
-                          key={opt.size}
-                          onClick={() => setGridSize(opt.size)}
-                          style={{
-                            background: gridSize === opt.size ? 'var(--brand-primary)' : 'var(--surface-low)',
-                            color: gridSize === opt.size ? 'white' : 'var(--on-surface-variant)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="flex-1 bg-surface-container-low rounded-lg border border-outline-variant/20 flex items-center justify-center p-4 relative min-h-[140px]">
+                      <span className="font-body-sm text-body-sm text-on-surface-variant absolute top-2 left-2">Zones Breakdown</span>
+                      <div className="w-16 h-16 rounded-full border-8 border-primary border-r-secondary border-b-tertiary-fixed-dim mt-6"></div>
                     </div>
                   </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => alert('Simulasi Sirene Diaktifkan di Seluruh Sektor!')}
-                      style={{
-                        background: '#EF4444', color: 'white', border: 'none', borderRadius: '6px',
-                        padding: '8px 14px', fontWeight: 600, fontSize: '12px', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '6px',
-                        boxShadow: '0 2px 8px rgba(239,68,68,0.2)'
-                      }}
-                    >
-                      <AlertTriangle size={14} /> Sirene Bahaya
-                    </button>
-                    {/* <button
-                      onClick={() => alert('Mengambil snapshot dari semua monitor aktif...')}
-                      style={{
-                        background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)',
-                        borderRadius: '6px', padding: '7px 14px', fontWeight: 600, fontSize: '12px', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '6px'
-                      }}
-                    >
-                      <Camera size={14} /> Tangkap Layar
-                    </button> */}
-                  </div>
-                </div>
-
-                {/* Dynamic Monitors Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: gridSize === 1 ? '1fr' : gridSize === 2 ? '1fr 1fr' : gridSize === 6 ? '1fr 1fr 1fr' : '1fr 1fr',
-                  gap: '16px'
-                }}>
-                  {Array.from({ length: gridSize }).map((_, idx) => {
-                    const activeCctvId = selectedCctvIds[idx];
-
-                    // Find actual CCTV object from sites
-                    let cam = null;
-                    let sectorName = '';
-                    if (activeCctvId) {
-                      for (const s of sites) {
-                        const found = s.details.find(d => d.id === activeCctvId);
-                        if (found) {
-                          cam = found;
-                          sectorName = s.name;
-                          break;
-                        }
-                      }
-                    }
-
-                    return (
-                      <div key={idx} style={{
-                        background: '#040d1a',
-                        borderRadius: '12px',
-                        border: cam?.status === 'OFFLINE' ? '2px solid #ff4d4d' : '1.5px solid #E3E6EE',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                        height: gridSize === 1 ? '400px' : gridSize === 6 ? '180px' : '230px',
-                        transition: 'all 0.3s ease'
-                      }}>
-                        {!cam ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'rgba(255,255,255,0.25)', gap: '8px', padding: '16px', textAlign: 'center' }}>
-                            <Camera size={32} style={{ opacity: 0.4 }} />
-                            <span style={{ fontSize: '11px', fontWeight: 600, fontFamily: 'monospace' }}>
-                              MONITOR {idx + 1}<br />
-                              <span style={{ color: 'var(--outline)', fontWeight: 400 }}>Pilih kamera dari daftar di kiri</span>
-                            </span>
-                          </div>
-                        ) : cam.status === 'OFFLINE' ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#ff4d4d', gap: '8px' }}>
-                            <WifiOff size={36} />
-                            <span style={{ fontSize: '11px', fontWeight: 'bold', fontFamily: 'monospace', textAlign: 'center' }}>
-                              {cam.name}<br />
-                              <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>NO SIGNAL // OFFLINE</span>
-                            </span>
-                          </div>
-                        ) : (
-                          <div style={{ position: 'relative', height: '100%' }}>
-                            {/* Real CCTV preview image */}
-                            {(() => {
-                              const imgs = [cctvImg1, cctvImg2, cctvImg3, cctvImg4];
-                              return (
-                                <img
-                                  src={imgs[idx % imgs.length]}
-                                  alt={`CCTV Feed ${idx + 1}`}
-                                  style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    display: 'block'
-                                  }}
-                                />
-                              );
-                            })()}
-
-                            {/* Top bar info */}
-                            <div style={{ position: 'absolute', top: '10px', left: '10px', right: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 }}>
-                              <span style={{ background: 'rgba(7,21,44,0.85)', color: 'white', fontSize: '9px', fontWeight: 'bold', padding: '3px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', maxWidth: '140px' }}>
-                                M-{idx + 1} // {cam.name}
-                              </span>
-                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px' }}>
-                                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#EF4444', animation: 'ping-dot 1s infinite' }} />
-                                <span style={{ color: '#EF4444', fontSize: '7px', fontWeight: 'bold', fontFamily: 'monospace' }}>REC</span>
-                              </div>
-                            </div>
-
-                            {/* Bottom bar info */}
-                            <div style={{ position: 'absolute', bottom: '10px', left: '10px', right: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 }}>
-                              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '8px', fontFamily: 'monospace' }}>
-                                FPS: 30 // HD
-                              </span>
-                              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '8px', fontFamily: 'monospace', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', maxWidth: '120px' }}>
-                                {sectorName}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Active AI Alert log feed */}
-                <div style={{ background: '#07152C', borderRadius: '12px', padding: '16px 20px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
-                  <h4 style={{ color: '#FFD600', margin: '0 0 10px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Deteksi AI Pada Monitor Aktif</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '100px', overflowY: 'auto', fontFamily: 'monospace', fontSize: '10px' }}>
-                    <div style={{ color: '#4ADE80' }}>&gt; [12:08:01] Monitor 1: objek excavator terdeteksi (98.5% akurasi)</div>
-                    <div style={{ color: '#4ADE80' }}>&gt; [12:08:04] Monitor 2: objek truk batubara terdeteksi (99.1% akurasi)</div>
-                    <div style={{ color: '#FFD600' }}>&gt; [12:08:12] Monitor 3: keselamatan - objek manusia melewati batas area merah (WARNING)</div>
-                    {/* <div style={{ color: '#EF4444' }}>&gt; [12:08:18] Monitor 4: ANCAMAN - kamera crusher terputus dari signal (ALERT)</div> */}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ===== TAB 6: WORKLOAD AGEN AI CONFIGURATION ===== */}
-      {activeSubTab === 'workload' && (
-        <section style={{ marginTop: '32px' }}>
-          <div className="container animate-tab-fade">
-
-            {/* Header info */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '24px',
-              border: '1px solid #E3E6EE',
-              marginBottom: '28px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px'
-            }}>
-              <div>
-                <h3 style={{ fontSize: '18px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Cpu size={20} color="var(--brand-primary)" /> Konfigurasi Workload Agen AI CCTV & Sektor
-                </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
-                  Pilih policy group untuk menentukan daftar aturan AI aktif pada setiap kamera, atau buat policy group baru.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button
-                  onClick={() => setShowPolicyModal(true)}
-                  style={{
-                    background: 'var(--brand-primary)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 18px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 12px rgba(13,71,161,0.2)',
-                    transition: 'opacity 0.2s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = 0.9}
-                  onMouseLeave={e => e.currentTarget.style.opacity = 1}
-                >
-                  <Settings size={15} /> Kelola Policy Group
-                </button>
-                <div style={{
-                  background: '#F0FDF4',
-                  border: '1.5px solid #DCFCE7',
-                  borderRadius: '8px',
-                  padding: '8px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', animation: 'mapPulse 1.5s infinite' }} />
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#15803D' }}>AI Agent Status: AKTIF</span>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Two Column Layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '32px' }} className="db-layout-grid">
-
-              {/* Left Column: List of Sectors */}
-              <div style={{
-                background: 'white',
-                borderRadius: '16px',
-                padding: '24px',
-                border: '1px solid #E3E6EE',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
-                alignSelf: 'start'
-              }}>
-                <h4 style={{ fontSize: '14px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Sektor Pertambangan
-                </h4>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {sites.map(s => {
-                    const isSelected = workloadSelectedSiteId === s.id;
-                    const cctvs = s.details.filter(d => d.type === 'cctv');
-
-                    // Count how many custom workloads are active in this sector
-                    let activeCustomRules = 0;
-                    const sectorGroupId = sectorGroupAssignments[s.id] || 'group-danger';
-                    const group = workloadGroups.find(g => g.id === sectorGroupId);
-                    if (group) {
-                      activeCustomRules = group.skills.length;
-                    }
-
-                    return (
-                      <div
-                        key={s.id}
-                        onClick={() => setWorkloadSelectedSiteId(s.id)}
-                        style={{
-                          background: isSelected ? 'rgba(13,71,161,0.04)' : '#FAFBFD',
-                          border: `1.5px solid ${isSelected ? 'var(--brand-primary)' : '#E3E6EE'}`,
-                          borderRadius: '12px',
-                          padding: '16px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px'
-                        }}
+          {/* TAB 2: DETECT (LIVE STREAM GRID) */}
+          {activeSubTab === 'detect' && (
+            <div className="flex-1 flex flex-col lg:flex-row gap-md overflow-hidden min-h-[500px]">
+              {/* Left Column: Streams Grid */}
+              <div className="flex-1 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 p-md">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-surface-variant pb-sm mb-md flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-headline-md text-headline-md text-on-surface">Live Monitoring Grid</h2>
+                    <span className="bg-error/10 text-error font-label-md text-label-md px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+                      LIVE
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex bg-surface-container-low rounded-lg p-1 border border-outline-variant/20">
+                      <button 
+                        onClick={() => setDetectGridSize(4)} 
+                        className={`px-3 py-1.5 rounded font-label-md text-label-md flex items-center gap-1.5 transition-all ${
+                          detectGridSize === 4 ? 'bg-surface-container-lowest shadow-sm text-primary font-bold' : 'text-on-surface-variant hover:text-primary'
+                        }`}
                       >
-                        <div style={{ display: 'flex', justify: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{s.name}</span>
-                          <span style={{
-                            fontSize: '9px', fontWeight: 700,
-                            color: s.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
-                            background: s.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
-                            padding: '2px 8px', borderRadius: '4px'
-                          }}>
-                            ● {s.status}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                          <span style={{ fontSize: '11px', color: 'var(--outline)' }}>
-                            {cctvs.length} CCTV Terpasang
-                          </span>
-                          {activeCustomRules > 0 ? (
-                            <span style={{ fontSize: '10px', fontWeight: 600, background: '#FFF3E0', color: '#E65100', padding: '2px 6px', borderRadius: '4px' }}>
-                              {activeCustomRules} Rule AI Aktif
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: '10px', color: 'var(--outline)', background: '#F0EDED', padding: '2px 6px', borderRadius: '4px' }}>
-                              0 Rule AI
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                        <span className="material-symbols-outlined text-[16px]">grid_view</span>
+                        <span>4 Grid</span>
+                      </button>
+                      <button 
+                        onClick={() => setDetectGridSize(9)} 
+                        className={`px-3 py-1.5 rounded font-label-md text-label-md flex items-center gap-1.5 transition-all ${
+                          detectGridSize === 9 ? 'bg-surface-container-lowest shadow-sm text-primary font-bold' : 'text-on-surface-variant hover:text-primary'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">grid_on</span>
+                        <span>9 Grid</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Right Column: CCTV Workload Configuration */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {(() => {
-                  const selectedSiteObj = sites.find(s => s.id === workloadSelectedSiteId) || sites[0];
-                  if (!selectedSiteObj) return null;
-
-                  const cctvs = selectedSiteObj.details.filter(d => d.type === 'cctv');
-
-                  return (
-                    <div style={{
-                      background: 'white',
-                      borderRadius: '16px',
-                      padding: '28px',
-                      border: '1px solid #E3E6EE',
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.02)'
-                    }}>
-                      <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '16px', fontWeight: 700 }}>
-                            Daftar Kamera Sektor: {selectedSiteObj.name}
-                          </h3>
-                          <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'var(--outline)' }}>
-                            Aturan deteksi AI yang aktif di bawah ini diwariskan dari Group Policy sektor.
-                          </p>
-                        </div>
-                        <span style={{ fontSize: '11px', fontWeight: 600, background: '#F4F6FA', color: 'var(--brand-dark)', padding: '4px 10px', borderRadius: '6px' }}>
-                          Total: {cctvs.length} CCTV
-                        </span>
-                      </div>
-
-                      {/* Sector Group Assignment Header */}
-                      <div style={{
-                        background: '#FAFBFD',
-                        border: '1.5px solid #E3E6EE',
-                        borderRadius: '12px',
-                        padding: '20px 24px',
-                        marginBottom: '24px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '14px'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                          <div>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              SECTOR GROUP POLICY TEMPLATE
+                {/* Streams Container Grid */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className={`grid gap-sm md:gap-md ${
+                    detectGridSize === 4 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 lg:grid-cols-3'
+                  }`}>
+                    {sites.flatMap(s => s.details.filter(d => d.type === 'cctv')).slice(0, detectGridSize).map((cam, idx) => {
+                      const isCamOffline = cam.status === 'OFFLINE';
+                      const isCurrentlyPlaying = activeCctv && activeCctv.id === cam.id;
+                      const hasClips = cam.clippings && cam.clippings.length > 0;
+                      
+                      return (
+                        <div 
+                          key={cam.id} 
+                          onClick={() => {
+                            setActiveCctv(cam);
+                            setSelectedSite(sites.find(s => s.details.some(d => d.id === cam.id)) || selectedSite);
+                          }}
+                          className={`bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border flex flex-col relative group cursor-pointer ${
+                            isCurrentlyPlaying ? 'ring-2 ring-primary bg-primary-container/5' : 'border-outline-variant/20 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="px-4 py-2 border-b border-surface-variant flex justify-between items-center bg-surface-container-low shrink-0">
+                            <span className="font-label-md text-label-md text-on-surface font-semibold truncate flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[16px]">videocam</span>
+                              {cam.name}
                             </span>
-                            <h4 style={{ margin: '2px 0 0', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '14px' }}>
-                              Pilih Group Policy untuk Sektor {selectedSiteObj.name}
-                            </h4>
+                            <span className="font-mono-data text-mono-data text-outline text-xs">
+                              {isCamOffline ? 'Offline' : 'Online • 30fps'}
+                            </span>
                           </div>
 
-                          {/* Sector Policy Dropdown */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <select
-                              value={sectorGroupAssignments[selectedSiteObj.id] || 'group-danger'}
-                              onChange={(e) => handleAssignSectorGroup(selectedSiteObj.id, e.target.value)}
-                              style={{
-                                padding: '8px 16px',
-                                fontSize: '13px',
-                                fontWeight: 600,
-                                color: 'var(--brand-dark)',
-                                border: '1.5px solid #C3C6D4',
-                                borderRadius: '8px',
-                                background: 'white',
-                                outline: 'none',
-                                cursor: 'pointer',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                              }}
-                            >
-                              {workloadGroups.map(g => (
-                                <option key={g.id} value={g.id}>
-                                  {g.name} ({g.skills.length} Rule)
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Active Sector Rules Preview */}
-                        {(() => {
-                          const assignedGroupId = sectorGroupAssignments[selectedSiteObj.id] || 'group-danger';
-                          const groupObj = workloadGroups.find(g => g.id === assignedGroupId);
-                          if (!groupObj) return null;
-
-                          return (
-                            <div style={{ borderTop: '1px solid #E3E6EE', paddingTop: '12px' }}>
-                              <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>
-                                Seluruh CCTV di sektor ini otomatis mewarisi rule berikut dari <span style={{ color: 'var(--brand-primary)', fontWeight: 700 }}>{groupObj.name}</span>:
-                              </p>
-                              {groupObj.skills.length === 0 ? (
-                                <span style={{ fontSize: '12.5px', color: 'var(--outline)', fontStyle: 'italic' }}>Grup ini belum memiliki rule AI.</span>
-                              ) : (
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                  {groupObj.skills.map(skill => (
-                                    <span
-                                      key={skill.id}
-                                      style={{
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        background: 'white',
-                                        color: 'var(--brand-dark)',
-                                        border: '1px solid #E3E6EE',
-                                        padding: '4px 10px',
-                                        borderRadius: '6px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px'
-                                      }}
-                                      title={skill.guidelines}
-                                    >
-                                      <span style={{ color: '#4F46E5', fontWeight: 800 }}>{skill.code}</span>
-                                      <span>({skill.description})</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {cctvs.map(cam => {
-                          const isOffline = cam.status === 'OFFLINE';
-                          const group = getCctvSectorGroup(cam.id);
-
-                          return (
-                            <div key={cam.id} style={{
-                              background: '#FAFBFD',
-                              border: '1px solid #E3E6EE',
-                              borderRadius: '12px',
-                              padding: '20px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '16px',
-                              opacity: isOffline ? 0.75 : 1,
-                              transition: 'all 0.2s'
-                            }}>
-                              {/* CCTV info */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dashed #E3E6EE', paddingBottom: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <div style={{
-                                    background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(13,71,161,0.06)',
-                                    color: isOffline ? '#ff4d4d' : 'var(--brand-primary)',
-                                    width: '36px', height: '36px', borderRadius: '8px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                  }}>
-                                    <Camera size={18} />
-                                  </div>
-                                  <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>
-                                        {cam.name}
-                                      </span>
-                                      {group && (
-                                        <span style={{ fontSize: '10px', fontWeight: 700, background: 'rgba(79,70,229,0.08)', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px' }}>
-                                          {group.name}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <span style={{ fontSize: '11px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
-                                      {cam.feedDescription}
-                                    </span>
-                                  </div>
-                                </div>
-                                <span style={{
-                                  fontSize: '9px', fontWeight: 700,
-                                  color: isOffline ? '#ff4d4d' : '#10b981',
-                                  background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                                  padding: '3px 8px', borderRadius: '4px'
-                                }}>
-                                  {cam.status}
-                                </span>
+                          <div className="flex-1 relative bg-black aspect-video flex items-center justify-center overflow-hidden">
+                            {isCamOffline ? (
+                              <div className="flex flex-col items-center justify-center text-outline gap-2">
+                                <span className="material-symbols-outlined text-3xl">videocam_off</span>
+                                <span className="font-body-sm text-body-sm">No Signal / Disconnected</span>
                               </div>
-
-                              {/* Workload Section */}
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="db-layout-grid">
-
-                                {/* Standard/Wajib Column */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    Standard Workload (Selalu Aktif)
-                                  </span>
-
-                                  {/* APD check */}
-                                  <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '12px',
-                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
-                                    borderRadius: '8px', opacity: 0.9
-                                  }}>
-                                    <ShieldCheck size={18} color="#16A34A" style={{ flexShrink: 0 }} />
-                                    <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
-                                        Deteksi Kepatuhan APD (K3)
-                                      </span>
-                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
-                                        Verifikasi otomatis rompi & helm safety.
-                                      </span>
+                            ) : (
+                              <>
+                                {/* Show video feed */}
+                                {isCurrentlyPlaying && isPlayingClip && selectedClip ? (
+                                  <div className="w-full h-full relative">
+                                    <VideoPlayer videoSrc="/cctv_example.mp4" />
+                                    <div className="absolute top-2 left-2 bg-error/95 text-white px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider z-20 flex items-center gap-1">
+                                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+                                      REPLAY: {selectedClip.title}
+                                    </div>
+                                    <div className="absolute bottom-2 left-2 right-2 z-20">
+                                      <div className="w-full bg-black/60 rounded h-1 overflow-hidden">
+                                        <div className="bg-error h-full" style={{ width: `${clipProgress}%` }}></div>
+                                      </div>
                                     </div>
                                   </div>
-
-                                  {/* Keselamatan Manusia */}
-                                  <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '12px',
-                                    padding: '12px 16px', background: 'white', border: '1.5px solid #DCFCE7',
-                                    borderRadius: '8px', opacity: 0.9
-                                  }}>
-                                    <Activity size={18} color="#16A34A" style={{ flexShrink: 0 }} />
-                                    <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
-                                        Deteksi Keselamatan Manusia
-                                      </span>
-                                      <span style={{ fontSize: '10.5px', color: '#15803D' }}>
-                                        Perlindungan kru di dekat peralatan berat.
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Group Workload Column */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                    Group Workload ({group ? group.name : 'No Group'})
-                                  </span>
-
-                                  <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px',
-                                    maxHeight: '150px',
-                                    overflowY: 'auto',
-                                    paddingRight: '6px'
-                                  }}>
-                                    {!group || group.skills.length === 0 ? (
-                                      <div style={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        padding: '24px 16px', background: '#F4F6FA', border: '1.5px dashed #E3E6EE',
-                                        borderRadius: '8px', height: '100%'
-                                      }}>
-                                        <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic' }}>
-                                          Grup ini belum memiliki rule AI.
+                                ) : (
+                                  <div className="w-full h-full relative">
+                                    {/* Static visual representation with placeholder imagery */}
+                                    <img 
+                                      src={idx % 4 === 0 ? cctvImg1 : idx % 4 === 1 ? cctvImg2 : idx % 4 === 2 ? cctvImg3 : cctvImg4} 
+                                      alt="CCTV stream placeholder" 
+                                      className="w-full h-full object-cover opacity-80"
+                                    />
+                                    {/* Simulation drawing bounding boxes on Cam 0 */}
+                                    {idx === 0 && (
+                                      <div className="absolute top-[35%] left-[20%] w-[30%] h-[40%] border-2 border-[#ffb703] bg-[#ffb703]/10 rounded-sm">
+                                        <span className="absolute -top-5 left-0 bg-[#ffb703] text-black font-mono-data text-[9px] px-1 py-0.2 rounded font-bold uppercase">
+                                          Excavator 98%
                                         </span>
                                       </div>
-                                    ) : (
-                                      group.skills.map(skill => {
-                                        let activeBorder = '1.5px solid #E3E6EE';
-                                        let iconColor = 'var(--brand-primary)';
-
-                                        if (skill.code === 'no_human_zone') {
-                                          activeBorder = '1.5px solid #FCA5A5';
-                                          iconColor = '#EF4444';
-                                        } else if (skill.code === 'no_truck_stop') {
-                                          activeBorder = '1.5px solid #FDE047';
-                                          iconColor = '#F57F17';
-                                        }
-
-                                        return (
-                                          <div
-                                            key={skill.id}
-                                            style={{
-                                              display: 'flex', alignItems: 'center', gap: '12px',
-                                              padding: '12px 16px', background: 'white', border: activeBorder,
-                                              borderRadius: '8px', opacity: 0.9
-                                            }}
-                                          >
-                                            <Settings size={18} color={iconColor} style={{ flexShrink: 0 }} />
-                                            <div>
-                                              <span style={{ fontWeight: 600, fontSize: '12.5px', color: 'var(--brand-dark)', display: 'block' }}>
-                                                {skill.description}
-                                              </span>
-                                              {skill.guidelines && (
-                                                <span style={{ fontSize: '10.5px', color: 'var(--outline)', display: 'block', marginTop: '2px' }}>
-                                                  {skill.guidelines}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })
                                     )}
+                                    {idx === 1 && (
+                                      <div className="absolute top-[45%] left-[50%] w-[25%] h-[30%] border-2 border-error bg-error/10 rounded-sm">
+                                        <span className="absolute -top-5 left-0 bg-error text-white font-mono-data text-[9px] px-1 py-0.2 rounded font-bold uppercase animate-pulse">
+                                          No-Helmet 95%
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="absolute bottom-2 left-2 bg-on-surface/80 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
+                                      LIVE - 1080p
+                                    </div>
                                   </div>
-                                </div>
-
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-            </div>
-
-          </div>
-        </section>
-      )}
-
-      {/* ===== MODAL: KELOLA POLICY GROUP ===== */}
-      {showPolicyModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(11,29,58,0.6)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 1000, padding: '20px'
-        }}>
-          <div style={{
-            background: 'white', borderRadius: '16px', width: '100%',
-            maxWidth: '960px', height: '85vh', maxHeight: '800px', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.25)', border: '1px solid #E3E6EE',
-            overflow: 'hidden', position: 'relative'
-          }}>
-            {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '22px 32px', borderBottom: '1px solid #E3E6EE' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {/* {showRulePreview && (
-                  <button
-                    onClick={() => setShowRulePreview(false)}
-                    style={{ background: 'none', border: '1.5px solid #E3E6EE', color: 'var(--outline)', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <span style={{ fontSize: '14px' }}>&#8592;</span> Kembali
-                  </button>
-                )} */}
-                <div>
-                  <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Settings size={20} color="var(--brand-primary)" />
-                    {showRulePreview ? 'Preview Konfigurasi AI Skills' : 'Pengaturan AI Skills'}
-                  </h3>
-                  <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: 'var(--outline)' }}>
-                    {showRulePreview
-                      ? 'Konfigurasi berikut dihasilkan secara otomatis. Terapkan atau kembali untuk mengedit.'
-                      : 'Definisikan group template dan kelola rule/skill deteksi AI di dalamnya.'}
-                  </p>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setShowPolicyModal(false);
-                  setShowRulePreview(false);
-                  setEditingSkillId(null);
-                  setSkillCode('');
-                  setSkillDesc('');
-                  setSkillGuidelines('');
-                  setIsCreatingGroup(false);
-                }}
-                style={{
-                  background: 'none', border: 'none', fontSize: '20px', fontWeight: 600,
-                  color: 'var(--outline)', cursor: 'pointer', padding: '4px 8px'
-                }}
-              >
-                ✕
-              </button>
+
+              {/* Right Sidebar: Live Detection Feed */}
+              <aside className="w-full lg:w-80 bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-md flex flex-col h-[500px] lg:h-auto overflow-hidden flex-shrink-0">
+                <div className="pb-sm border-b border-surface-variant flex justify-between items-center shrink-0">
+                  <h3 className="font-label-md text-label-md text-on-surface font-bold flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-primary text-[18px]">feed</span>
+                    Detection Feed
+                  </h3>
+                  <div className="flex items-center gap-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
+                    <span className="font-mono-data text-mono-data text-outline text-[10px]">Updates</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto mt-md space-y-sm pr-1 custom-scrollbar">
+                  {allIncidents.slice(0, 8).map((inc, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => {
+                        setSelectedSite(sites.find(s => s.id === inc.sectorId) || selectedSite);
+                        setActiveCctv(inc.cameraObj);
+                        handlePlayClip(inc);
+                      }}
+                      className="bg-surface-container-low p-sm rounded-lg border border-outline-variant/10 shadow-sm relative hover:border-primary transition-all cursor-pointer group"
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                          inc.type === 'danger' ? 'bg-error/10 text-error' : 'bg-tertiary-fixed text-tertiary-container'
+                        }`}>
+                          {inc.title}
+                        </span>
+                        <span className="font-mono-data text-outline text-[10px]">{inc.time}</span>
+                      </div>
+                      <p className="font-body-sm text-body-sm text-on-surface-variant font-medium line-clamp-2">{inc.description}</p>
+                      <div className="mt-2 flex justify-between items-center text-[10px] text-outline">
+                        <span className="flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px]">videocam</span>{inc.camera}</span>
+                        <span className="text-primary group-hover:underline flex items-center gap-0.5 font-bold">
+                          Replay <span className="material-symbols-outlined text-[10px]">play_arrow</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {allIncidents.length === 0 && (
+                    <div className="text-center py-8 text-outline text-body-sm">Waiting for live detection incidents...</div>
+                  )}
+                </div>
+              </aside>
             </div>
+          )}
 
-            {/* Modal Content */}
-            <div style={{ flex: 1, overflow: 'hidden' }}>
+          {/* TAB 3: ESCALATE (ALERT LOGS) */}
+          {activeSubTab === 'escalate' && (
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-md h-[calc(100vh-140px)] overflow-hidden min-h-[500px]">
+              {/* Left Column: Alert Queue */}
+              <div className="lg:col-span-4 flex flex-col gap-sm overflow-y-auto pr-2 pb-8 h-full bg-surface-container-lowest rounded-xl p-md border border-outline-variant/20">
+                <div className="flex justify-between items-center mb-md border-b border-surface-variant pb-xs flex-shrink-0">
+                  <h2 className="font-headline-md text-headline-md text-on-surface">Alert Center Queue</h2>
+                  <span className="bg-primary/15 text-primary text-xs font-bold px-2 py-0.5 rounded-full">{allIncidents.length} Alerts</span>
+                </div>
 
-              <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '28px', height: '100%' }}>
-                {showRulePreview ? (
-                  /* ===== PREVIEW VIEW ===== */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* Preview rule identity */}
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px 20px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px' }}>Rule yang dikonfigurasi</div>
-                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>{skillDesc || 'Titik ini ga boleh ada manusia (Bahaya)'}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--outline)', fontFamily: 'monospace', marginTop: '2px' }}>{skillCode ? skillCode.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'no_human_zone'}</div>
-                    </div>
-
-                    {/* Priority */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Prioritas</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ flex: 1, padding: '10px 8px', borderRadius: '8px', textAlign: 'center', background: '#EF4444', border: '1.5px solid #EF4444', fontSize: '12px', fontWeight: 700, color: 'white' }}>
-                          High
+                <div className="space-y-sm overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                  {allIncidents.map((inc, idx) => {
+                    const isSelected = selectedAlertIdx === idx;
+                    return (
+                      <div 
+                        key={inc.id || idx}
+                        onClick={() => setSelectedAlertIdx(idx)}
+                        className={`rounded-xl p-sm border-l-4 cursor-pointer transition-all border ${
+                          inc.type === 'danger' ? 'border-l-error' : 'border-l-[#ffb703]'
+                        } ${
+                          isSelected ? 'bg-surface-container-high ring-1 ring-primary' : 'bg-surface-container-low border-transparent hover:bg-surface-container-high'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className={`font-label-md text-label-md ${
+                            inc.type === 'danger' ? 'text-error' : 'text-[#d97706]'
+                          }`}>
+                            {inc.type === 'danger' ? 'High Risk' : 'Warning'}
+                          </span>
+                          <span className="font-mono-data text-outline text-xs">{inc.time}</span>
                         </div>
+                        <h3 className="font-label-md text-label-md text-on-surface mb-1 font-semibold">{inc.title}</h3>
+                        <p className="font-body-sm text-body-sm text-on-surface-variant line-clamp-1 mb-2">{inc.description}</p>
+                        <span className="text-[10px] text-outline flex items-center gap-0.5">
+                          <span className="material-symbols-outlined text-[12px]">videocam</span> {inc.camera}
+                        </span>
                       </div>
-                      <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>Direkomendasikan berdasarkan konten event code yang dianalisis.</p>
+                    );
+                  })}
+                  {allIncidents.length === 0 && (
+                    <div className="text-center py-12 text-outline text-body-sm">No alerts queued for review.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Alert Detail View */}
+              <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm p-md border border-outline-variant/20 flex flex-col h-full overflow-hidden">
+                {allIncidents[selectedAlertIdx] ? (
+                  <div className="flex flex-col h-full">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-md pb-sm border-b border-outline-variant/20 shrink-0">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase">
+                            {allIncidents[selectedAlertIdx].type === 'danger' ? 'Critical' : 'Alert'}
+                          </span>
+                          <span className="font-mono-data text-on-surface-variant text-sm">Alert ID: #{allIncidents[selectedAlertIdx].id.substring(allIncidents[selectedAlertIdx].id.length - 8)}</span>
+                        </div>
+                        <h2 className="font-headline-lg text-[22px] leading-tight text-on-surface font-semibold">{allIncidents[selectedAlertIdx].title}</h2>
+                        <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Triggered by Policy Engine</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono-data text-on-surface font-semibold text-lg">{allIncidents[selectedAlertIdx].time}</p>
+                        <p className="font-body-sm text-outline text-xs">Today</p>
+                      </div>
                     </div>
 
-                    <div style={{ borderTop: '1px solid #F0F2F7' }} />
-
-                    {/* Time Bounds */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Durasi Waktu</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {[
-                          { label: 'Sebelum Alarm', value: '3', sub: 'Detik sebelum notifikasi dikirim' },
-                          { label: 'Setelah Alarm', value: '15', sub: 'Detik hold-time setelah event' }
-                        ].map(t => (
-                          <div key={t.label} style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
-                            <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>{t.label}</div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--brand-dark)', fontFamily: 'monospace', lineHeight: 1 }}>{t.value}</span>
-                              <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
-                            </div>
-                            <div style={{ fontSize: '10.5px', color: 'var(--outline)', marginTop: '4px' }}>{t.sub}</div>
+                    {/* Content Body */}
+                    <div className="flex-1 overflow-y-auto space-y-md pr-1 custom-scrollbar">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        {/* Thermal Image Overlay Representation */}
+                        <div className="rounded-lg overflow-hidden border border-outline-variant/20 relative aspect-video bg-black flex items-center justify-center">
+                          <img 
+                            src={cctvImg3} 
+                            alt="Thermal incident snapshot" 
+                            className="w-full h-full object-cover opacity-80"
+                          />
+                          <div className="absolute top-2 right-2 bg-error text-white font-mono text-[9px] px-1.5 py-0.5 rounded font-bold uppercase animate-pulse">
+                            Trigger Frame
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #F0F2F7' }} />
-
-                    {/* Response + Target Group */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Saluran Respons</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {[
-                            { label: 'Telegram', active: true },
-                            { label: 'Email', active: true }
-                          ].map(ch => (
-                            <div key={ch.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px' }}>
-                              <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                        </div>
+                        
+                        {/* Metadata Grid */}
+                        <div className="flex flex-col gap-sm justify-between">
+                          <div className="bg-surface-container-low p-sm rounded-lg border border-outline-variant/10">
+                            <span className="block font-label-md text-[10px] text-on-surface-variant mb-0.5 uppercase">Location</span>
+                            <span className="font-body-md text-body-md font-medium text-on-surface flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                              {allIncidents[selectedAlertIdx].sectorName}
+                            </span>
+                          </div>
+                          <div className="bg-surface-container-low p-sm rounded-lg border border-outline-variant/10">
+                            <span className="block font-label-md text-[10px] text-on-surface-variant mb-0.5 uppercase">Camera Source</span>
+                            <span className="font-body-md text-body-md font-medium text-on-surface flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-[16px] text-primary">videocam</span>
+                              {allIncidents[selectedAlertIdx].camera}
+                            </span>
+                          </div>
+                          <div className="bg-secondary/15 border-l-4 border-tertiary-fixed-dim p-sm rounded-r-lg">
+                            <div className="flex gap-2">
+                              <span className="material-symbols-outlined text-[18px] text-tertiary-fixed-dim shrink-0">smart_toy</span>
+                              <div>
+                                <h4 className="font-label-md text-[11px] font-bold text-on-surface mb-0.5">AI Engine Suggestion</h4>
+                                <p className="font-body-sm text-[12px] text-on-surface-variant leading-tight">
+                                  System reports confidence level of 95.8%. Flagged anomaly details match rules in security guidelines.
+                                </p>
                               </div>
-                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
-                              <span style={{ fontSize: '10px', fontWeight: 700, color: '#10B981', background: '#F0FDF4', padding: '2px 7px', borderRadius: '3px' }}>ON</span>
                             </div>
-                          ))}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Log Anomaly Text details */}
                       <div>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Camera Group</label>
-                        <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', marginBottom: '8px' }}>
-                          <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '2px' }}>Grup Area Bahaya</div>
-                          <div style={{ fontSize: '11px', color: 'var(--outline)' }}>2 rule aktif — Pit A, Crusher</div>
+                        <h4 className="font-label-md text-label-md text-on-surface-variant mb-xs uppercase tracking-wider">Detailed Description</h4>
+                        <div className="bg-surface-container-low p-md rounded-lg border border-outline-variant/15 text-body-md text-on-surface">
+                          {allIncidents[selectedAlertIdx].description}
                         </div>
-                        {/* <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', opacity: 0.45 }}>
-                          <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '2px' }}>Grup Logistik</div>
-                          <div style={{ fontSize: '11px', color: 'var(--outline)' }}>2 rule aktif — Stockpile, Gate</div>
-                        </div> */}
                       </div>
                     </div>
 
-                    {/* Preview action buttons */}
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid #E3E6EE' }}>
-                      <button
-                        onClick={() => setShowRulePreview(false)}
-                        style={{ background: 'white', color: 'var(--on-surface-variant)', border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                      >Kembali ke Form</button>
-                      <button
-                        onClick={() => setShowRulePreview(false)}
-                        style={{ background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                      >Edit</button>
-                      <button
-                        onClick={() => { setShowRulePreview(false); }}
-                        style={{ background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(13,71,161,0.2)' }}
-                      >Terapkan Konfigurasi</button>
+                    {/* Footer buttons */}
+                    <div className="mt-auto pt-sm border-t border-outline-variant/20 flex gap-2 justify-end shrink-0">
+                      <button className="px-4 py-2 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors">
+                        Dismiss Alert
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const time = new Date().toLocaleTimeString('id-ID');
+                          setLogs(prev => [{ time, message: `ESKALASI MANUAL: Alert ${allIncidents[selectedAlertIdx].title} dieskalasikan ke Tim Rescue Sektor`, type: 'error' }, ...prev]);
+                          alert('Alert dieskalasikan ke Tim Lapangan.');
+                        }}
+                        className="px-4 py-2 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary/95 shadow-sm flex items-center gap-1.5 ai-glow"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">priority_high</span>
+                        Escalate Warning
+                      </button>
                     </div>
                   </div>
                 ) : (
-                  /* ===== FORM VIEW ===== */
-                  (() => {
-                    const activeGroup = workloadGroups.find(g => g.id === selectedGroupId);
-                    if (!activeGroup) return null;
-
-                    return (
-                      <>
-                        {/* Add/Edit Skill Form */}
-                        <div style={{ background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '20px' }}>
-                          <h5 style={{ margin: '0 0 16px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {editingSkillId ? '📝 Edit Rule AI' : '➕ Tambah Rule AI Baru'}
-                          </h5>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px', marginBottom: '16px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Event Code</label>
-                                <input
-                                  type="text"
-                                  placeholder="e.g. no_human_zone"
-                                  value={skillCode}
-                                  onChange={(e) => setSkillCode(e.target.value)}
-                                  style={{
-                                    width: '100%', padding: '10px', fontSize: '12.5px',
-                                    border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
-                                  }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Deskripsi Singkat</label>
-                                <input
-                                  type="text"
-                                  placeholder="e.g. Area terlarang untuk operator jalan kaki"
-                                  value={skillDesc}
-                                  onChange={(e) => setSkillDesc(e.target.value)}
-                                  style={{
-                                    width: '100%', padding: '10px', fontSize: '12.5px',
-                                    border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Prompt Agent</label>
-                              <textarea
-                                placeholder="Berikan instruksi operasional untuk AI agent, misal: Cari objek manusia menggunakan rompi oranye di dalam area marka kuning..."
-                                value={skillGuidelines}
-                                onChange={(e) => setSkillGuidelines(e.target.value)}
-                                style={{
-                                  width: '100%', padding: '10px', fontSize: '12.5px', minHeight: '94px',
-                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none',
-                                  fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.4
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                            {editingSkillId && (
-                              <button
-                                onClick={() => {
-                                  setEditingSkillId(null);
-                                  setSkillCode('');
-                                  setSkillDesc('');
-                                  setSkillGuidelines('');
-                                }}
-                                style={{
-                                  background: 'white', color: 'var(--brand-dark)',
-                                  border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 16px',
-                                  fontSize: '12.5px', fontWeight: 600, cursor: 'pointer'
-                                }}
-                              >
-                                Batal
-                              </button>
-                            )}
-                            <button
-                              onClick={() => setShowRulePreview(true)}
-                              style={{
-                                background: 'white', color: 'var(--brand-primary)',
-                                border: '1.5px solid var(--brand-primary)',
-                                borderRadius: '8px', padding: '8px 18px',
-                                fontSize: '12.5px', fontWeight: 700,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-                              }}
-                            >
-                              Preview Rule
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Skills List in Active Group */}
-                        <div>
-                          <h5 style={{ margin: '0 0 12px', color: 'var(--outline)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            AI Skills ({activeGroup.skills.length})
-                          </h5>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {activeGroup.skills.length === 0 ? (
-                              <div style={{ padding: '32px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', border: '1.5px dashed #E3E6EE' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--outline)', fontStyle: 'italic' }}>
-                                  Group policy ini belum memiliki rule deteksi AI. Tambahkan rule di atas.
-                                </span>
-                              </div>
-                            ) : (
-                              activeGroup.skills.map(skill => (
-                                <div
-                                  key={skill.id}
-                                  style={{
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    padding: '16px 20px', background: 'white', border: '1.5px solid #E3E6EE',
-                                    borderRadius: '12px'
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--brand-dark)' }}>
-                                        {skill.description}
-                                      </span>
-                                      <code style={{ fontSize: '10px', background: '#EEF2F6', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                                        {skill.code}
-                                      </code>
-                                    </div>
-                                    {/* {skill.guidelines && (
-                                      <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        Guidelines: {skill.guidelines}
-                                      </span>
-                                    )} */}
-                                  </div>
-
-                                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                                    <button
-                                      onClick={() => handleEditSkillClick(skill)}
-                                      style={{
-                                        background: '#F4F6FA', border: '1px solid #E3E6EE', borderRadius: '6px',
-                                        width: '32px', height: '32px', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', cursor: 'pointer', color: 'var(--brand-dark)'
-                                      }}
-                                    >
-                                      <Edit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteSkillFromGroup(activeGroup.id, skill.id)}
-                                      style={{
-                                        background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px',
-                                        width: '32px', height: '32px', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', cursor: 'pointer', color: '#EF4444'
-                                      }}
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()
+                  <div className="flex-1 flex items-center justify-center text-outline text-body-sm">
+                    Select an alert from the queue to view details.
+                  </div>
                 )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* ===== MODAL: TAMBAH PENGGUNA ===== */}
+          {/* TAB 4: RESPOND (INCIDENTS ARCHIVE) */}
+          {activeSubTab === 'respond' && (
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-md h-[calc(100vh-140px)] overflow-hidden min-h-[500px]">
+              {/* Left Column: Incidents List */}
+              <div className="lg:col-span-8 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden h-full">
+                {/* Filters */}
+                <div className="p-md border-b border-surface-variant flex items-center justify-between flex-wrap gap-sm flex-shrink-0 bg-surface-container-low">
+                  <div className="flex gap-2">
+                    <span className="bg-primary-container text-on-primary-container font-label-md text-xs px-2.5 py-1 rounded">Open Incidents</span>
+                  </div>
+                  <span className="font-mono-data text-outline text-xs">{allIncidents.length} logs found</span>
+                </div>
+
+                {/* Table Container */}
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-surface-container-lowest border-b border-surface-variant z-10">
+                      <tr className="font-label-md text-label-md text-on-surface-variant">
+                        <th className="py-3 px-4">ID</th>
+                        <th className="py-3 px-4">Anomalies Type</th>
+                        <th className="py-3 px-4">Severity</th>
+                        <th className="py-3 px-4">Camera Location</th>
+                        <th className="py-3 px-4">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant/10">
+                      {allIncidents.map((inc, index) => {
+                        const isSelected = selectedIncidentIdx === index;
+                        return (
+                          <tr 
+                            key={inc.id || index}
+                            onClick={() => setSelectedIncidentIdx(index)}
+                            className={`cursor-pointer transition-colors ${
+                              isSelected ? 'bg-primary-container/20 font-semibold' : 'hover:bg-surface-container-low'
+                            }`}
+                          >
+                            <td className="py-3 px-4 font-mono-data text-primary">INC-{inc.id.substring(inc.id.length - 4)}</td>
+                            <td className="py-3 px-4">{inc.title}</td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                inc.type === 'danger' ? 'bg-error-container text-error' : 'bg-tertiary-fixed text-tertiary-container'
+                              }`}>
+                                {inc.type === 'danger' ? 'Critical' : 'Warning'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-on-surface-variant">{inc.camera}</td>
+                            <td className="py-3 px-4 font-mono-data text-on-surface-variant">{inc.time}</td>
+                          </tr>
+                        );
+                      })}
+                      {allIncidents.length === 0 && (
+                        <tr>
+                          <td colSpan="5" className="text-center py-8 text-outline">No active incidents logged.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Right Column: Detail Panel Drawer */}
+              <aside className="lg:col-span-4 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 flex flex-col h-full overflow-hidden">
+                {allIncidents[selectedIncidentIdx] ? (
+                  <div className="flex flex-col h-full">
+                    {/* Drawer Header */}
+                    <div className="p-md border-b border-outline-variant/20 flex flex-col shrink-0 bg-surface-container-low">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-mono-data text-primary font-bold">INC-{allIncidents[selectedIncidentIdx].id.substring(allIncidents[selectedIncidentIdx].id.length - 8)}</span>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          allIncidents[selectedIncidentIdx].type === 'danger' ? 'bg-error-container text-error' : 'bg-tertiary-fixed text-tertiary-container'
+                        }`}>
+                          {allIncidents[selectedIncidentIdx].type === 'danger' ? 'Critical' : 'Warning'}
+                        </span>
+                      </div>
+                      <h3 className="font-headline-md text-[18px] text-on-surface font-bold truncate">{allIncidents[selectedIncidentIdx].title}</h3>
+                      <span className="text-[11px] text-outline mt-1">Logged {allIncidents[selectedIncidentIdx].time}</span>
+                    </div>
+
+                    {/* Drawer Body Scrollable */}
+                    <div className="flex-grow overflow-y-auto p-md space-y-md pr-1 custom-scrollbar">
+                      {/* AI Triage Details */}
+                      <div className="bg-[#e3f2fd]/40 border-l-4 border-primary rounded-r-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <span className="material-symbols-outlined text-primary text-[18px] mt-0.5">smart_toy</span>
+                          <div>
+                            <h4 className="font-label-md text-[11px] font-bold text-primary mb-0.5">AI Triage Analysis</h4>
+                            <p className="font-body-sm text-[12px] text-on-surface">
+                              Autonomous agent detected anomalous behaviour matching the parameters of policy template. Security dispatch or intervention requested.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Info Grid */}
+                      <div className="space-y-sm bg-surface-container-low p-sm rounded-lg border border-outline-variant/10">
+                        <div className="flex justify-between">
+                          <span className="text-xs text-outline">Sektor</span>
+                          <span className="text-xs font-semibold text-on-surface">{allIncidents[selectedIncidentIdx].sectorName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-outline">Kamera</span>
+                          <span className="text-xs font-semibold text-primary">{allIncidents[selectedIncidentIdx].camera}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs text-outline">Rule/Policy</span>
+                          <span className="text-xs font-semibold text-on-surface">Rule {allIncidents[selectedIncidentIdx].title}</span>
+                        </div>
+                      </div>
+
+                      {/* Snapshot Visual Evidence */}
+                      <div>
+                        <h4 className="font-label-md text-[11px] uppercase tracking-wider text-outline mb-2">Visual Evidence Frame</h4>
+                        <div className="rounded-lg overflow-hidden border border-outline-variant/20 relative aspect-video bg-black flex items-center justify-center shadow-inner">
+                          <img 
+                            src={cctvImg4} 
+                            alt="Visual incident snapshot" 
+                            className="w-full h-full object-cover opacity-80"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Drawer Footer Actions */}
+                    <div className="p-md border-t border-outline-variant/20 flex gap-2 shrink-0 bg-surface-container-low">
+                      <button 
+                        onClick={() => {
+                          const id = allIncidents[selectedIncidentIdx].id;
+                          // Remove the incident by filtering it out
+                          setSites(prevSites => {
+                            return prevSites.map(s => ({
+                              ...s,
+                              details: s.details.map(device => {
+                                if (device.clippings) {
+                                  return {
+                                    ...device,
+                                    clippings: device.clippings.filter(c => c.id !== id)
+                                  };
+                                }
+                                return device;
+                              })
+                            }));
+                          });
+                          alert('Klip insiden dibuang sebagai false alarm.');
+                          setSelectedIncidentIdx(0);
+                        }}
+                        className="flex-1 py-2 px-3 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container transition-colors"
+                      >
+                        False Alarm
+                      </button>
+                      <button 
+                        onClick={() => {
+                          const time = new Date().toLocaleTimeString('id-ID');
+                          setLogs(prev => [{ time, message: `RESOLVED: Insiden ${allIncidents[selectedIncidentIdx].title} berhasil diselesaikan.`, type: 'success' }, ...prev]);
+                          const id = allIncidents[selectedIncidentIdx].id;
+                          setSites(prevSites => {
+                            return prevSites.map(s => ({
+                              ...s,
+                              details: s.details.map(device => {
+                                if (device.clippings) {
+                                  return {
+                                    ...device,
+                                    clippings: device.clippings.filter(c => c.id !== id)
+                                  };
+                                }
+                                return device;
+                              })
+                            }));
+                          });
+                          alert('Status insiden berhasil dirubah menjadi RESOLVED.');
+                          setSelectedIncidentIdx(0);
+                        }}
+                        className="flex-1 py-2 px-3 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-primary/95 transition-colors shadow-sm"
+                      >
+                        Resolve Issue
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-outline text-body-sm">
+                    Select an incident from the log to view details.
+                  </div>
+                )}
+              </aside>
+            </div>
+          )}
+
+          {/* TAB 5: ANALYZE */}
+          {activeSubTab === 'analyze' && (
+            <div className="flex-grow space-y-md">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h1 className="font-headline-lg text-headline-lg text-on-surface">Telemetry Analytics</h1>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-xs">Executive safety trends & site anomaly insights.</p>
+                </div>
+              </div>
+
+              {/* Summary cards row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+                <div className="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Weekly Alerts</span>
+                    <span className="material-symbols-outlined text-outline">trending_down</span>
+                  </div>
+                  <div className="mt-sm flex items-end gap-sm">
+                    <span className="font-display-lg text-display-lg text-on-surface">142</span>
+                    <span className="font-body-sm text-body-sm text-green-600 mb-xs">-12% vs last week</span>
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Monthly Severity</span>
+                    <span className="material-symbols-outlined text-outline">calendar_month</span>
+                  </div>
+                  <div className="mt-sm flex items-end gap-sm">
+                    <span className="font-display-lg text-display-lg text-on-surface">680</span>
+                    <span className="font-body-sm text-body-sm text-on-surface-variant mb-xs">Stable</span>
+                  </div>
+                </div>
+
+                <div className="bg-secondary/15 border-l-4 border-tertiary-fixed-dim rounded-xl p-md flex flex-col justify-between relative overflow-hidden shadow-sm">
+                  <span className="font-label-md text-label-md text-secondary uppercase tracking-wider flex items-center gap-xs">
+                    <span className="material-symbols-outlined text-sm">auto_awesome</span> Agent Insight
+                  </span>
+                  <p className="font-body-md text-body-md text-on-surface mt-sm">Conveyor Line C shows repeated minor crack warnings during high heat periods.</p>
+                </div>
+
+                <div className="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">High Risk Events</span>
+                    <span className="material-symbols-outlined text-error animate-pulse">warning</span>
+                  </div>
+                  <div className="mt-sm flex items-end gap-sm">
+                    <span className="font-display-lg text-display-lg text-on-surface">{allIncidents.filter(i => i.type === 'danger').length}</span>
+                    <span className="font-body-sm text-body-sm text-error mb-xs">Critical today</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Graph Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-md">
+                <div className="lg:col-span-8 bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 min-h-[360px] flex flex-col">
+                  <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-sm">Violation Trend (Last 30 Days)</h3>
+                  <div className="flex-1 bg-surface rounded-lg flex items-center justify-center border border-outline-variant/30 relative overflow-hidden">
+                    <div className="absolute bottom-0 left-0 w-full h-[60%] flex items-end px-md gap-2 opacity-80">
+                      <div className="w-full h-[30%] bg-primary/20 rounded-t-sm"></div>
+                      <div className="w-full h-[50%] bg-primary/20 rounded-t-sm"></div>
+                      <div className="w-full h-[40%] bg-primary/20 rounded-t-sm"></div>
+                      <div className="w-full h-[60%] bg-primary/20 rounded-t-sm"></div>
+                      <div className="w-full h-[80%] bg-error/30 rounded-t-sm border-t-2 border-error"></div>
+                      <div className="w-full h-[40%] bg-primary/20 rounded-t-sm"></div>
+                    </div>
+                    <p className="font-mono-data text-mono-data text-on-surface-variant z-10 bg-surface/80 px-2 py-1 rounded">Interactive Telemetry Chart Area</p>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-4 bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/10 min-h-[360px] flex flex-col justify-between">
+                  <h3 className="font-label-md text-label-md text-on-surface uppercase tracking-wider mb-sm">Top Violated Rules</h3>
+                  <div className="space-y-sm flex-1 mt-md">
+                    <div className="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-outline-variant/10">
+                      <span className="font-body-sm text-body-sm font-semibold">Haul Truck Overspeed</span>
+                      <span className="font-mono-data text-outline">48%</span>
+                    </div>
+                    <div className="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-outline-variant/10">
+                      <span className="font-body-sm text-body-sm font-semibold">Safety Zone Violation</span>
+                      <span className="font-mono-data text-outline">28%</span>
+                    </div>
+                    <div className="flex justify-between items-center p-sm bg-surface-container-low rounded-lg border border-outline-variant/10">
+                      <span className="font-body-sm text-body-sm font-semibold">CCTV Disconnections</span>
+                      <span className="font-mono-data text-outline">15%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: POLICY STUDIO */}
+          {activeSubTab === 'policy_studio' && (
+            <div className="flex-grow space-y-md">
+              <div className="flex flex-col gap-xs">
+                <h2 className="font-display-lg text-display-lg md:font-display-lg text-primary tracking-tight">AI Policy Studio</h2>
+                <p className="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">Design operational monitoring rules using natural language. The AI agent will parse your request and generate structured telemetry conditions automatically.</p>
+              </div>
+
+              {/* Bento Grid parser layouts */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-md h-full min-h-[320px]">
+                <div className="lg:col-span-7 flex flex-col gap-md">
+                  {/* Natural Language input */}
+                  <div className="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/30 flex flex-col gap-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="flex items-center gap-sm mb-xs relative z-10">
+                      <span className="material-symbols-outlined text-primary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                      <span className="font-label-md text-label-md text-primary uppercase tracking-widest">Natural Language Prompt Builder</span>
+                    </div>
+                    <div className="relative z-10 flex flex-col gap-sm">
+                      <textarea 
+                        className="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg p-md font-body-lg text-body-lg text-on-surface placeholder:text-outline focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none h-28 focus:bg-surface-container-lowest ai-glow" 
+                        placeholder="Ask AI to create a policy... e.g., 'Alert if worker enters restricted area without PPE.'"
+                      ></textarea>
+                      <div className="flex justify-end shrink-0">
+                        <button className="bg-gradient-to-r from-primary to-[#1565C0] text-on-primary font-label-md text-label-md py-2 px-4 rounded-lg flex items-center gap-xs shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                          <span className="material-symbols-outlined text-sm">send</span>
+                          Parse Policy
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Parser Confidence result */}
+                <div className="lg:col-span-5 bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/30 flex flex-col gap-sm relative">
+                  <div className="flex items-center justify-between border-b border-outline-variant/20 pb-sm">
+                    <div className="flex items-center gap-sm">
+                      <span className="material-symbols-outlined text-on-surface-variant text-xl">psychology</span>
+                      <h3 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">AI Intent Parsing</h3>
+                    </div>
+                    <span className="bg-secondary-fixed/50 text-on-secondary-fixed font-label-md text-label-md px-2 py-0.5 rounded text-[10px] border border-secondary-fixed-dim/30">Confidence: 98%</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-sm flex-grow">
+                    <div className="bg-surface-container-low rounded-lg p-sm border border-outline-variant/20 flex flex-col gap-xs">
+                      <span className="font-label-md text-label-md text-outline text-[10px] uppercase">Object Detected</span>
+                      <span className="font-body-sm text-body-sm font-semibold text-on-surface">Personnel (Human)</span>
+                    </div>
+                    <div className="bg-surface-container-low rounded-lg p-sm border border-outline-variant/20 flex flex-col gap-xs">
+                      <span className="font-label-md text-label-md text-outline text-[10px] uppercase">Rule Trigger Condition</span>
+                      <span className="font-body-sm text-body-sm font-semibold text-on-surface">Missing Safety Helmet</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Group Policy configuration editor */}
+              <div className="bg-surface-container-lowest rounded-xl p-md shadow-sm border border-outline-variant/20 space-y-md">
+                <div className="border-b border-outline-variant/20 pb-sm flex justify-between items-center">
+                  <h3 className="font-headline-md text-headline-md text-on-surface">Security Policy Configuration Groups</h3>
+                  <button 
+                    onClick={() => {
+                      const name = prompt('Masukkan Nama Policy Group Baru:');
+                      if (name && name.trim()) {
+                        const desc = prompt('Masukkan Deskripsi Group:');
+                        const newGrp = { id: `group-${Date.now()}`, name: name.trim(), description: desc || '', skills: [] };
+                        setWorkloadGroups(prev => [...prev, newGrp]);
+                        setSelectedGroupId(newGrp.id);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary/95 flex items-center gap-1.5 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                    Create Policy Group
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-md">
+                  {/* Sidebar list of policy groups */}
+                  <div className="space-y-sm border-r border-outline-variant/10 pr-md">
+                    {workloadGroups.map(group => (
+                      <div 
+                        key={group.id}
+                        onClick={() => setSelectedGroupId(group.id)}
+                        className={`p-sm rounded-lg border transition-all cursor-pointer ${
+                          selectedGroupId === group.id ? 'bg-primary-container text-on-primary-container border-primary shadow-sm font-semibold' : 'bg-surface-container-low border-transparent hover:bg-surface-container-high'
+                        }`}
+                      >
+                        <h4 className="font-label-md text-label-md truncate">{group.name}</h4>
+                        <p className="font-body-sm text-body-sm opacity-80 line-clamp-1">{group.description}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Skills lists of the active group */}
+                  <div className="lg:col-span-2 space-y-md">
+                    {(() => {
+                      const activeGroup = workloadGroups.find(g => g.id === selectedGroupId) || workloadGroups[0];
+                      if (!activeGroup) return <div className="text-outline text-body-sm py-4">No policy group selected.</div>;
+                      return (
+                        <div className="space-y-md">
+                          <div>
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-headline-md text-headline-md text-on-surface">{activeGroup.name}</h4>
+                              <button 
+                                onClick={() => handleDeleteGroup(activeGroup.id)}
+                                className="text-error hover:underline font-label-md text-label-md flex items-center gap-0.5"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">delete</span> Delete Group
+                              </button>
+                            </div>
+                            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">{activeGroup.description}</p>
+                          </div>
+
+                          {/* Skill lists CRUD */}
+                          <div className="space-y-sm">
+                            <div className="flex justify-between items-center">
+                              <h5 className="font-label-md text-label-md uppercase tracking-wider text-outline">Detection Rules / Skills</h5>
+                              <button 
+                                onClick={() => {
+                                  const code = prompt('Masukkan Event Code (e.g. no_human_zone, overspeed):');
+                                  const desc = prompt('Masukkan Deskripsi Rule:');
+                                  if (code && desc) {
+                                    setWorkloadGroups(prev => {
+                                      return prev.map(g => {
+                                        if (g.id !== activeGroup.id) return g;
+                                        return {
+                                          ...g,
+                                          skills: [...g.skills, { id: `skill-${Date.now()}`, code: code.trim(), description: desc.trim(), guidelines: '' }]
+                                        };
+                                      });
+                                    });
+                                  }
+                                }}
+                                className="px-2.5 py-1 border border-primary text-primary font-label-md text-xs rounded hover:bg-primary-container/10 flex items-center gap-1 transition-colors"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">add</span> Add Rule
+                              </button>
+                            </div>
+
+                            <div className="divide-y divide-outline-variant/10">
+                              {activeGroup.skills.map(sk => (
+                                <div key={sk.id} className="py-2.5 flex justify-between items-center">
+                                  <div>
+                                    <span className="font-body-sm text-body-sm font-semibold text-on-surface block">{sk.description}</span>
+                                    <code className="text-[10px] font-mono bg-surface-container-high px-1.5 py-0.2 rounded text-primary mt-1 inline-block">{sk.code}</code>
+                                  </div>
+                                  <button 
+                                    onClick={() => handleDeleteSkillFromGroup(activeGroup.id, sk.id)}
+                                    className="p-1 text-on-surface-variant hover:text-error transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                  </button>
+                                </div>
+                              ))}
+                              {activeGroup.skills.length === 0 && (
+                                <div className="text-center py-6 text-outline font-body-sm border border-dashed border-outline-variant/20 rounded-lg">No AI rules added to this policy group.</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Sector Assignments */}
+                          <div className="border-t border-outline-variant/20 pt-md">
+                            <h5 className="font-label-md text-label-md uppercase tracking-wider text-outline">Sector Deployments</h5>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-sm">
+                              {sites.map(site => {
+                                const currentGroupId = sectorGroupAssignments[site.id] || 'group-danger';
+                                const isAssignedToThisGroup = currentGroupId === activeGroup.id;
+                                return (
+                                  <div key={site.id} className="p-sm rounded-lg bg-surface border border-outline-variant/20 flex flex-col justify-between gap-sm">
+                                    <span className="font-body-sm text-body-sm font-bold text-on-surface">{site.name}</span>
+                                    {isAssignedToThisGroup ? (
+                                      <span className="bg-green-100 text-green-700 font-label-md text-[10px] font-bold px-2 py-0.5 rounded text-center">Deployed Here</span>
+                                    ) : (
+                                      <button 
+                                        onClick={() => handleAssignSectorGroup(site.id, activeGroup.id)}
+                                        className="text-xs font-semibold text-primary hover:underline text-left"
+                                      >
+                                        Deploy to Sector
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: CAMERA MANAGEMENT */}
+          {activeSubTab === 'camera_management' && (
+            <div className="flex-grow space-y-md">
+              <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
+                <div>
+                  <h2 className="font-headline-lg text-headline-lg text-on-surface">Camera Management</h2>
+                  <p className="font-body-md text-body-md text-on-surface-variant">Monitor and maintain enterprise surveillance infrastructure.</p>
+                </div>
+                
+                {/* Add new camera trigger button */}
+                <button 
+                  onClick={() => {
+                    const name = prompt('Masukkan Nama Kamera Baru:');
+                    if (name && name.trim()) {
+                      const desc = prompt('Masukkan Deskripsi/Feed:');
+                      const siteId = prompt(`Pilih Sektor ID (${sites.map(s=>s.id).join(', ')}):`);
+                      if (sites.some(s => s.id === siteId)) {
+                        // Trigger add action
+                        const newC = {
+                          id: `cam-${siteId}-${Date.now()}`,
+                          name: name.trim(),
+                          type: 'cctv',
+                          status: 'ONLINE',
+                          feedDescription: desc || `Kamera baru di Sektor ${siteId}`,
+                          clippings: []
+                        };
+                        setSites(prev => prev.map(s => {
+                          if (s.id !== siteId) return s;
+                          return {
+                            ...s,
+                            cctvTotal: s.cctvTotal + 1,
+                            cctvOnline: s.cctvOnline + 1,
+                            details: [...s.details, newC]
+                          };
+                        }));
+                        alert('Kamera Baru Berhasil Ditambahkan.');
+                      } else {
+                        alert('Sektor tidak valid.');
+                      }
+                    }
+                  }}
+                  className="bg-primary text-on-primary font-label-md text-label-md py-2.5 px-4 rounded-lg flex items-center justify-center gap-xs shadow-sm hover:bg-primary/95 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  Add CCTV Camera
+                </button>
+              </div>
+
+              {/* Data Grid Table */}
+              <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-surface-container-low border-b border-outline-variant/20 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+                        <th className="py-3 px-4">Camera ID</th>
+                        <th className="py-3 px-4">Name</th>
+                        <th className="py-3 px-4">Zone Sektor</th>
+                        <th className="py-3 px-4">Description</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant/10">
+                      {sites.flatMap(s => s.details.filter(d => d.type === 'cctv').map(cam => ({ ...cam, site: s }))).map((cam, idx) => {
+                        const isCamOffline = cam.status === 'OFFLINE';
+                        return (
+                          <tr key={cam.id} className="hover:bg-surface-container-low/50 transition-colors">
+                            <td className="py-3 px-4 font-mono-data text-on-surface-variant">{cam.id}</td>
+                            <td className="py-3 px-4 font-semibold">{cam.name}</td>
+                            <td className="py-3 px-4">{cam.site.name}</td>
+                            <td className="py-3 px-4 text-on-surface-variant max-w-xs truncate">{cam.feedDescription}</td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                isCamOffline ? 'bg-error-container text-error border border-error/20' : 'bg-green-50 text-green-700 border border-green-200'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${isCamOffline ? 'bg-error animate-pulse' : 'bg-green-500'}`}></span>
+                                {cam.status}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right flex justify-end gap-1.5">
+                              <button 
+                                onClick={() => {
+                                  const newStatus = cam.status === 'ONLINE' ? 'OFFLINE' : 'ONLINE';
+                                  setSites(prev => prev.map(s => {
+                                    if (s.id !== cam.site.id) return s;
+                                    return {
+                                      ...s,
+                                      cctvOffline: s.cctvOffline + (newStatus === 'OFFLINE' ? 1 : -1),
+                                      cctvOnline: s.cctvOnline + (newStatus === 'ONLINE' ? 1 : -1),
+                                      details: s.details.map(d => d.id === cam.id ? { ...d, status: newStatus } : d)
+                                    };
+                                  }));
+                                }}
+                                className="text-xs font-semibold text-primary hover:underline p-1"
+                                title="Toggle status online/offline"
+                              >
+                                Toggle Status
+                              </button>
+                              <span className="text-outline">|</span>
+                              <button 
+                                onClick={() => handleDeleteCctv(cam.site.id, cam.id)}
+                                className="text-xs font-semibold text-error hover:underline p-1"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: SETTINGS */}
+          {activeSubTab === 'settings' && (
+            <div className="flex-grow space-y-md">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h1 className="font-headline-lg text-headline-lg text-on-surface">User Settings</h1>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-xs">Manage system operators and authorization logs.</p>
+                </div>
+                
+                <button 
+                  onClick={() => setShowAddUserModal(true)}
+                  className="bg-primary text-on-primary font-label-md text-label-md py-2.5 px-4 rounded-lg flex items-center justify-center gap-xs shadow-sm hover:bg-primary/95 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">person_add</span>
+                  Add User Access
+                </button>
+              </div>
+
+              {/* Users table */}
+              <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-outline-variant/20 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+                      <th className="py-3 px-4">Username</th>
+                      <th className="py-3 px-4">Full Name</th>
+                      <th className="py-3 px-4">Role Access</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="font-body-sm text-body-sm text-on-surface divide-y divide-outline-variant/10">
+                    {users.map(u => (
+                      <tr key={u.id} className="hover:bg-surface-container-low/50 transition-colors">
+                        <td className="py-3 px-4 font-mono-data text-primary">@{u.username}</td>
+                        <td className="py-3 px-4 font-semibold">{u.fullName}</td>
+                        <td className="py-3 px-4">{u.role}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-50 text-green-700 border border-green-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> {u.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button 
+                            onClick={() => handleDeleteUser(u.id, u.fullName)}
+                            className="text-xs font-semibold text-error hover:underline"
+                            disabled={u.username === 'admin'}
+                            style={{ opacity: u.username === 'admin' ? 0.4 : 1 }}
+                          >
+                            Revoke Access
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* ===== MODAL: ADD USER MODAL ===== */}
       {showAddUserModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(11,29,58,0.6)',
-          backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', zIndex: 1000, padding: '20px'
-        }}>
-          <div style={{
-            background: 'white', borderRadius: '16px', width: '100%',
-            maxWidth: '420px', padding: '32px', boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-            border: '1px solid #E3E6EE'
-          }}>
-            <h3 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontWeight: 700 }}>Tambah Pengguna Baru</h3>
-            <p style={{ margin: '0 0 24px', fontSize: '13px', color: 'var(--outline)' }}>
-              Berikan delegasi hak akses monitoring pada operator/supervisor baru.
-            </p>
+        <div className="fixed inset-0 bg-inverse-surface/60 backdrop-blur-sm flex items-center justify-center z-50 p-sm">
+          <div className="bg-surface-container-lowest rounded-xl max-w-md w-full p-md shadow-lg border border-outline-variant/20 flex flex-col gap-md relative">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-headline-md text-on-surface font-bold">Add Operator Access</h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">Delegate monitoring permissions to a new team member.</p>
+              </div>
+              <button 
+                onClick={() => setShowAddUserModal(false)}
+                className="p-1 text-on-surface-variant hover:text-on-surface rounded-full transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
 
-            <form onSubmit={handleAddUser} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="form-group">
-                <label className="form-label">Username</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: budi.s, sitiwijaya"
+            <form onSubmit={handleAddUser} className="space-y-md">
+              <div className="flex flex-col gap-1.5">
+                <label className="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Username</label>
+                <input 
+                  type="text" 
                   value={newUsername}
                   onChange={e => setNewUsername(e.target.value)}
+                  placeholder="e.g. fawwas.a" 
                   required
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-body-md"
                 />
               </div>
-
-              <div className="form-group">
-                <label className="form-label">Nama Lengkap</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Budi Santoso"
+              <div className="flex flex-col gap-1.5">
+                <label className="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Full Name</label>
+                <input 
+                  type="text" 
                   value={newFullName}
                   onChange={e => setNewFullName(e.target.value)}
+                  placeholder="e.g. Fawwas Az-zuhri" 
                   required
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px' }}
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-body-md"
                 />
               </div>
-
-              <div className="form-group">
-                <label className="form-label">Hak Akses (Role)</label>
-                <select
+              <div className="flex flex-col gap-1.5">
+                <label className="font-label-md text-xs text-on-surface-variant uppercase tracking-wider">Role Permission</label>
+                <select 
                   value={newUserRole}
                   onChange={e => setNewUserRole(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '14px', background: 'white' }}
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none text-body-md"
                 >
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Supervisor">Supervisor</option>
                   <option value="Operator">Operator</option>
+                  <option value="Supervisor">Supervisor</option>
+                  <option value="Super Admin">Super Admin</option>
                   <option value="Viewer">Viewer</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                <button
-                  type="button"
+              <div className="flex gap-sm justify-end pt-sm border-t border-outline-variant/15">
+                <button 
+                  type="button" 
                   onClick={() => setShowAddUserModal(false)}
-                  style={{
-                    flex: 1, padding: '12px', border: '1.5px solid #C3C6D4', borderRadius: '8px',
-                    background: 'white', color: 'var(--on-surface-variant)', fontWeight: 600, cursor: 'pointer'
-                  }}
+                  className="px-4 py-2 border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors"
                 >
-                  Batal
+                  Cancel
                 </button>
-                <button
-                  type="submit"
-                  style={{
-                    flex: 1, padding: '12px', border: 'none', borderRadius: '8px',
-                    background: 'var(--brand-primary)', color: 'white', fontWeight: 600, cursor: 'pointer'
-                  }}
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary/95 transition-colors shadow-sm"
                 >
-                  Buat Pengguna
+                  Confirm User
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* Style settings */}
-      <style>{`
-        @keyframes tabFade {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-tab-fade {
-          animation: tabFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .hover-pop:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 24px rgba(13,71,161,0.06) !important;
-        }
-
-        @keyframes mapPulse {
-          0% { transform: scale(0.95); opacity: 1; }
-          100% { transform: scale(2.2); opacity: 0; }
-        }
-        .user-table-row:hover {
-          background: #FAFBFD;
-        }
-
-        @keyframes flashRed {
-          0%, 100% { border-color: #ff4d4d; box-shadow: 0 0 10px rgba(255,77,77,0.4); }
-          50% { border-color: #ff3333; box-shadow: 0 0 16px rgba(255,77,77,0.6); }
-        }
-
-        @media (max-width: 900px) {
-          .db-layout-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-        }
-      `}</style>
-    </main>
+    </div>
   );
 }
+// End of Dashboard component
+
