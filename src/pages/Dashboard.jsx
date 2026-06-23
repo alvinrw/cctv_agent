@@ -969,20 +969,27 @@ export default function Dashboard() {
   ).sort((a, b) => b.time.localeCompare(a.time));
 
   return (
-    <main style={{ minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F4F6FA' }}>
 
-      {/* ===== CUSTOM DASHBOARD NAVBAR ===== */}
-      <nav style={{
+      {/* ===== CUSTOM DASHBOARD SIDEBAR ===== */}
+      <aside style={{
+        width: '280px',
         background: 'var(--brand-dark)',
-        padding: '16px 40px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        borderBottom: '2.5px solid var(--brand-secondary)'
+        flexDirection: 'column',
+        boxShadow: '4px 0 20px rgba(0,0,0,0.15)',
+        borderRight: '2.5px solid var(--brand-secondary)',
+        position: 'fixed',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        zIndex: 100,
+        padding: '24px 20px',
+        color: 'white',
+        overflowY: 'auto'
       }}>
         {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
           <div style={{
             background: 'rgba(255, 255, 255, 0.95)',
             padding: '3px 8px',
@@ -995,149 +1002,218 @@ export default function Dashboard() {
             <img src="/logo.png" alt="PamAgents" style={{ height: '22px', width: 'auto' }} />
           </div>
           <div style={{ width: '1.5px', height: '24px', background: 'rgba(255,255,255,0.2)' }} />
-          <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '0.05em' }}>MONITOR PORTAL</span>
+          <span style={{ color: 'white', fontWeight: 700, fontSize: '14px', letterSpacing: '0.05em' }}>MONITOR PORTAL</span>
         </div>
 
-        {/* 4 Dedicated Tabs */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* Profile Info Card */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '10px',
+          padding: '16px',
+          marginBottom: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          border: '1px solid rgba(255,255,255,0.08)'
+        }}>
+          <div style={{
+            width: '40px', height: '40px', borderRadius: '50%', background: '#FFC107',
+            color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 700, fontSize: '15px', border: '1.5px solid rgba(255,255,255,0.2)',
+            flexShrink: 0
+          }}>
+            AN
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <span style={{ color: 'white', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Alvin Nugraha</span>
+            <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', marginTop: '2px' }}>Super Admin</span>
+          </div>
+        </div>
+
+        {/* Stacked Tabs */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
           <button
             onClick={() => setActiveSubTab('overview')}
             style={{
-              background: activeSubTab === 'overview' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'overview' ? 'rgba(255,255,255,0.08)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 18px',
+              padding: '12px 16px',
               color: activeSubTab === 'overview' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              gap: '12px',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 0.25s ease',
+              position: 'relative'
             }}
           >
-            <Home size={15} /> Utama
+            {activeSubTab === 'overview' && (
+              <span style={{
+                position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3.5px', background: '#FFD600', borderRadius: '0 4px 4px 0'
+              }} />
+            )}
+            <Home size={16} /> Utama
           </button>
 
           <button
             onClick={() => { setActiveSubTab('map'); setFilterKPI('ALL'); }}
             style={{
-              background: activeSubTab === 'map' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'map' ? 'rgba(255,255,255,0.08)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 18px',
+              padding: '12px 16px',
               color: activeSubTab === 'map' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              gap: '12px',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 0.25s ease',
+              position: 'relative'
             }}
           >
-            <Map size={15} /> Peta Pemantauan
+            {activeSubTab === 'map' && (
+              <span style={{
+                position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3.5px', background: '#FFD600', borderRadius: '0 4px 4px 0'
+              }} />
+            )}
+            <Map size={16} /> Peta Pemantauan
           </button>
 
           <button
             onClick={() => setActiveSubTab('live-cctv')}
             style={{
-              background: activeSubTab === 'live-cctv' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'live-cctv' ? 'rgba(255,255,255,0.08)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 18px',
+              padding: '12px 16px',
               color: activeSubTab === 'live-cctv' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              gap: '12px',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 0.25s ease',
+              position: 'relative'
             }}
           >
-            <Camera size={15} /> Live Multi-CCTV
+            {activeSubTab === 'live-cctv' && (
+              <span style={{
+                position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3.5px', background: '#FFD600', borderRadius: '0 4px 4px 0'
+              }} />
+            )}
+            <Camera size={16} /> Live Multi-CCTV
           </button>
 
           <button
             onClick={() => setActiveSubTab('workload')}
             style={{
-              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.08)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 18px',
+              padding: '12px 16px',
               color: activeSubTab === 'workload' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              gap: '12px',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 0.25s ease',
+              position: 'relative'
             }}
           >
-            <Cpu size={15} /> Workload Agen
+            {activeSubTab === 'workload' && (
+              <span style={{
+                position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3.5px', background: '#FFD600', borderRadius: '0 4px 4px 0'
+              }} />
+            )}
+            <Cpu size={16} /> Workload Agen
           </button>
 
           <button
             onClick={() => setActiveSubTab('admin')}
             style={{
-              background: activeSubTab === 'admin' ? 'rgba(255,255,255,0.1)' : 'transparent',
+              background: activeSubTab === 'admin' ? 'rgba(255,255,255,0.08)' : 'transparent',
               border: 'none',
               borderRadius: '8px',
-              padding: '10px 18px',
+              padding: '12px 16px',
               color: activeSubTab === 'admin' ? '#FFD600' : 'rgba(255,255,255,0.7)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              gap: '12px',
+              width: '100%',
+              textAlign: 'left',
+              transition: 'all 0.25s ease',
+              position: 'relative'
             }}
           >
-            <Settings size={15} /> Administrasi
+            {activeSubTab === 'admin' && (
+              <span style={{
+                position: 'absolute', left: 0, top: '25%', bottom: '25%', width: '3.5px', background: '#FFD600', borderRadius: '0 4px 4px 0'
+              }} />
+            )}
+            <Settings size={16} /> Administrasi
           </button>
         </div>
 
-        {/* Profile Clock */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '12px', fontFamily: 'monospace' }}>
+        {/* Sidebar Footer with Clock and Logout */}
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px', marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '12px', fontFamily: 'monospace' }}>
             <Clock size={14} color="#FFC107" />
             <span>{timeStr}</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>Alvin Nugraha</span>
-              <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>Super Admin</span>
-            </div>
-            <div style={{
-              width: '38px', height: '38px', borderRadius: '50%', background: '#FFC107',
-              color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '15px', border: '1.5px solid rgba(255,255,255,0.2)'
-            }}>
-              AN
-            </div>
           </div>
 
           <button
             onClick={handleLogout}
             style={{
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', padding: '6px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,77,77,0.1)',
+              border: '1px solid rgba(255,77,77,0.2)',
+              borderRadius: '8px',
+              padding: '10px 16px',
+              color: '#ff4d4d',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              width: '100%',
               transition: 'all 0.2s ease'
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#ff4d4d'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-            title="Keluar dari Portal"
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#ff4d4d';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255,77,77,0.1)';
+              e.currentTarget.style.color = '#ff4d4d';
+            }}
           >
-            <LogOut size={20} />
+            <LogOut size={16} /> Keluar Portal
           </button>
         </div>
-      </nav>
+      </aside>
+
+      {/* Main Content Area */}
+      <main style={{ flex: 1, marginLeft: '280px', minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px', minWidth: 0 }}>
 
       {/* ===== TAB 1: RINGKASAN UTAMA (OVERVIEW) ===== */}
       {activeSubTab === 'overview' && (
@@ -3622,5 +3698,6 @@ export default function Dashboard() {
         }
       `}</style>
     </main>
+    </div>
   );
 }
