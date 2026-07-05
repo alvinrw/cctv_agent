@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 
 const SITES = [
-  { id: 'CCTV-01', x: 25, y: 30, label: 'Sektor Utara', status: 'OK', color: '#10B981', details: '100% Signal' },
-  { id: 'CCTV-04', x: 70, y: 25, label: 'Sektor Timur', status: 'OK', color: '#10B981', details: '100% Signal' },
-  { id: 'CCTV-07', x: 48, y: 65, label: 'Sektor Barat', status: 'ALERT', color: '#EF4444', details: '⚠️ Deteksi Gerakan' },
-  { id: 'SENS-09', x: 78, y: 70, label: 'Gudang Handak', status: 'OK', color: '#10B981', details: '100% Signal' },
-  { id: 'SENS-12', x: 32, y: 78, label: 'Pintu Utama', status: 'WARN', color: '#FFD600', details: '⚠️ Cek Koneksi' },
+  { id: 'CAM-MALANG-01', x: 25, y: 30, label: 'CCTV Excavator Shovel 01', status: 'OK', color: '#10B981', details: 'Pit A (Quarry Barat)' },
+  { id: 'CAM-MALANG-02', x: 70, y: 25, label: 'Haul Road Incline A', status: 'OK', color: '#10B981', details: 'Pit A (Quarry Barat)' },
+  { id: 'CAM-MALANG-03', x: 48, y: 65, label: 'Kamera Pengawas CCTV', status: 'OK', color: '#10B981', details: 'Pit A (Quarry Barat)' },
 ];
+
 
 export default function AgentNetworkMap() {
   const [activeSite, setActiveSite] = useState(null);

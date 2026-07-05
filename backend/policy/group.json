@@ -1,0 +1,23 @@
+[{
+    "id": 1,
+    "name": "group_human_safety",
+    "policies": [
+        "policy_no_human",
+        "policy_human_safety_gear"
+    ],
+    "cam_attachment": [
+        "CAM-MALANG-01",
+        "CAM-MALANG-02",
+        "CAM-MALANG-03"
+    ]
+},
+{
+    "id": 2,
+    "name": "group_traffic",
+    "policies": [
+        "policy_traffic_violation"
+    ],
+    "cam_attachment": [
+        "CAM-MALANG-04"
+    ]
+}]
