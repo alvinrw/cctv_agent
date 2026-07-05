@@ -1,24 +1,109 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# ========================
+# OS / Environment
+# ========================
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+.env
+.env.*
+*.local
+.venv/
+venv/
+ENV/
+
+# ========================
+# Editor / IDE
+# ========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# ========================
+# Node.js / Frontend (React/Vite)
+# ========================
+node_modules/
+dist/
+dist-ssr/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+.vite/
+
+# ========================
+# Python / AI Engine
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+# PyTorch / AI Models
+*.pt
+*.pth
+*.weights
+*.onnx
+
+# ========================
+# Go / Backend Server
+# ========================
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.dylib
+# Test files and coverage
+*.test
+*.out
+# Specific binaries
+pamagents-backend.exe
+pamagents-backend
+
+# ========================
+# Project Specific
+# ========================
+.examples/
+.archives/
+
+# Ignore generated video clips & cooldown state
+backend/clips/
+backend/cooldown_state.json
+
+# Ignore sample videos for engine
+backend/engine/video/*
+!backend/engine/video/.gitkeep
+
+# Ignore implementation plans if any
+frontend/implementation_plan.md
+backend/implementation_plan.md

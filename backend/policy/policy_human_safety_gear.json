@@ -1,0 +1,21 @@
+{
+    "id": 1,
+    "name": "policy_human_safety_gear",
+    "description": "This policy is designed to ensure that all humans in the monitored area are wearing safety gear for protection.",
+    "priority": "low",
+    "thresholds": {
+        "conf": 0.8,
+        "words": [
+            "helmet",
+            "vest"
+        ]
+    },
+    "cooldown": 10,
+    "response": {
+        "action": false,
+        "notification": true,
+        "type": "telegram",
+        "header_message": "Warning: Human not wearing safety gear.",
+        "context_message_for_LLM": "Write a message to the user indicating that a human is not wearing safety gear and that immediate action is required."
+    }
+}

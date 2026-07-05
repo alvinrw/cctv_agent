@@ -1,0 +1,58 @@
+{
+    "id": 1,
+    "name": "policy_no_human",
+    "description": "This policy is designed to ensure that no human intervention is required in the process.",
+    "priority": "medium",
+    "thresholds": {
+        "conf": 0.8,
+        "words": [
+            "human"
+        ],
+        "area": [
+            [
+                [
+                    25,
+                    25
+                ],
+                [
+                    50,
+                    25
+                ],
+                [
+                    50,
+                    50
+                ],
+                [
+                    25,
+                    50
+                ]
+            ],
+            [
+                [
+                    75,
+                    75
+                ],
+                [
+                    100,
+                    75
+                ],
+                [
+                    100,
+                    100
+                ],
+                [
+                    75,
+                    100
+                ]
+            ]
+        ]
+    },
+    "cooldown": 10,
+    "response": {
+        "action": false,
+        "notification": true,
+        "type": "telegram",
+        "header_message": "Alert: No human intervention detected.",
+        "context_message_for_LLM": "Write a message to the user indicating that no human intervention is required and that the process is running smoothly."
+    }
+}
