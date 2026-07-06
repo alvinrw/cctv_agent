@@ -953,6 +953,14 @@ export default function Dashboard() {
 
   // Filter CCTV list for Right Panel Detail
   const sectorCctvs = selectedSite.details.filter(d => d.type === 'cctv');
+  const cctvAttributeBadgeStyle = {
+    fontSize: '8px',
+    fontWeight: 700,
+    background: '#E0F2FE',
+    color: '#0369a1',
+    padding: '1px 4px',
+    borderRadius: '3px'
+  };
 
   // Gather all incidents/clippings globally from all CCTVs in all sites
   const allIncidents = sites.flatMap(s =>
@@ -1717,14 +1725,6 @@ export default function Dashboard() {
                 <div style={{ borderBottom: '1px solid #E3E6EE', paddingBottom: '14px', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '18px', fontWeight: 700 }}>{selectedSite.name}</h3>
-                    <span style={{
-                      background: selectedSite.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
-                      border: `1px solid ${selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'}`,
-                      borderRadius: '4px', padding: '3px 10px', fontSize: '10px', fontWeight: 700,
-                      color: selectedSite.status === 'ONLINE' ? '#10b981' : '#ff4d4d'
-                    }}>
-                      ● {selectedSite.status}
-                    </span>
                   </div>
                 </div>
 
@@ -1827,13 +1827,11 @@ export default function Dashboard() {
 
                 {/* DEVICE LIST WITH CLICKABLE CCTV CHANNELS */}
                 <div style={{ marginBottom: '24px' }}>
-                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Daftar Kamera CCTV
-                  </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto', paddingRight: '2px' }}>
                     {sectorCctvs.map(cam => {
                       const isActive = activeCctv && activeCctv.id === cam.id;
                       const isOffline = cam.status === 'OFFLINE';
+                      const displayCamName = cam.name.replace(/\s*\((online|offline)\)\s*$/i, '');
                       return (
                         <div
                           key={cam.id}
@@ -1858,17 +1856,31 @@ export default function Dashboard() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Camera size={15} color={isActive ? 'var(--brand-primary)' : 'var(--outline)'} />
                             <div>
-                              <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500, display: 'block' }}>
-                                {cam.name}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap' }}>
+                                <span style={{ color: isActive ? 'var(--brand-dark)' : 'var(--on-surface-variant)', fontWeight: isActive ? 700 : 500 }}>
+                                  {displayCamName}
+                                </span>
+                                <span
+                                  aria-label={isOffline ? 'CCTV offline' : 'CCTV online'}
+                                  title={isOffline ? 'Offline' : 'Online'}
+                                  style={{
+                                    width: '7px',
+                                    height: '7px',
+                                    borderRadius: '50%',
+                                    background: isOffline ? '#ff4d4d' : '#10b981',
+                                    boxShadow: `0 0 0 3px ${isOffline ? 'rgba(255,77,77,0.12)' : 'rgba(16,185,129,0.12)'}`,
+                                    flexShrink: 0
+                                  }}
+                                />
+                              </div>
 
                               {/* Workload Badges */}
                               {!isOffline && (
                                 <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 4px', borderRadius: '3px' }}>
+                                  <span style={cctvAttributeBadgeStyle}>
                                     APD
                                   </span>
-                                  <span style={{ fontSize: '8px', fontWeight: 700, background: '#DCFCE7', color: '#15803D', padding: '1px 4px', borderRadius: '3px' }}>
+                                  <span style={cctvAttributeBadgeStyle}>
                                     Keselamatan
                                   </span>
                                   {(() => {
@@ -1883,17 +1895,17 @@ export default function Dashboard() {
                                     return (
                                       <>
                                         {hasHuman && (
-                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEE2E2', color: '#B91C1C', padding: '1px 4px', borderRadius: '3px' }}>
+                                          <span style={cctvAttributeBadgeStyle}>
                                             Zona Bahaya
                                           </span>
                                         )}
                                         {hasTruck && (
-                                          <span style={{ fontSize: '8px', fontWeight: 700, background: '#FEF9C3', color: '#854D0E', padding: '1px 4px', borderRadius: '3px' }}>
+                                          <span style={cctvAttributeBadgeStyle}>
                                             No-Stay Truk
                                           </span>
                                         )}
                                         {otherSkills.map(sk => (
-                                          <span key={sk.id} style={{ fontSize: '8px', fontWeight: 700, background: '#EEF2F6', color: '#4F46E5', padding: '1px 4px', borderRadius: '3px', border: '1px solid rgba(79,70,229,0.15)' }}>
+                                          <span key={sk.id} style={cctvAttributeBadgeStyle}>
                                             {sk.code}
                                           </span>
                                         ))}
@@ -1904,16 +1916,6 @@ export default function Dashboard() {
                               )}
                             </div>
                           </div>
-                          <span style={{
-                            fontSize: '9px',
-                            fontWeight: 700,
-                            color: isOffline ? '#ff4d4d' : '#10b981',
-                            background: isOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                            padding: '3px 8px',
-                            borderRadius: '4px'
-                          }}>
-                            {cam.status}
-                          </span>
                         </div>
                       );
                     })}
@@ -1922,9 +1924,9 @@ export default function Dashboard() {
 
                 {/* ACTIVE CCTV HISTORY CLIPPINGS LIST PANEL */}
                 <div style={{ borderTop: '1px solid #F0EDED', paddingTop: '20px' }}>
-                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <h4 style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontWeight: 700, margin: '0 0 12px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Activity size={14} color="var(--brand-primary)" />
-                    Riwayat Rekaman Kamera ({activeCctv ? activeCctv.name.replace('CCTV ', '') : 'Tidak Ada'})
+                    Riwayat Kliping: {activeCctv ? activeCctv.name.replace('CCTV ', '') : 'Tidak Ada'}
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '2px' }}>
                     {activeCctv && activeCctv.clippings && activeCctv.clippings.length > 0 ? (
