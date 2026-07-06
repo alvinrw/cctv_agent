@@ -107,3 +107,7 @@ backend/engine/video/*
 # Ignore implementation plans if any
 frontend/implementation_plan.md
 backend/implementation_plan.md
+
+# Ignore context file
+context.md
+contoh UI

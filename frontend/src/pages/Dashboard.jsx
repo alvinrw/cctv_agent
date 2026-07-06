@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
-  Home, Cpu, Edit, Settings
+  Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert
 } from 'lucide-react';
+import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
 import OverviewTab from './dashboard/tabs/OverviewTab';
 import MapMonitoringTab from './dashboard/tabs/MapMonitoringTab';
 import AdminTab from './dashboard/tabs/AdminTab';
 import LiveMultiCctvTab from './dashboard/tabs/LiveMultiCctvTab';
-import WorkloadTab from './dashboard/tabs/WorkloadTab';
+import PolicyManagementTab from './dashboard/tabs/PolicyManagementTab';
+import IncidentCenterTab from './dashboard/tabs/IncidentCenterTab';
 
 // Data Pengguna Awal
 const INITIAL_USERS = [
@@ -85,8 +87,9 @@ const INITIAL_SECTOR_GROUP_ASSIGNMENTS = {
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv' | 'workload')
+  // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv' | 'policy-management')
   const [activeSubTab, setActiveSubTab] = useState('overview');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [adminSection, setAdminSection] = useState('sites');
 
   // Workload States
@@ -765,6 +768,16 @@ export default function Dashboard() {
       )
   ).sort((a, b) => b.time.localeCompare(a.time));
 
+  const sidebarWidth = sidebarCollapsed ? 84 : 260;
+  const navItems = [
+    { key: 'overview', label: 'Utama', icon: Home, onClick: () => setActiveSubTab('overview') },
+    { key: 'map', label: 'Peta Pemantauan', icon: Map, onClick: () => { setActiveSubTab('map'); setFilterKPI('ALL'); } },
+    { key: 'live-cctv', label: 'Live Multi-CCTV', icon: Camera, onClick: () => setActiveSubTab('live-cctv') },
+    { key: 'policy-management', label: 'Policy Management', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
+    { key: 'incident-center', label: 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
+    { key: 'admin', label: 'Administrasi', icon: Settings, onClick: () => setActiveSubTab('admin') }
+  ];
+
   const dashboardTabProps = {
     sites,
     overviewFilterMode,
@@ -851,198 +864,208 @@ export default function Dashboard() {
   return (
     <main style={{ minHeight: '100vh', background: '#F4F6FA', paddingBottom: '60px' }}>
 
-      {/* ===== CUSTOM DASHBOARD NAVBAR ===== */}
-      <nav style={{
+      {/* ===== DASHBOARD SIDEBAR ===== */}
+      <aside style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: `${sidebarWidth}px`,
         background: 'var(--brand-dark)',
-        padding: '16px 40px',
+        borderRight: '2.5px solid var(--brand-secondary)',
+        boxShadow: '4px 0 20px rgba(0,0,0,0.16)',
+        padding: sidebarCollapsed ? '18px 12px' : '18px 18px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        borderBottom: '2.5px solid var(--brand-secondary)'
+        flexDirection: 'column',
+        gap: '18px',
+        zIndex: 50,
+        transition: 'width 0.25s ease, padding 0.25s ease'
       }}>
-        {/* Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between', gap: '12px' }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.95)',
-            padding: '3px 8px',
-            borderRadius: '6px',
+            // background: 'rgba(255,255,255,0.95)',
+            padding: sidebarCollapsed ? '6px' : '6px 10px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            minWidth: sidebarCollapsed ? '44px' : '96px',
+            height: '42px',
+            overflow: 'hidden',
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
-            <img src="/logo.png" alt="PamAgents" style={{ height: '22px', width: 'auto' }} />
+            <img src={logoImage} alt="PamAgents" style={{ height: sidebarCollapsed ? '28px' : '30px', width: 'auto', maxWidth: sidebarCollapsed ? '32px' : '120px', objectFit: 'contain' }} />
           </div>
-          <div style={{ width: '1.5px', height: '24px', background: 'rgba(255,255,255,0.2)' }} />
-          <span style={{ color: 'white', fontWeight: 700, fontSize: '15px', letterSpacing: '0.05em' }}>MONITOR PORTAL</span>
+          {!sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(true)}
+              title="Collapse sidebar"
+              style={{
+                width: '34px', height: '34px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.18)',
+                background: 'rgba(255,255,255,0.06)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
         </div>
 
-        {/* 4 Dedicated Tabs */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {sidebarCollapsed && (
           <button
-            onClick={() => setActiveSubTab('overview')}
+            onClick={() => setSidebarCollapsed(false)}
+            title="Extend sidebar"
             style={{
-              background: activeSubTab === 'overview' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'overview' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
+              width: '44px', height: '34px', alignSelf: 'center', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.18)',
+              background: 'rgba(255,255,255,0.06)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
             }}
           >
-            <Home size={15} /> Utama
+            <ChevronRight size={18} />
           </button>
+        )}
 
-          <button
-            onClick={() => { setActiveSubTab('map'); setFilterKPI('ALL'); }}
-            style={{
-              background: activeSubTab === 'map' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'map' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            <Map size={15} /> Peta Pemantauan
-          </button>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeSubTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={item.onClick}
+                title={sidebarCollapsed ? item.label : undefined}
+                style={{
+                  background: isActive ? 'rgba(255,214,0,0.14)' : 'transparent',
+                  border: `1px solid ${isActive ? 'rgba(255,214,0,0.45)' : 'transparent'}`,
+                  borderRadius: '10px',
+                  padding: sidebarCollapsed ? '12px 0' : '12px 14px',
+                  color: isActive ? 'var(--brand-secondary)' : 'rgba(255,255,255,0.72)',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                  gap: '10px',
+                  transition: 'all 0.2s ease',
+                  minHeight: '44px'
+                }}
+              >
+                <Icon size={18} />
+                {!sidebarCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
 
-          <button
-            onClick={() => setActiveSubTab('live-cctv')}
-            style={{
-              background: activeSubTab === 'live-cctv' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'live-cctv' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            <Camera size={15} /> Live Multi-CCTV
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('workload')}
-            style={{
-              background: activeSubTab === 'workload' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'workload' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            <Cpu size={15} /> Workload Agen
-          </button>
-
-          <button
-            onClick={() => setActiveSubTab('admin')}
-            style={{
-              background: activeSubTab === 'admin' ? 'rgba(255,255,255,0.1)' : 'transparent',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 18px',
-              color: activeSubTab === 'admin' ? '#FFD600' : 'rgba(255,255,255,0.7)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.25s ease'
-            }}
-          >
-            <Settings size={15} /> Administrasi
-          </button>
-        </div>
-
-        {/* Profile Clock */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontSize: '12px', fontFamily: 'monospace' }}>
+        <div style={{
+          marginTop: 'auto',
+          border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: '12px',
+          padding: sidebarCollapsed ? '10px 0' : '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: sidebarCollapsed ? 'center' : 'stretch',
+          gap: '10px',
+          background: 'rgba(255,255,255,0.04)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            gap: '8px',
+            color: 'white',
+            fontSize: '12px',
+            fontFamily: 'monospace'
+          }}>
             <Clock size={14} color="#FFC107" />
-            <span>{timeStr}</span>
+            {!sidebarCollapsed && <span>{timeStr}</span>}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <span style={{ color: 'white', fontSize: '13px', fontWeight: 600 }}>Alvin Nugraha</span>
-              <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' }}>Super Admin</span>
-            </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+            gap: '10px'
+          }}>
+            {!sidebarCollapsed && (
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{ color: 'white', fontSize: '12.5px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Alvin Nugraha</span>
+                <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>Super Admin</span>
+              </div>
+            )}
             <div style={{
-              width: '38px', height: '38px', borderRadius: '50%', background: '#FFC107',
-              color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: '15px', border: '1.5px solid rgba(255,255,255,0.2)'
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: '#FFC107',
+              color: 'var(--brand-dark)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+              fontSize: '14px',
+              border: '1.5px solid rgba(255,255,255,0.2)',
+              flexShrink: 0
             }}>
               AN
             </div>
           </div>
-
-          <button
-            onClick={handleLogout}
-            style={{
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
-              cursor: 'pointer', padding: '6px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = '#ff4d4d'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-            title="Keluar dari Portal"
-          >
-            <LogOut size={20} />
-          </button>
         </div>
-      </nav>
 
-      {/* ===== TAB 1: RINGKASAN UTAMA (OVERVIEW) ===== */}
-      {activeSubTab === 'overview' && (
-        <OverviewTab {...dashboardTabProps} />
-      )}
+        <button
+          onClick={handleLogout}
+          title={sidebarCollapsed ? 'Keluar dari Portal' : undefined}
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.72)',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            padding: sidebarCollapsed ? '12px 0' : '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            gap: '10px',
+            fontSize: '13px',
+            fontWeight: 700
+          }}
+        >
+          <LogOut size={18} />
+          {!sidebarCollapsed && <span>Keluar</span>}
+        </button>
+      </aside>
 
-      {/* ===== TAB 2: PETA PEMANTAUAN (SATELLITE & VIDEO) ===== */}
-      {activeSubTab === 'map' && (
-        <MapMonitoringTab {...dashboardTabProps} />
-      )}
+      <div style={{ marginLeft: `${sidebarWidth}px`, transition: 'margin-left 0.25s ease', minHeight: '100vh' }}>
+        {/* ===== TAB 1: RINGKASAN UTAMA (OVERVIEW) ===== */}
+        {activeSubTab === 'overview' && (
+          <OverviewTab {...dashboardTabProps} />
+        )}
 
-      {/* ===== TAB: ADMINISTRASI (KELOLA TITIK + HAK AKSES) ===== */}
-      {activeSubTab === 'admin' && (
-        <AdminTab {...dashboardTabProps} />
-      )}
+        {/* ===== TAB 2: PETA PEMANTAUAN (SATELLITE & VIDEO) ===== */}
+        {activeSubTab === 'map' && (
+          <MapMonitoringTab {...dashboardTabProps} />
+        )}
 
-      {/* ===== TAB 5: MULTI-STREAM LIVE CCTV ===== */}
-      {activeSubTab === 'live-cctv' && (
-        <LiveMultiCctvTab {...dashboardTabProps} />
-      )}
+        {/* ===== TAB: ADMINISTRASI (KELOLA TITIK + HAK AKSES) ===== */}
+        {activeSubTab === 'admin' && (
+          <AdminTab {...dashboardTabProps} />
+        )}
 
-      {/* ===== TAB 6: WORKLOAD AGEN AI CONFIGURATION ===== */}
-      {activeSubTab === 'workload' && (
-        <WorkloadTab {...dashboardTabProps} />
-      )}
+        {/* ===== TAB 5: MULTI-STREAM LIVE CCTV ===== */}
+        {activeSubTab === 'live-cctv' && (
+          <LiveMultiCctvTab {...dashboardTabProps} />
+        )}
+
+        {/* ===== TAB 6: POLICY MANAGEMENT ===== */}
+        {activeSubTab === 'policy-management' && (
+          <PolicyManagementTab {...dashboardTabProps} />
+        )}
+
+        {/* ===== TAB 7: INCIDENT CENTER ===== */}
+        {activeSubTab === 'incident-center' && (
+          <IncidentCenterTab {...dashboardTabProps} />
+        )}
+
+      </div>
 
       {/* ===== MODAL: KELOLA POLICY GROUP ===== */}
       {showPolicyModal && (
