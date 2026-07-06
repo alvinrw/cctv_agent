@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { AlertTriangle, Search, Download, Sparkles, ChevronLeft, ChevronRight, X, Shield, Eye, Clock, MapPin, Camera, Cpu, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, Search, Download, Sparkles, ChevronLeft, ChevronRight, X, Shield, Eye, Clock, MapPin, Camera, Cpu, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import IncidentDetailView from './IncidentDetailView';
 
 // Mock incident data
 const MOCK_INCIDENTS = [
@@ -82,6 +83,7 @@ export default function IncidentCenterTab() {
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [detailViewIncident, setDetailViewIncident] = useState(null);
 
   const filteredIncidents = MOCK_INCIDENTS.filter(inc => {
     if (filterSeverity !== 'all' && inc.severity !== filterSeverity) return false;
@@ -97,6 +99,11 @@ export default function IncidentCenterTab() {
     background: 'white', borderRadius: '16px', border: '1px solid #E3E6EE',
     boxShadow: '0 4px 16px rgba(0,0,0,0.03)', overflow: 'hidden'
   };
+
+  // If detail view is active, render the full detail page
+  if (detailViewIncident) {
+    return <IncidentDetailView incident={detailViewIncident} onBack={() => setDetailViewIncident(null)} />;
+  }
 
   return (
     <section style={{ padding: '32px 40px', minHeight: '100vh' }}>
@@ -304,22 +311,22 @@ export default function IncidentCenterTab() {
                 </div>
               </div>
 
-              {/* Visual Evidence Placeholder */}
+              {/* Visual Evidence */}
               <div>
                 <h4 style={{ fontSize: '10px', fontWeight: 700, color: 'var(--outline)', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Visual Evidence</h4>
                 <div style={{
-                  width: '100%', height: '150px', borderRadius: '10px', border: '1.5px solid #E3E6EE',
-                  background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden'
+                  width: '100%', borderRadius: '10px', border: '1.5px solid #E3E6EE',
+                  overflow: 'hidden', position: 'relative', background: '#000'
                 }}>
-                  <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
-                    <Camera size={28} />
-                    <p style={{ fontSize: '11px', margin: '6px 0 0' }}>Evidence Snapshot</p>
-                  </div>
+                  <video
+                    src="/cctv_example.mp4"
+                    autoPlay muted loop playsInline
+                    style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }}
+                  />
                   <span style={{
                     position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)',
                     color: 'white', padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontFamily: 'monospace'
-                  }}>LIVE - 0.00s</span>
+                  }}>● REC</span>
                 </div>
               </div>
 
@@ -344,32 +351,21 @@ export default function IncidentCenterTab() {
 
             {/* Drawer Footer */}
             <div style={{ padding: '16px 20px', borderTop: '1px solid #E3E6EE', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '30px', height: '30px', borderRadius: '50%', background: '#F3F4F6', border: '1px solid #D1D5DB',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: 'var(--outline)'
-                }}>
-                  <Eye size={14} />
-                </div>
-                <span style={{ fontSize: '12px', color: 'var(--brand-dark)', cursor: 'pointer' }}>Assign to me</span>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button style={{
-                  flex: 1, padding: '10px 16px', border: '1.5px solid #C3C6D4', background: 'white',
-                  borderRadius: '10px', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
-                }}>
-                  <XCircle size={14} /> False Alarm
-                </button>
-                <button style={{
-                  flex: 1, padding: '10px 16px', border: 'none', background: 'var(--brand-primary)',
+              {/* Detail Incident Button */}
+              <button
+                onClick={() => setDetailViewIncident(selectedIncident)}
+                style={{
+                  width: '100%', padding: '11px 16px', border: 'none', background: 'var(--brand-primary)',
                   borderRadius: '10px', fontSize: '12px', fontWeight: 700, color: 'white',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                  boxShadow: '0 2px 8px rgba(13,71,161,0.25)'
-                }}>
-                  <CheckCircle size={14} /> Take Action
-                </button>
-              </div>
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  boxShadow: '0 2px 8px rgba(13,71,161,0.25)', marginBottom: '10px',
+                  transition: 'opacity 0.15s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                <ExternalLink size={14} /> Detail Incident & Take Action
+              </button>
             </div>
           </div>
         )}
