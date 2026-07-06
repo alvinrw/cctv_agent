@@ -927,31 +927,56 @@ export default function Dashboard() {
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = activeSubTab === item.key;
+            
+            let header = null;
+            if (item.key === 'map') {
+              header = sidebarCollapsed ? (
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '6px 0' }} />
+              ) : (
+                <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.36)', padding: '10px 6px 4px', fontWeight: 700 }}>CCTV Monitoring</div>
+              );
+            } else if (item.key === 'policy-management') {
+              header = sidebarCollapsed ? (
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '6px 0' }} />
+              ) : (
+                <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.36)', padding: '10px 6px 4px', fontWeight: 700 }}>Agents</div>
+              );
+            } else if (item.key === 'admin') {
+              header = sidebarCollapsed ? (
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '6px 0' }} />
+              ) : (
+                <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.36)', padding: '10px 6px 4px', fontWeight: 700 }}>Settings</div>
+              );
+            }
+
             return (
-              <button
-                key={item.key}
-                onClick={item.onClick}
-                title={sidebarCollapsed ? item.label : undefined}
-                style={{
-                  background: isActive ? 'rgba(255,214,0,0.14)' : 'transparent',
-                  border: `1px solid ${isActive ? 'rgba(255,214,0,0.45)' : 'transparent'}`,
-                  borderRadius: '10px',
-                  padding: sidebarCollapsed ? '12px 0' : '12px 14px',
-                  color: isActive ? 'var(--brand-secondary)' : 'rgba(255,255,255,0.72)',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                  gap: '10px',
-                  transition: 'all 0.2s ease',
-                  minHeight: '44px'
-                }}
-              >
-                <Icon size={18} />
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </button>
+              <div key={item.key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {header}
+                <button
+                  onClick={item.onClick}
+                  title={sidebarCollapsed ? item.label : undefined}
+                  style={{
+                    background: isActive ? 'rgba(255,214,0,0.14)' : 'transparent',
+                    border: `1px solid ${isActive ? 'rgba(255,214,0,0.45)' : 'transparent'}`,
+                    borderRadius: '10px',
+                    padding: sidebarCollapsed ? '12px 0' : '12px 14px',
+                    color: isActive ? 'var(--brand-secondary)' : 'rgba(255,255,255,0.72)',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                    gap: '10px',
+                    transition: 'all 0.2s ease',
+                    minHeight: '44px',
+                    width: '100%'
+                  }}
+                >
+                  <Icon size={18} />
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                </button>
+              </div>
             );
           })}
         </nav>
