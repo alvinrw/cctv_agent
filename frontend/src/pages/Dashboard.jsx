@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
-  Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert
+  Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert,
+  HelpCircle
 } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
@@ -772,7 +773,7 @@ export default function Dashboard() {
     { key: 'overview', label: 'Utama', icon: Home, onClick: () => setActiveSubTab('overview') },
     { key: 'map', label: 'Peta Pemantauan', icon: Map, onClick: () => { setActiveSubTab('map'); setFilterKPI('ALL'); } },
     { key: 'live-cctv', label: 'Live Multi-CCTV', icon: Camera, onClick: () => setActiveSubTab('live-cctv') },
-    { key: 'policy-management', label: 'Policy Management', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
+    { key: 'policy-management', label: 'Policy Studio', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
     { key: 'incident-center', label: 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
     { key: 'admin', label: 'Administrasi', icon: Settings, onClick: () => setActiveSubTab('admin') }
   ];
@@ -982,80 +983,115 @@ export default function Dashboard() {
 
         <div style={{
           marginTop: 'auto',
-          border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '12px',
-          padding: sidebarCollapsed ? '10px 0' : '12px',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: sidebarCollapsed ? 'center' : 'stretch',
-          gap: '10px',
-          background: 'rgba(255,255,255,0.04)'
+          gap: '8px',
+          width: '100%'
         }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-            gap: '8px',
-            color: 'white',
-            fontSize: '12px',
-            fontFamily: 'monospace'
-          }}>
-            <Clock size={14} color="#FFC107" />
-            {!sidebarCollapsed && <span>{timeStr}</span>}
-          </div>
-
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: sidebarCollapsed ? 'center' : 'space-between',
-            gap: '10px'
-          }}>
-            {!sidebarCollapsed && (
-              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                <span style={{ color: 'white', fontSize: '12.5px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Alvin Nugraha</span>
-                <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>Super Admin</span>
-              </div>
-            )}
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: '#FFC107',
-              color: 'var(--brand-dark)',
+          {/* Help Button */}
+          <button
+            title={sidebarCollapsed ? 'Bantuan & FAQ' : undefined}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.72)',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              padding: sidebarCollapsed ? '6px 0' : '6px 14px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '14px',
-              border: '1.5px solid rgba(255,255,255,0.2)',
-              flexShrink: 0
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              gap: '10px',
+              fontSize: '13px',
+              fontWeight: 700,
+              minHeight: '36px',
+              width: '100%'
+            }}
+          >
+            <HelpCircle size={18} />
+            {!sidebarCollapsed && <span>Bantuan</span>}
+          </button>
+
+          {/* Profile Card */}
+          <div style={{
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '12px',
+            padding: sidebarCollapsed ? '10px 0' : '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: sidebarCollapsed ? 'center' : 'stretch',
+            gap: '10px',
+            background: 'rgba(255,255,255,0.04)'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              gap: '8px',
+              color: 'white',
+              fontSize: '12px',
+              fontFamily: 'monospace'
             }}>
-              AN
+              <Clock size={14} color="#FFC107" />
+              {!sidebarCollapsed && <span>{timeStr}</span>}
+            </div>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+              gap: '10px'
+            }}>
+              {!sidebarCollapsed && (
+                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                  <span style={{ color: 'white', fontSize: '12.5px', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Alvin Nugraha</span>
+                  <span style={{ color: '#FFC107', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>Super Admin</span>
+                </div>
+              )}
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: '#FFC107',
+                color: 'var(--brand-dark)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '14px',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+                flexShrink: 0
+              }}>
+                AN
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleLogout}
-          title={sidebarCollapsed ? 'Keluar dari Portal' : undefined}
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.12)',
-            color: 'rgba(255,255,255,0.72)',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            padding: sidebarCollapsed ? '12px 0' : '12px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-            gap: '10px',
-            fontSize: '13px',
-            fontWeight: 700
-          }}
-        >
-          <LogOut size={18} />
-          {!sidebarCollapsed && <span>Keluar</span>}
-        </button>
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            title={sidebarCollapsed ? 'Keluar dari Portal' : undefined}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.72)',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              padding: sidebarCollapsed ? '6px 0' : '6px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+              gap: '10px',
+              fontSize: '13px',
+              fontWeight: 700,
+              minHeight: '36px',
+              width: '100%'
+            }}
+          >
+            <LogOut size={18} />
+            {!sidebarCollapsed && <span>Keluar</span>}
+          </button>
+        </div>
       </aside>
 
       <div style={{ marginLeft: `${sidebarWidth}px`, transition: 'margin-left 0.25s ease', minHeight: '100vh' }}>

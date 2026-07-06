@@ -81,8 +81,16 @@ export default function PolicyManagementTab({
   ];
 
   return (
-    <section style={{ marginTop: '32px' }}>
-      <div className="container animate-tab-fade">
+    <section style={{ padding: '32px 40px', minHeight: '100vh' }}>
+      <div className="animate-tab-fade">
+        {/* Page Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
+          <div>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Policy Studio</h2>
+            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>Configure real-time AI computer vision policies, triggers, and action workflows.</p>
+          </div>
+        </div>
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: '240px minmax(0, 1fr)',
@@ -100,7 +108,7 @@ export default function PolicyManagementTab({
             flexDirection: 'column'
           }}>
             <h3 style={{ margin: '0 0 18px', color: 'var(--brand-dark)', fontSize: '15px', fontWeight: 800 }}>
-              Policy Management
+              Policy Studio
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -110,9 +118,9 @@ export default function PolicyManagementTab({
                   onClick={() => setActiveMenu(item.key)}
                   style={{
                     textAlign: 'left',
-                    background: activeMenu === item.key ? 'rgb(13, 72, 161)' : 'white',
+                    background: activeMenu === item.key ? 'var(--brand-primary)' : 'white',
                     color: activeMenu === item.key ? 'white' : 'var(--on-surface-variant)',
-                    border: `1.5px solid ${activeMenu === item.key ? 'var(--brand-primary)' : '#C3C6D4'}`,
+                    border: `1.5px solid ${activeMenu === item.key ? 'var(--brand-primary)' : '#E2E8F0'}`,
                     borderRadius: '10px',
                     padding: '14px 16px',
                     fontSize: '13px',
@@ -125,26 +133,6 @@ export default function PolicyManagementTab({
                 </button>
               ))}
             </div>
-
-            <button
-              style={{
-                marginTop: 'auto',
-                textAlign: 'left',
-                background: 'white',
-                color: 'var(--brand-dark)',
-                border: '1.5px solid #C3C6D4',
-                borderRadius: '10px',
-                padding: '14px 16px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <HelpCircle size={15} /> Help?
-            </button>
           </aside>
 
           <div style={{
@@ -170,7 +158,7 @@ export default function PolicyManagementTab({
                     placeholder="Search"
                     style={{
                       width: '230px',
-                      border: '1.5px solid #C3C6D4',
+                      border: '1px solid #CBD5E1',
                       borderRadius: '8px',
                       padding: '8px 10px 8px 32px',
                       fontSize: '13px',
@@ -179,7 +167,7 @@ export default function PolicyManagementTab({
                   />
                 </div>
                 <button style={{
-                  border: '1.5px solid #C3C6D4',
+                  border: '1px solid #CBD5E1',
                   background: 'white',
                   borderRadius: '8px',
                   padding: '8px 14px',
@@ -196,8 +184,8 @@ export default function PolicyManagementTab({
                   onClick={() => setShowPolicyModal(true)}
                   style={{
                     border: 'none',
-                    background: 'var(--brand-secondary)',
-                    color: 'var(--brand-dark)',
+                    background: 'var(--brand-primary)',
+                    color: 'white',
                     borderRadius: '8px',
                     padding: '9px 14px',
                     fontSize: '13px',
@@ -206,7 +194,6 @@ export default function PolicyManagementTab({
                     display: 'flex',
                     alignItems: 'center',
                     gap: '7px'
-                    // boxShadow: '0 4px 12px rgba(255,193,7,0.28)'
                   }}
                 >
                   <Plus size={14} /> {isGroupView ? 'Create Group Policy' : 'Create Policy'}
@@ -214,7 +201,16 @@ export default function PolicyManagementTab({
               </div>
             </div>
 
-            <div style={{ background: 'white', border: '1.5px solid #C3C6D4', borderRadius: '12px', overflow: 'hidden', flex: 1 }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              border: '1px solid #E3E6EE',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+              overflow: 'hidden',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
               {isGroupView ? (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', tableLayout: 'fixed' }}>
                   <colgroup>
@@ -225,14 +221,16 @@ export default function PolicyManagementTab({
                     <col style={{ width: '14%' }} />
                   </colgroup>
                   <thead>
-                    <tr style={{ background: '#FAFBFD', color: 'var(--brand-dark)' }}>
+                    <tr style={{ borderBottom: '1px solid #E3E6EE', background: 'white' }}>
                       {['Group Name', 'Policies', 'Policy Count', 'CCTV Attach', ''].map((head, idx) => (
                         <th key={head || 'action'} style={{
                           textAlign: idx >= 2 ? 'center' : 'left',
-                          padding: '12px 14px',
-                          borderBottom: '1.5px solid #C3C6D4',
-                          borderRight: idx < 4 ? '1.5px solid #C3C6D4' : 'none',
-                          fontWeight: 800,
+                          padding: '12px 16px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: 'var(--outline)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
                           whiteSpace: 'nowrap'
                         }}>
                           {head}
@@ -242,15 +240,18 @@ export default function PolicyManagementTab({
                   </thead>
                   <tbody>
                     {filteredGroups.map(group => (
-                      <tr key={group.id}>
-                        <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', fontWeight: 800, color: 'var(--brand-dark)' }}>
+                      <tr key={group.id}
+                        style={{ borderBottom: '1px solid #F0EDED', transition: 'background 0.15s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#FAFBFD'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--brand-dark)' }}>
                           {group.name}
                         </td>
                         <td
                           title={(group.policies || []).join(', ')}
                           style={{
-                            padding: '13px 14px',
-                            borderRight: '1.5px solid #C3C6D4',
+                            padding: '12px 16px',
                             color: 'var(--on-surface-variant)',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -259,22 +260,22 @@ export default function PolicyManagementTab({
                         >
                           {(group.policies || []).join(', ')}
                         </td>
-                        <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', textAlign: 'center', fontWeight: 700 }}>
+                        <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: 'var(--outline)' }}>
                           {group.policyCount}
                         </td>
-                        <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', textAlign: 'center', fontWeight: 700 }}>
+                        <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: 'var(--outline)' }}>
                           {group.cctvCount}
                         </td>
                         <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                           <button
                             style={{
-                              border: '1.5px solid #C3C6D4',
+                              border: '1px solid #CBD5E1',
                               background: 'white',
                               color: 'var(--brand-dark)',
                               borderRadius: '7px',
                               padding: '6px 14px',
                               fontSize: '12px',
-                              fontWeight: 800,
+                              fontWeight: 700,
                               cursor: 'pointer'
                             }}
                           >
@@ -295,14 +296,16 @@ export default function PolicyManagementTab({
                     <col style={{ width: '12%' }} />
                   </colgroup>
                   <thead>
-                    <tr style={{ background: '#FAFBFD', color: 'var(--brand-dark)' }}>
+                    <tr style={{ borderBottom: '1px solid #E3E6EE', background: 'white' }}>
                       {['Policy Name', 'Deskripsi', 'Groups', 'CCTV Attach', ''].map((head, idx) => (
                         <th key={head || 'action'} style={{
                           textAlign: idx >= 2 ? 'center' : 'left',
-                          padding: '12px 14px',
-                          borderBottom: '1.5px solid #C3C6D4',
-                          borderRight: idx < 4 ? '1.5px solid #C3C6D4' : 'none',
-                          fontWeight: 800,
+                          padding: '12px 16px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: 'var(--outline)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
                           whiteSpace: 'nowrap'
                         }}>
                           {head}
@@ -314,16 +317,25 @@ export default function PolicyManagementTab({
                     {filteredPolicies.map(policy => {
                       const isSelected = detailPolicyName === policy.name;
                       return (
-                        <tr key={policy.name} style={{ background: isSelected ? 'rgba(255,214,0,0.10)' : 'white' }}>
-                          <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', fontWeight: 800, color: 'var(--brand-dark)' }}>
+                        <tr key={policy.name}
+                          onClick={() => setDetailPolicyName(policy.name)}
+                          style={{
+                            borderBottom: '1px solid #F0EDED',
+                            cursor: 'pointer',
+                            background: isSelected ? 'rgba(13,71,161,0.05)' : 'white',
+                            transition: 'background 0.15s'
+                          }}
+                          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = '#FAFBFD'; }}
+                          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'white'; }}
+                        >
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: isSelected ? 'var(--brand-primary)' : 'var(--brand-dark)' }}>
                             {policy.name}
                           </td>
                           <td
                             title={policy.description}
                             style={{
-                              padding: '13px 14px',
-                              borderRight: '1.5px solid #C3C6D4',
-                              color: 'var(--on-surface-variant)',
+                              padding: '12px 16px',
+                              color: 'var(--outline)',
                               maxWidth: '260px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -332,24 +344,23 @@ export default function PolicyManagementTab({
                           >
                             {policy.description}
                           </td>
-                          <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', textAlign: 'center', fontWeight: 700 }}>
+                          <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: 'var(--outline)' }}>
                             {policy.groups.length}
                           </td>
-                          <td style={{ padding: '13px 14px', borderRight: '1.5px solid #C3C6D4', textAlign: 'center', fontWeight: 700 }}>
+                          <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 600, color: 'var(--outline)' }}>
                             {policy.cctvAttachments.length}
                           </td>
                           <td style={{ padding: '10px 12px', textAlign: 'center' }}>
                             <button
-                              onClick={() => setDetailPolicyName(policy.name)}
+                              onClick={(e) => { e.stopPropagation(); setDetailPolicyName(policy.name); }}
                               style={{
-                                border: '1.5px solid #C3C6D4',
-                                background: isSelected ? 'var(--brand-secondary)' : 'white',
-                                color: 'var(--brand-dark)',
-                                boxShadow: isSelected ? '0 2px 8px rgba(255,214,0,0.24)' : 'none',
+                                border: isSelected ? 'none' : '1px solid #CBD5E1',
+                                background: isSelected ? 'var(--brand-primary)' : 'white',
+                                color: isSelected ? 'white' : 'var(--brand-dark)',
                                 borderRadius: '7px',
                                 padding: '6px 14px',
                                 fontSize: '12px',
-                                fontWeight: 800,
+                                fontWeight: 700,
                                 cursor: 'pointer'
                               }}
                             >
@@ -414,7 +425,7 @@ export default function PolicyManagementTab({
                 <button
                   onClick={() => setDetailPolicyName(null)}
                   style={{
-                    border: '1.5px solid #C3C6D4',
+                    border: '1px solid #CBD5E1',
                     background: 'white',
                     color: 'var(--brand-dark)',
                     borderRadius: '8px',
@@ -515,10 +526,10 @@ export default function PolicyManagementTab({
                 <button style={{ background: '#ec407a', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <Trash2 size={14} /> Hapus
                 </button>
-                <button style={{ background: 'white', color: 'var(--brand-dark)', border: '1.5px solid #C3C6D4', borderRadius: '8px', padding: '8px 16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <button style={{ background: 'white', color: 'var(--brand-dark)', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '8px 16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <Edit size={14} /> Edit
                 </button>
-                <button onClick={() => setDetailPolicyName(null)} style={{ background: 'white', color: 'var(--brand-dark)', border: '1.5px solid #C3C6D4', borderRadius: '8px', padding: '8px 16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                <button onClick={() => setDetailPolicyName(null)} style={{ background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <CheckCircle size={14} /> OK
                 </button>
               </div>
