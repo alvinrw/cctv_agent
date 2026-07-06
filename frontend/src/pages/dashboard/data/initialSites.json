@@ -1,0 +1,276 @@
+[
+  {
+    "id": "pit-a",
+    "name": "Pit A (Quarry Barat)",
+    "x": "25%",
+    "y": "45%",
+    "cctvTotal": 12,
+    "cctvOnline": 12,
+    "cctvOffline": 0,
+    "status": "ONLINE",
+    "details": [
+      {
+        "id": "cam-pit-a1",
+        "name": "CCTV Excavator Shovel 01",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Excavator PC2000 loading coal into haul trucks.",
+        "clippings": [
+          {
+            "id": "clip-a2",
+            "time": "12:50:33",
+            "title": "Safety Violation",
+            "camera": "CCTV Excavator Shovel 01",
+            "duration": "10s",
+            "description": "Pekerja melewati batas keamanan",
+            "type": "warning"
+          }
+        ]
+      },
+      {
+        "id": "cam-pit-a2",
+        "name": "CCTV Haul Road Incline A",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Heavy truck hauling route monitoring.",
+        "clippings": [
+          {
+            "id": "clip-a1",
+            "time": "13:14:02",
+            "title": "Haul Truck Overspeed",
+            "camera": "CCTV Haul Road Incline A",
+            "duration": "15s",
+            "description": "Truk HD785 terdeteksi melaju di atas batas 30 km/jam.",
+            "type": "danger"
+          }
+        ]
+      },
+      {
+        "id": "cam-pit-a3",
+        "name": "CCTV Pit Face A Area",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "General wall stability monitoring.",
+        "clippings": [
+          {
+            "id": "clip-a3",
+            "time": "11:20:10",
+            "title": "Wall Minor Crack Alert",
+            "camera": "CCTV Pit Face A Area",
+            "duration": "12s",
+            "description": "Retakan kecil terdeteksi pada dinding Pit Barat oleh sensor AI.",
+            "type": "warning"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "stockpile-utara",
+    "name": "Stockpile Utara",
+    "x": "68%",
+    "y": "28%",
+    "cctvTotal": 8,
+    "cctvOnline": 8,
+    "cctvOffline": 0,
+    "status": "ONLINE",
+    "details": [
+      {
+        "id": "cam-sp-1",
+        "name": "CCTV Conveyor Feed SP1",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Conveyor belt transporting coal pile to crusher.",
+        "clippings": [
+          {
+            "id": "clip-sp1",
+            "time": "13:01:10",
+            "title": "Safety Violation",
+            "camera": "CCTV Conveyor Feed SP1",
+            "duration": "12s",
+            "description": "Objek manusia terdeteksi melewati batas dari area berbahaya",
+            "type": "info"
+          }
+        ]
+      },
+      {
+        "id": "cam-sp-2",
+        "name": "CCTV Loading Gate SP2",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Truck weightbridge loading area monitoring.",
+        "clippings": [
+          {
+            "id": "clip-sp2",
+            "time": "10:45:00",
+            "title": "Overload Truck Blocked",
+            "camera": "CCTV Loading Gate SP2",
+            "duration": "14s",
+            "description": "Truk bermuatan 50 ton dilarang melintas karena melebihi tonase jembatan.",
+            "type": "danger"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "workshop-main",
+    "name": "Workshop & Main Office",
+    "x": "45%",
+    "y": "55%",
+    "cctvTotal": 6,
+    "cctvOnline": 6,
+    "cctvOffline": 0,
+    "status": "ONLINE",
+    "details": [
+      {
+        "id": "cam-ws-1",
+        "name": "CCTV Heavy Equipment Bay 1",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Mechanics working on dump truck wheel assemblies.",
+        "clippings": [
+          {
+            "id": "clip-ws1",
+            "time": "13:10:45",
+            "title": "PPE Violation Filtered",
+            "camera": "CCTV Heavy Equipment Bay 1",
+            "duration": "8s",
+            "description": "Personel tanpa helm terdeteksi AI (Telah dikoreksi otomatis dalam 3s).",
+            "type": "warning"
+          }
+        ]
+      },
+      {
+        "id": "cam-ws-2",
+        "name": "CCTV Office Lobby",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Administrative office receptionist gate monitoring.",
+        "clippings": [
+          {
+            "id": "clip-ws2",
+            "time": "09:15:30",
+            "title": "VIP Guest Arrival",
+            "camera": "CCTV Office Lobby",
+            "duration": "10s",
+            "description": "Kunjungan Direksi Astra Group terdeteksi sistem ANPR & RFID.",
+            "type": "info"
+          }
+        ]
+      },
+      {
+        "id": "cam-ws-3",
+        "name": "CCTV Workshop Parking 3",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Light vehicle parking area outside main workshop.",
+        "clippings": []
+      }
+    ]
+  },
+  {
+    "id": "processing-crusher",
+    "name": "Processing Plant (Crusher)",
+    "x": "75%",
+    "y": "60%",
+    "cctvTotal": 4,
+    "cctvOnline": 2,
+    "cctvOffline": 2,
+    "status": "ALERT",
+    "details": [
+      {
+        "id": "cam-cr-1",
+        "name": "CCTV Crusher Hopper (OFFLINE)",
+        "type": "cctv",
+        "status": "OFFLINE",
+        "feedDescription": "Main feeder crusher monitor (No Signal).",
+        "clippings": [
+          {
+            "id": "clip-cr1",
+            "time": "13:16:30",
+            "title": "CCTV Signal Disconnection",
+            "camera": "CCTV Crusher Hopper (OFFLINE)",
+            "duration": "5s",
+            "description": "WARNING: Kamera Crusher Hopper terputus dari jaringan.",
+            "type": "danger"
+          }
+        ]
+      },
+      {
+        "id": "cam-cr-2",
+        "name": "CCTV Conveyor Line C",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Conveyor line feeding primary crusher.",
+        "clippings": [
+          {
+            "id": "clip-cr3",
+            "time": "08:40:12",
+            "title": "Belt Misalignment Alert",
+            "camera": "CCTV Conveyor Line C",
+            "duration": "15s",
+            "description": "Sensor AI mendeteksi pergeseran kemiringan belt conveyor.",
+            "type": "warning"
+          }
+        ]
+      },
+      {
+        "id": "cam-cr-3",
+        "name": "CCTV Screen Deck Feed (OFFLINE)",
+        "type": "cctv",
+        "status": "OFFLINE",
+        "feedDescription": "Screening plant vibrating screens (Offline).",
+        "clippings": []
+      }
+    ]
+  },
+  {
+    "id": "main-security-gate",
+    "name": "Main Security Gate",
+    "x": "15%",
+    "y": "75%",
+    "cctvTotal": 2,
+    "cctvOnline": 2,
+    "cctvOffline": 0,
+    "status": "ONLINE",
+    "details": [
+      {
+        "id": "cam-gate-1",
+        "name": "CCTV Main Gate Barrier",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Entrance check-point boom gates.",
+        "clippings": [
+          {
+            "id": "clip-g2",
+            "time": "12:55:10",
+            "title": "Blacklist Vehicle Detected",
+            "camera": "CCTV Main Gate Barrier",
+            "duration": "15s",
+            "description": "Plat nomor B 9123 XYZ (Blacklist) mencoba melintas masuk.",
+            "type": "danger"
+          }
+        ]
+      },
+      {
+        "id": "cam-gate-2",
+        "name": "CCTV Weighbridge Scale",
+        "type": "cctv",
+        "status": "ONLINE",
+        "feedDescription": "Incoming truck scale area monitor.",
+        "clippings": [
+          {
+            "id": "clip-g3",
+            "time": "11:05:00",
+            "title": "Scale Sensor Offline",
+            "camera": "CCTV Weighbridge Scale",
+            "duration": "8s",
+            "description": "Terjadi kehilangan kalibrasi sensor timbang berat truk.",
+            "type": "warning"
+          }
+        ]
+      }
+    ]
+  }
+]
