@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
   Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert,
-  HelpCircle
+  HelpCircle, BarChart3, Video
 } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
@@ -13,6 +13,8 @@ import AdminTab from './dashboard/tabs/AdminTab';
 import LiveMultiCctvTab from './dashboard/tabs/LiveMultiCctvTab';
 import PolicyManagementTab from './dashboard/tabs/PolicyManagementTab';
 import IncidentCenterTab from './dashboard/tabs/IncidentCenterTab';
+import AnalysisTab from './dashboard/tabs/AnalysisTab';
+import CameraManagementTab from './dashboard/tabs/CameraManagementTab';
 
 // Data Pengguna Awal
 const INITIAL_USERS = [
@@ -775,7 +777,9 @@ export default function Dashboard() {
     { key: 'live-cctv', label: 'Live Multi-CCTV', icon: Camera, onClick: () => setActiveSubTab('live-cctv') },
     { key: 'policy-management', label: 'Policy Studio', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
     { key: 'incident-center', label: 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
-    { key: 'admin', label: 'Administrasi', icon: Settings, onClick: () => setActiveSubTab('admin') }
+    { key: 'analysis', label: 'Analisis', icon: BarChart3, onClick: () => setActiveSubTab('analysis') },
+    { key: 'admin', label: 'Sektor Management', icon: Settings, onClick: () => setActiveSubTab('admin') },
+    { key: 'camera-management', label: 'Camera Management', icon: Video, onClick: () => setActiveSubTab('camera-management') }
   ];
 
   const dashboardTabProps = {
@@ -1123,6 +1127,16 @@ export default function Dashboard() {
         {/* ===== TAB 7: INCIDENT CENTER ===== */}
         {activeSubTab === 'incident-center' && (
           <IncidentCenterTab {...dashboardTabProps} />
+        )}
+
+        {/* ===== TAB 8: ANALISIS ===== */}
+        {activeSubTab === 'analysis' && (
+          <AnalysisTab {...dashboardTabProps} />
+        )}
+
+        {/* ===== TAB 9: CAMERA MANAGEMENT ===== */}
+        {activeSubTab === 'camera-management' && (
+          <CameraManagementTab {...dashboardTabProps} />
         )}
 
       </div>

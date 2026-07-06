@@ -82,7 +82,7 @@ export default function AdminTab({
             </button>
           ))}
         </div>
-        <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Panel Administrasi Sistem</span>
+        <span style={{ fontSize: '11px', color: 'var(--outline)', fontStyle: 'italic' }}>Panel Sektor Management</span>
       </div>
 
       {/* ---- SECTION: KELOLA TITIK ---- */}
