@@ -149,7 +149,6 @@ export default function Dashboard() {
     if (selectedCctvIds.length === 0 && sites.length > 0) {
       const initialIds = sites
         .flatMap(s => s.details.filter(d => d.type === 'cctv'))
-        .slice(0, 6)
         .map(c => c.id);
       setSelectedCctvIds(initialIds);
     }

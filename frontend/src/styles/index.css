@@ -293,3 +293,36 @@ textarea.form-input { resize: vertical; min-height: 140px; }
 ::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-primary); }
 ::selection { background: var(--brand-secondary); color: var(--brand-dark); }
+
+/* Custom sleek scrollbar for horizontal scrolling lists */
+.sleek-scrollbar::-webkit-scrollbar {
+  height: 5px;
+}
+.sleek-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-full);
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: var(--radius-full);
+}
+.sleek-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-primary);
+}
+
+/* CCTV Monitor card hover zoom & fullscreen button */
+.monitor-card {
+  position: relative;
+  overflow: hidden;
+}
+.monitor-card .monitor-fullscreen-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.9);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.monitor-card:hover .monitor-fullscreen-btn {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate(-50%, -50%) scale(1.1) !important;
+}
