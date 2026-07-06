@@ -24,6 +24,7 @@ NODE_MAJOR="$(node -p "parseInt(process.versions.node)")"
 if [ "$NODE_MAJOR" -lt 18 ]; then
   echo "Node.js 18 or newer is required to run this frontend."
   echo "Current version: $(node --version)"
+  echo "Enter 'nvm use --lts' to switch to the latest LTS version of Node.js."
   exit 1
 fi
 

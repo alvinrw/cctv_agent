@@ -1214,7 +1214,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #F0EDED', paddingBottom: '10px' }}>
                 <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
                   <AlertTriangle size={18} color="#f59e0b" />
-                  Notifikasi Kejadian & Broadcast Telegram
+                  Notifikasi Kejadian & Broadcast
                 </h3>
                 <span style={{ fontSize: '11px', color: 'var(--outline)', background: '#F4F6FA', padding: '4px 10px', borderRadius: '4px', fontWeight: 600 }}>
                   Terhubung ke Bot @PamAgents_AlertBot
@@ -1315,7 +1315,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Activity size={18} color="var(--brand-primary)" />
                     <h3 style={{ fontSize: '15px', color: 'var(--brand-dark)', fontWeight: 700, margin: 0 }}>
-                      Status & Kabar Terkini Sektor (CCTV)
+                      Status Sektor (CCTV)
                     </h3>
                   </div>
 
@@ -1380,14 +1380,6 @@ export default function Dashboard() {
                           {/* Sector Header */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #E3E6EE', paddingBottom: '8px' }}>
                             <span style={{ fontWeight: 700, color: 'var(--brand-dark)', fontSize: '13.5px' }}>{site.name}</span>
-                            <span style={{
-                              fontSize: '9px', fontWeight: 700,
-                              color: site.status === 'ONLINE' ? '#10b981' : '#ff4d4d',
-                              background: site.status === 'ONLINE' ? 'rgba(16,185,129,0.08)' : 'rgba(255,77,77,0.08)',
-                              padding: '2px 8px', borderRadius: '4px'
-                            }}>
-                              ● {site.status}
-                            </span>
                           </div>
 
                           {/* List of CCTVs inside this site */}
@@ -1395,6 +1387,7 @@ export default function Dashboard() {
                             {/* CCTVs */}
                             {siteCctvs.map(cam => {
                               const isCamOffline = cam.status === 'OFFLINE';
+                              const displayCamName = cam.name.replace(/\s*\((online|offline)\)\s*$/i, '');
                               const latestClip = cam.clippings && cam.clippings[0];
                               const reportText = isCamOffline
                                 ? 'Kamera terputus. Menunggu pemeriksaan tim teknisi.'
@@ -1405,16 +1398,30 @@ export default function Dashboard() {
                               return (
                                 <div key={cam.id} style={{
                                   background: 'white', border: '1.5px solid #F0EDED', borderRadius: '8px', padding: '10px 12px',
-                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
+                                  display: 'flex', alignItems: 'flex-start', gap: '12px'
                                 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <Camera size={14} color={isCamOffline ? '#ff4d4d' : 'var(--brand-primary)'} />
                                     <div>
-                                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)', display: 'block' }}>{cam.name}</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '7px', flexWrap: 'wrap' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--brand-dark)' }}>{displayCamName}</span>
+                                        <span
+                                          aria-label={isCamOffline ? 'CCTV offline' : 'CCTV online'}
+                                          title={isCamOffline ? 'Offline' : 'Online'}
+                                          style={{
+                                            width: '7px',
+                                            height: '7px',
+                                            borderRadius: '50%',
+                                            background: isCamOffline ? '#ff4d4d' : '#10b981',
+                                            boxShadow: `0 0 0 3px ${isCamOffline ? 'rgba(255,77,77,0.12)' : 'rgba(16,185,129,0.12)'}`,
+                                            flexShrink: 0
+                                          }}
+                                        />
+                                      </div>
                                       <span style={{ fontSize: '11px', color: latestClip ? '#F57F17' : 'var(--outline)' }}>{reportText}</span>
 
                                       {/* Workload Badges */}
-                                      {!isCamOffline && (
+                                      {/* {!isCamOffline && (
                                         <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
                                           <span style={{ fontSize: '8.5px', fontWeight: 700, background: '#E0F2FE', color: '#0369a1', padding: '1px 5px', borderRadius: '3px' }}>
                                             APD
@@ -1452,17 +1459,9 @@ export default function Dashboard() {
                                             );
                                           })()}
                                         </div>
-                                      )}
+                                      )} */}
                                     </div>
                                   </div>
-                                  <span style={{
-                                    fontSize: '9px', fontWeight: 700,
-                                    color: isCamOffline ? '#ff4d4d' : '#10b981',
-                                    background: isCamOffline ? 'rgba(255,77,77,0.08)' : 'rgba(16,185,129,0.08)',
-                                    padding: '2px 6px', borderRadius: '4px'
-                                  }}>
-                                    {cam.status}
-                                  </span>
                                 </div>
                               );
                             })}
