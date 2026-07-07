@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
   CheckCircle, Edit, Filter, HelpCircle, Plus, Search, Trash2,
-  Shield, Layers, Sliders, Video, ChevronRight
+  Shield, Layers, Sliders, Video, ChevronRight, Network, Activity,
+  Cpu, ArrowRight, Sparkles, Zap, Radio, Eye
 } from 'lucide-react';
 import policyNoHuman from '../../../../../backend/policy/policy_no_human.json';
 import policyHumanSafetyGear from '../../../../../backend/policy/policy_human_safety_gear.json';
@@ -51,6 +52,7 @@ export default function PolicyManagementTab({
   const [detailPolicyName, setDetailPolicyName] = useState(null);
   const [hoveredMenu, setHoveredMenu] = useState(null);
   const [hoveredCctv, setHoveredCctv] = useState(false);
+  const [selectedTopoGroup, setSelectedTopoGroup] = useState('all');
 
   const policies = useMemo(() => buildPolicyRows(policyGroups), []);
   const groups = useMemo(() => buildGroupRows(policies), [policies]);
@@ -435,7 +437,167 @@ export default function PolicyManagementTab({
               )}
             </div>
           </div>
+        </div>
 
+        {/* ===== SIMPLE CORPORATE TOPOLOGY OVERVIEW DIAGRAM ===== */}
+        <div style={{
+          background: 'white',
+          borderRadius: '16px',
+          border: '1px solid #E3E6EE',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
+          padding: '24px',
+          marginTop: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderBottom: '1px solid #E3E6EE', paddingBottom: '16px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Layers size={20} color="var(--brand-primary)" />
+                <span>Group Policy & Camera Attachment Overview</span>
+              </h3>
+              <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
+                Diagram keterikatan kamera CCTV dengan Group Policy serta aturan policy yang diterapkan.
+              </p>
+            </div>
+          </div>
+
+          {/* Filter Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--outline)', marginRight: '6px' }}>Filter Group:</span>
+            <button
+              onClick={() => setSelectedTopoGroup('all')}
+              style={{
+                background: selectedTopoGroup === 'all' ? 'var(--brand-primary)' : '#F1F5F9',
+                color: selectedTopoGroup === 'all' ? 'white' : 'var(--brand-dark)',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.15s'
+              }}
+            >
+              Semua Group ({groups.length})
+            </button>
+            {groups.map(g => {
+              const isSel = selectedTopoGroup === g.id;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedTopoGroup(g.id)}
+                  style={{
+                    background: isSel ? 'var(--brand-primary)' : '#F1F5F9',
+                    color: isSel ? 'white' : 'var(--brand-dark)',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600,
+                    cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '6px'
+                  }}
+                >
+                  <Layers size={13} />
+                  <span>{g.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Diagram Cards Container */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {(selectedTopoGroup === 'all' ? groups : groups.filter(g => g.id === selectedTopoGroup)).map(group => (
+              <div
+                key={group.id}
+                style={{
+                  background: '#FAFBFD',
+                  border: '1px solid #E3E6EE',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px'
+                }}
+              >
+                {/* Group Title Bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E3E6EE', paddingBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '8px', background: '#E0F2FE', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                      <Layers size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--brand-dark)' }}>{group.name}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--outline)' }}>ID: {group.id}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <span style={{ fontSize: '12px', background: '#F1F5F9', color: 'var(--brand-dark)', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
+                      {group.cctvCount} Kamera
+                    </span>
+                    <span style={{ fontSize: '12px', background: '#F1F5F9', color: 'var(--brand-dark)', padding: '4px 10px', borderRadius: '6px', fontWeight: 600 }}>
+                      {group.policyCount} Policy
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3-Column Simple Flow Layout */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '16px', alignItems: 'center', overflowX: 'auto', padding: '4px 0' }}>
+                  {/* Column 1: CCTV Attached */}
+                  <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '16px', minWidth: '220px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Video size={14} /> Kamera Terpasang
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {(group.cam_attachment || []).length > 0 ? (
+                        (group.cam_attachment || []).map(camId => (
+                          <div key={camId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--brand-dark)' }}>{camId}</span>
+                            <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 600, background: '#F0FDF4', padding: '2px 8px', borderRadius: '4px' }}>Aktif</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', padding: '8px 0' }}>Tidak ada kamera terpasang</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Arrow 1 */}
+                  <div style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ChevronRight size={24} />
+                  </div>
+
+                  {/* Column 2: Group Hub */}
+                  <div style={{ background: '#F0F7FF', border: '1px solid #BFDBFE', borderRadius: '10px', padding: '16px', minWidth: '220px', textAlign: 'center' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '10px', background: 'var(--brand-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                      <Layers size={20} />
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--brand-dark)' }}>{group.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--outline)', marginTop: '4px' }}>Penghubung antara stream CCTV dan aturan kebijakan keamanan.</div>
+                  </div>
+
+                  {/* Arrow 2 */}
+                  <div style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ChevronRight size={24} />
+                  </div>
+
+                  {/* Column 3: Policies Attached */}
+                  <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '16px', minWidth: '220px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Shield size={14} /> Rule Policy Aktif
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {(group.attachedPolicies || []).length > 0 ? (
+                        (group.attachedPolicies || []).map(pol => (
+                          <div key={pol.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--brand-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }} title={pol.name}>{pol.name}</span>
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: pol.priority?.toLowerCase() === 'high' ? '#EF4444' : '#F59E0B', background: pol.priority?.toLowerCase() === 'high' ? '#FEF2F2' : '#FFFBEB', padding: '2px 8px', borderRadius: '4px' }}>{pol.priority || 'Medium'}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', padding: '8px 0' }}>Tidak ada policy aktif</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {detailPolicy && (
