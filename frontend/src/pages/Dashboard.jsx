@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
   Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert,
-  HelpCircle, BarChart3, Video
+  HelpCircle, BarChart3, Video, Loader2
 } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
@@ -105,6 +105,7 @@ export default function Dashboard() {
   // Group Policy Manager Modal States
   const [showPolicyModal, setShowPolicyModal] = useState(false);
   const [showRulePreview, setShowRulePreview] = useState(false);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState('group-danger');
   const [editingSkillId, setEditingSkillId] = useState(null);
   const [skillCode, setSkillCode] = useState('');
@@ -1201,98 +1202,286 @@ export default function Dashboard() {
 
               <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '28px', height: '100%' }}>
                 {showRulePreview ? (
-                  /* ===== PREVIEW VIEW ===== */
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* Preview rule identity */}
-                    <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px 20px' }}>
-                      <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px' }}>Rule yang dikonfigurasi</div>
-                      <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>{skillDesc || 'Titik ini ga boleh ada manusia (Bahaya)'}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--outline)', fontFamily: 'monospace', marginTop: '2px' }}>{skillCode ? skillCode.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'no_human_zone'}</div>
-                    </div>
-
-                    {/* Priority */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Prioritas</label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <div style={{ flex: 1, padding: '10px 8px', borderRadius: '8px', textAlign: 'center', background: '#EF4444', border: '1.5px solid #EF4444', fontSize: '12px', fontWeight: 700, color: 'white' }}>
-                          High
-                        </div>
+                  isPreviewLoading ? (
+                    /* ===== PREVIEW LOADING VIEW ===== */
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '40px 20px',
+                      flex: 1,
+                      minHeight: '350px',
+                      textAlign: 'center'
+                    }}>
+                      <style>{`
+                        @keyframes spin {
+                          0% { transform: rotate(0deg); }
+                          100% { transform: rotate(360deg); }
+                        }
+                        @keyframes pulseScale {
+                          0%, 100% { transform: scale(1); opacity: 0.8; }
+                          50% { transform: scale(1.15); opacity: 1; }
+                        }
+                      `}</style>
+                      <div style={{
+                        position: 'relative',
+                        marginBottom: '24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <div style={{
+                          position: 'absolute',
+                          width: '72px',
+                          height: '72px',
+                          borderRadius: '50%',
+                          background: 'rgba(13, 71, 161, 0.08)',
+                          animation: 'pulseScale 2s infinite ease-in-out'
+                        }} />
+                        <Loader2 
+                          size={40} 
+                          color="var(--brand-primary)" 
+                          style={{ 
+                            animation: 'spin 1.2s linear infinite',
+                            zIndex: 2
+                          }} 
+                        />
                       </div>
-                      <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>Direkomendasikan berdasarkan konten event code yang dianalisis.</p>
+                      <h4 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontSize: '16px', fontWeight: 700 }}>
+                        Menganalisis Kode Aturan...
+                      </h4>
+                      <p style={{ margin: 0, color: 'var(--outline)', fontSize: '13px', maxWidth: '320px', lineHeight: 1.5 }}>
+                        AI sedang memvalidasi instruksi keselamatan, kepatuhan, dan tingkat prioritas event...
+                      </p>
                     </div>
+                  ) : (
+                    /* ===== PREVIEW VIEW ===== */
+                    (() => {
+                      const text = ((skillDesc || '') + ' ' + (skillGuidelines || '') + ' ' + (skillCode || '')).toLowerCase();
+                      
+                      // Priority evaluation
+                      let priority = 'low';
+                      if (text.includes('bahaya') || text.includes('fatal') || text.includes('no_human') || text.includes('terlarang') || text.includes('blasting') || text.includes('kecelakaan') || text.includes('critical') || text.includes('kritis')) {
+                        priority = 'high';
+                      } else if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe') || text.includes('tidak memakai') || text.includes('unsafe') || text.includes('k3') || text.includes('safety')) {
+                        priority = 'medium';
+                      }
 
-                    <div style={{ borderTop: '1px solid #F0F2F7' }} />
+                      // Dynamic variables based on priority
+                      let priorityLabel = 'Low';
+                      let priorityColor = '#10B981'; // Green
+                      let preAlarm = '5';
+                      let postAlarm = '5';
+                      let evidenceText = 'Snapshot Tunggal';
+                      let retentionText = '7 Hari';
+                      let thresholdVal = 0.60;
+                      let channels = [
+                        { label: 'Telegram', active: false },
+                        { label: 'Email', active: true },
+                        { label: 'HT OCC Gateway', active: false },
+                        { label: 'Dashboard Alert', active: true }
+                      ];
 
-                    {/* Time Bounds */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Durasi Waktu</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {[
-                          { label: 'Sebelum Alarm', value: '3', sub: 'Detik sebelum notifikasi dikirim' },
-                          { label: 'Setelah Alarm', value: '15', sub: 'Detik hold-time setelah event' }
-                        ].map(t => (
-                          <div key={t.label} style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
-                            <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>{t.label}</div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--brand-dark)', fontFamily: 'monospace', lineHeight: 1 }}>{t.value}</span>
-                              <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
-                            </div>
-                            <div style={{ fontSize: '10.5px', color: 'var(--outline)', marginTop: '4px' }}>{t.sub}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                      if (priority === 'high') {
+                        priorityLabel = 'High';
+                        priorityColor = '#EF4444'; // Red
+                        preAlarm = '3';
+                        postAlarm = '15';
+                        evidenceText = 'Video Clip (1 Menit)';
+                        retentionText = 'Permanen (Anti-tamper)';
+                        thresholdVal = 0.70;
+                        channels = [
+                          { label: 'Telegram', active: true },
+                          { label: 'Email', active: true },
+                          { label: 'HT OCC Gateway', active: true },
+                          { label: 'Dashboard Alert', active: true }
+                        ];
+                      } else if (priority === 'medium') {
+                        priorityLabel = 'Medium';
+                        priorityColor = '#F59E0B'; // Orange/Yellow
+                        preAlarm = '5';
+                        postAlarm = '10';
+                        evidenceText = 'Snapshot Burst (5 Foto)';
+                        retentionText = '14 Hari';
+                        thresholdVal = 0.65;
+                        channels = [
+                          { label: 'Telegram', active: true },
+                          { label: 'Email', active: true },
+                          { label: 'HT OCC Gateway', active: false },
+                          { label: 'Dashboard Alert', active: true }
+                        ];
+                      }
 
-                    <div style={{ borderTop: '1px solid #F0F2F7' }} />
+                      // Target Objects extraction
+                      let targetObjects = ['person'];
+                      if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe')) {
+                        const objs = ['person'];
+                        if (text.includes('helm')) objs.push('helmet');
+                        if (text.includes('rompi') || text.includes('vest')) objs.push('safety_vest');
+                        if (text.includes('sepatu') || text.includes('shoes')) objs.push('safety_shoes');
+                        targetObjects = objs;
+                      } else if (text.includes('truck') || text.includes('truk') || text.includes('mobil') || text.includes('excavator') || text.includes('heavy') || text.includes('alat berat')) {
+                        const objs = [];
+                        if (text.includes('truck') || text.includes('truk')) objs.push('dump_truck');
+                        if (text.includes('excavator')) objs.push('excavator');
+                        if (text.includes('mobil') || text.includes('car')) objs.push('light_vehicle');
+                        if (objs.length === 0) objs.push('heavy_equipment');
+                        targetObjects = objs;
+                      }
 
-                    {/* Response + Target Group */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Saluran Respons</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {[
-                            { label: 'Telegram', active: true },
-                            { label: 'Email', active: true }
-                          ].map(ch => (
-                            <div key={ch.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px' }}>
-                              <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                          {/* Preview rule identity */}
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px 20px' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px' }}>Rule yang dikonfigurasi</div>
+                            <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>{skillDesc || 'Titik ini ga boleh ada manusia (Bahaya)'}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--outline)', fontFamily: 'monospace', marginTop: '2px' }}>{skillCode ? skillCode.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'no_human_zone'}</div>
+                            {skillGuidelines && (
+                              <div style={{ marginTop: '12px', borderTop: '1px dashed #E3E6EE', paddingTop: '10px' }}>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Prompt Agent (Petunjuk Deteksi)</div>
+                                <div style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontStyle: 'italic', lineHeight: 1.4 }}>"{skillGuidelines}"</div>
                               </div>
-                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
-                              <span style={{ fontSize: '10px', fontWeight: 700, color: '#10B981', background: '#F0FDF4', padding: '2px 7px', borderRadius: '3px' }}>ON</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Camera Group</label>
-                        <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', marginBottom: '8px' }}>
-                          <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '2px' }}>Grup Area Bahaya</div>
-                          <div style={{ fontSize: '11px', color: 'var(--outline)' }}>2 rule aktif — Pit A, Crusher</div>
-                        </div>
-                        {/* <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', opacity: 0.45 }}>
-                          <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--on-surface-variant)', marginBottom: '2px' }}>Grup Logistik</div>
-                          <div style={{ fontSize: '11px', color: 'var(--outline)' }}>2 rule aktif — Stockpile, Gate</div>
-                        </div> */}
-                      </div>
-                    </div>
+                            )}
+                          </div>
 
-                    {/* Preview action buttons */}
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid #E3E6EE' }}>
-                      <button
-                        onClick={() => setShowRulePreview(false)}
-                        style={{ background: 'white', color: 'var(--on-surface-variant)', border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                      >Kembali ke Form</button>
-                      <button
-                        onClick={() => setShowRulePreview(false)}
-                        style={{ background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                      >Edit</button>
-                      <button
-                        onClick={() => { setShowRulePreview(false); }}
-                        style={{ background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(13,71,161,0.2)' }}
-                      >Terapkan Konfigurasi</button>
-                    </div>
-                  </div>
+                          {/* Priority & Evidence Rules */}
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Prioritas & Aturan Bukti</label>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <div style={{ flex: 1, padding: '10px 8px', borderRadius: '8px', textAlign: 'center', background: priorityColor, border: `1.5px solid ${priorityColor}`, fontSize: '12.5px', fontWeight: 700, color: 'white' }}>
+                                {priorityLabel} Priority
+                              </div>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
+                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Masa Simpan Bukti</div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{retentionText}</div>
+                              </div>
+                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Tipe Bukti (Evidence)</div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{evidenceText}</div>
+                              </div>
+                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Human-in-the-Loop</div>
+                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', marginTop: '2px' }}>Wajib Validasi</div>
+                              </div>
+                            </div>
+                            <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>Direkomendasikan secara otomatis berdasarkan klasifikasi safety K3 PAMA.</p>
+                          </div>
+
+                          <div style={{ borderTop: '1px solid #F0F2F7' }} />
+
+                          {/* Time Bounds */}
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Durasi Waktu</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                              {[
+                                { label: 'Sebelum Alarm', value: preAlarm, sub: 'Detik sebelum notifikasi dikirim' },
+                                { label: 'Setelah Alarm', value: postAlarm, sub: 'Detik hold-time setelah event' }
+                              ].map(t => (
+                                <div key={t.label} style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>{t.label}</div>
+                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                                    <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--brand-dark)', fontFamily: 'monospace', lineHeight: 1 }}>{t.value}</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
+                                  </div>
+                                  <div style={{ fontSize: '10.5px', color: 'var(--outline)', marginTop: '4px' }}>{t.sub}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div style={{ borderTop: '1px solid #F0F2F7' }} />
+
+                          {/* Target Objects & Accuracy Threshold */}
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Objek & Batas Akurasi (Threshold)</label>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px', gap: '20px', flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                {targetObjects.map(obj => (
+                                  <span key={obj} style={{
+                                    background: 'rgba(13, 71, 161, 0.06)',
+                                    border: '1px solid rgba(13, 71, 161, 0.15)',
+                                    borderRadius: '6px',
+                                    padding: '4px 10px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    color: 'var(--brand-primary)',
+                                    fontFamily: 'monospace'
+                                  }}>
+                                    {obj}
+                                  </span>
+                                ))}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                <span style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600 }}>Confidence Threshold:</span>
+                                <span style={{
+                                  background: 'white',
+                                  border: '1.5px solid #E3E6EE',
+                                  borderRadius: '6px',
+                                  padding: '4px 8px',
+                                  fontSize: '12.5px',
+                                  fontWeight: 700,
+                                  color: 'var(--brand-dark)',
+                                  fontFamily: 'monospace'
+                                }}>
+                                  {(thresholdVal * 100).toFixed(0)}%
+                                </span>
+                              </div>
+                            </div>
+                            <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>
+                              Batas akurasi minimum untuk mengurangi false positive sebelum SmolVLM menganalisis video.
+                            </p>
+                          </div>
+
+                          <div style={{ borderTop: '1px solid #F0F2F7' }} />
+
+                          {/* Response + Target Group */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Saluran Respons</label>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {channels.map(ch => (
+                                  <div key={ch.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px' }}>
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                                    </div>
+                                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
+                                    <span style={{ fontSize: '10px', fontWeight: 700, color: ch.active ? '#10B981' : 'var(--outline)', background: ch.active ? '#F0FDF4' : '#F2F4F7', padding: '2px 7px', borderRadius: '3px' }}>{ch.active ? 'ON' : 'OFF'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Camera Group</label>
+                              <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', marginBottom: '8px' }}>
+                                <div style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '2px' }}>Grup Area Bahaya</div>
+                                <div style={{ fontSize: '11px', color: 'var(--outline)' }}>2 rule aktif — Pit A, Crusher</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Preview action buttons */}
+                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid #E3E6EE' }}>
+                            <button
+                              onClick={() => setShowRulePreview(false)}
+                              style={{ background: 'white', color: 'var(--on-surface-variant)', border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                            >Kembali ke Form</button>
+                            <button
+                              onClick={() => setShowRulePreview(false)}
+                              style={{ background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                            >Edit</button>
+                            <button
+                              onClick={() => { setShowRulePreview(false); }}
+                              style={{ background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(13,71,161,0.2)' }}
+                            >Terapkan Konfigurasi</button>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  )
                 ) : (
                   /* ===== FORM VIEW ===== */
                   (() => {
@@ -1371,7 +1560,13 @@ export default function Dashboard() {
                               </button>
                             )}
                             <button
-                              onClick={() => setShowRulePreview(true)}
+                              onClick={() => {
+                                setShowRulePreview(true);
+                                setIsPreviewLoading(true);
+                                setTimeout(() => {
+                                  setIsPreviewLoading(false);
+                                }, 2000);
+                              }}
                               style={{
                                 background: 'white', color: 'var(--brand-primary)',
                                 border: '1.5px solid var(--brand-primary)',

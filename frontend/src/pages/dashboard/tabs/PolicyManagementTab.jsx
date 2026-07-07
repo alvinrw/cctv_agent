@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
-  CheckCircle, Edit, Filter, HelpCircle, Plus, Search, Trash2
+  CheckCircle, Edit, Filter, HelpCircle, Plus, Search, Trash2,
+  Shield, Layers, Sliders, Video, ChevronRight
 } from 'lucide-react';
 import policyNoHuman from '../../../../../backend/policy/policy_no_human.json';
 import policyHumanSafetyGear from '../../../../../backend/policy/policy_human_safety_gear.json';
@@ -42,11 +43,14 @@ const buildGroupRows = (policies) => policyGroups.map(group => {
 });
 
 export default function PolicyManagementTab({
-  setShowPolicyModal
+  setShowPolicyModal,
+  setActiveSubTab
 }) {
   const [activeMenu, setActiveMenu] = useState('policies');
   const [searchTerm, setSearchTerm] = useState('');
   const [detailPolicyName, setDetailPolicyName] = useState(null);
+  const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [hoveredCctv, setHoveredCctv] = useState(false);
 
   const policies = useMemo(() => buildPolicyRows(policyGroups), []);
   const groups = useMemo(() => buildGroupRows(policies), [policies]);
@@ -74,10 +78,9 @@ export default function PolicyManagementTab({
   const isGroupView = activeMenu === 'groups';
 
   const menuItems = [
-    { key: 'policies', label: 'Policies' },
-    { key: 'groups', label: 'Group Policy' },
-    { key: 'priority', label: 'Priority Settings' },
-    { key: 'cctv', label: 'CCTV Settings ->' }
+    { key: 'policies', label: 'Policies', icon: Shield },
+    { key: 'groups', label: 'Group Policy', icon: Layers },
+    { key: 'priority', label: 'Priority Settings', icon: Sliders }
   ];
 
   return (
@@ -111,27 +114,79 @@ export default function PolicyManagementTab({
               Policy Studio
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {menuItems.map(item => (
-                <button
-                  key={item.key}
-                  onClick={() => setActiveMenu(item.key)}
-                  style={{
-                    textAlign: 'left',
-                    background: activeMenu === item.key ? 'var(--brand-primary)' : 'white',
-                    color: activeMenu === item.key ? 'white' : 'var(--on-surface-variant)',
-                    border: `1.5px solid ${activeMenu === item.key ? 'var(--brand-primary)' : '#E2E8F0'}`,
-                    borderRadius: '10px',
-                    padding: '14px 16px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+              {menuItems.map(item => {
+                const Icon = item.icon;
+                const isActive = activeMenu === item.key;
+                const isHovered = hoveredMenu === item.key;
+                
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => setActiveMenu(item.key)}
+                    onMouseEnter={() => setHoveredMenu(item.key)}
+                    onMouseLeave={() => setHoveredMenu(null)}
+                    style={{
+                      textAlign: 'left',
+                      background: isActive 
+                        ? 'rgba(13,71,161,0.08)' 
+                        : (isHovered ? '#F1F5F9' : 'transparent'),
+                      color: isActive 
+                        ? 'var(--brand-primary)' 
+                        : (isHovered ? 'var(--brand-dark)' : '#64748B'),
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      fontSize: '13px',
+                      fontWeight: isActive ? 700 : 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      outline: 'none'
+                    }}
+                  >
+                    <Icon size={16} color={isActive ? 'var(--brand-primary)' : '#94A3B8'} style={{ transition: 'color 0.2s' }} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+              
+              {/* Divider line before external settings redirect */}
+              <div style={{ height: '1px', background: '#E2E8F0', margin: '12px 0' }} />
+              
+              <button
+                onClick={() => {
+                  if (setActiveSubTab) {
+                    setActiveSubTab('camera-management');
+                  }
+                }}
+                onMouseEnter={() => setHoveredCctv(true)}
+                onMouseLeave={() => setHoveredCctv(false)}
+                style={{
+                  textAlign: 'left',
+                  background: 'var(--brand-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '14px 16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease, transform 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  boxShadow: hoveredCctv ? '0 4px 14px rgba(13,71,161,0.3)' : '0 2px 8px rgba(13,71,161,0.15)',
+                  transform: hoveredCctv ? 'translateY(-1px)' : 'none',
+                  marginTop: 'auto'
+                }}
+              >
+                <Video size={16} />
+                <span>Camera Settings</span>
+                <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: hoveredCctv ? 1 : 0.8, transform: hoveredCctv ? 'translateX(2px)' : 'none', transition: 'all 0.2s' }} />
+              </button>
             </div>
           </aside>
 

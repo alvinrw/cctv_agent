@@ -6,7 +6,7 @@ import IncidentDetailView from './IncidentDetailView';
 const MOCK_INCIDENTS = [
   {
     id: 'INC-4092', type: 'Restricted Area Intrusion', description: 'Unauthorized vehicle near silo',
-    severity: 'critical', location: 'Sector Alpha, Cam-04', status: 'open', assignee: null,
+    severity: 'critical', location: 'Sector Alpha, Cam-04', status: 'pending_validation', assignee: null,
     detectedAt: '10:42 AM', confidence: 98.4, policy: 'Perimeter Security v2',
     camera: 'Cam-04_PTZ', locationDetail: 'Sector Alpha, Gate 3',
     aiSummary: 'Unidentified light vehicle breached Sector Alpha outer perimeter. Trajectory indicates approach toward Silo 4. Recommend immediate security dispatch and lockdown of Silo 4 access gates.',
@@ -18,7 +18,7 @@ const MOCK_INCIDENTS = [
   },
   {
     id: 'INC-4091', type: 'Thermal Anomaly Detected', description: 'Conveyor belt #3 overheating',
-    severity: 'high', location: 'Processing Plant', status: 'investigating', assignee: 'J. Doe', assigneeInitials: 'JD',
+    severity: 'high', location: 'Processing Plant', status: 'detected', assignee: 'J. Doe', assigneeInitials: 'JD',
     detectedAt: '09:58 AM', confidence: 91.2, policy: 'Equipment Monitoring v1',
     camera: 'Cam-11_Fixed', locationDetail: 'Processing Plant, Belt #3',
     aiSummary: 'Thermal signature detected on conveyor belt #3 exceeding normal operating temperature by 40°C. Potential bearing failure or friction issue.',
@@ -30,7 +30,7 @@ const MOCK_INCIDENTS = [
   },
   {
     id: 'INC-4088', type: 'PPE Violation', description: 'Missing hardhat near crusher',
-    severity: 'low', location: 'Crusher Zone, Cam-12', status: 'resolved', assignee: 'A. Smith', assigneeInitials: 'AS',
+    severity: 'low', location: 'Crusher Zone, Cam-12', status: 'responded', assignee: 'A. Smith', assigneeInitials: 'AS',
     detectedAt: '08:22 AM', confidence: 87.6, policy: 'PPE Compliance v3',
     camera: 'Cam-12_PTZ', locationDetail: 'Crusher Zone, Section B',
     aiSummary: 'Worker detected without hardhat in crusher zone. Worker subsequently retrieved PPE from nearby storage.',
@@ -42,7 +42,7 @@ const MOCK_INCIDENTS = [
   },
   {
     id: 'INC-4087', type: 'Vehicle Speeding', description: 'Haul truck exceeding limit',
-    severity: 'medium', location: 'Main Road B', status: 'resolved', assignee: 'System (Auto)', assigneeInitials: 'SY',
+    severity: 'medium', location: 'Main Road B', status: 'rejected', assignee: 'System (Auto)', assigneeInitials: 'SY',
     detectedAt: '07:15 AM', confidence: 95.1, policy: 'Speed Monitoring v2',
     camera: 'Cam-08_Fixed', locationDetail: 'Main Road B, KM 2.5',
     aiSummary: 'Haul truck HD785 detected exceeding 30km/h speed limit on main hauling road.',
@@ -53,7 +53,7 @@ const MOCK_INCIDENTS = [
   },
   {
     id: 'INC-4085', type: 'Unsafe Act', description: 'Person too close to excavator',
-    severity: 'high', location: 'Pit A, Cam-02', status: 'open', assignee: null,
+    severity: 'high', location: 'Pit A, Cam-02', status: 'confirmed', assignee: null,
     detectedAt: '06:50 AM', confidence: 93.8, policy: 'Safety Zone v1',
     camera: 'Cam-02_PTZ', locationDetail: 'Pit A, Excavator Zone',
     aiSummary: 'Personnel detected within 10-meter exclusion zone of active excavator swing path.',
@@ -72,9 +72,11 @@ const severityConfig = {
 };
 
 const statusConfig = {
-  open: { label: 'Open', bg: '#F3F4F6', color: '#374151', border: '#D1D5DB' },
-  investigating: { label: 'Investigating', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
-  resolved: { label: 'Resolved', bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' }
+  detected: { label: 'Detected', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  pending_validation: { label: 'Pending Validation', bg: '#FFF7ED', color: '#C2410C', border: '#FFEDD5' },
+  confirmed: { label: 'Confirmed', bg: '#ECFDF5', color: '#047857', border: '#D1FAE5' },
+  rejected: { label: 'Rejected', bg: '#FEF2F2', color: '#B91C1C', border: '#FEE2E2' },
+  responded: { label: 'Responded', bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' }
 };
 
 export default function IncidentCenterTab() {
@@ -121,13 +123,6 @@ export default function IncidentCenterTab() {
           }}>
             <Download size={15} /> Export Log
           </button>
-          <button style={{
-            padding: '10px 18px', border: 'none', background: 'var(--brand-primary)', borderRadius: '10px',
-            fontSize: '12px', fontWeight: 700, color: 'white', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 8px rgba(13,71,161,0.3)'
-          }}>
-            <Sparkles size={15} /> AI Triage
-          </button>
         </div>
       </div>
 
@@ -161,9 +156,11 @@ export default function IncidentCenterTab() {
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                 style={{ padding: '7px 12px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>
                 <option value="all">Status: All</option>
-                <option value="open">Open</option>
-                <option value="investigating">Investigating</option>
-                <option value="resolved">Resolved</option>
+                <option value="detected">Detected</option>
+                <option value="pending_validation">Pending Validation</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="rejected">Rejected</option>
+                <option value="responded">Responded</option>
               </select>
             </div>
           </div>
@@ -283,7 +280,7 @@ export default function IncidentCenterTab() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                   <Cpu size={18} color="var(--brand-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
                   <div>
-                    <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Triage Summary</h4>
+                    <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-primary)', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI Summary</h4>
                     <p style={{ fontSize: '12px', color: 'var(--brand-dark)', margin: 0, lineHeight: 1.5 }}>{selectedIncident.aiSummary}</p>
                   </div>
                 </div>

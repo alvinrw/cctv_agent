@@ -12,9 +12,12 @@ const severityConfig = {
 };
 
 const statusConfig = {
-  open: { label: 'Requires Review', dot: '#FABD00' },
-  investigating: { label: 'Under Investigation', dot: '#3B82F6' },
-  resolved: { label: 'Resolved', dot: '#10B981' }
+  detected: { label: 'Detected', dot: '#3B82F6' },
+  pending_validation: { label: 'Pending Validation', dot: '#FABD00' },
+  confirmed: { label: 'Confirmed', dot: '#10B981' },
+  rejected: { label: 'Rejected', dot: '#EF4444' },
+  responded: { label: 'Responded', dot: '#10B981' },
+  archived: { label: 'Archived', dot: '#6B7280' }
 };
 
 export default function IncidentDetailView({ incident, onBack }) {
