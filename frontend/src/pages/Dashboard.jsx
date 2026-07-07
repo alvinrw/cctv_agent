@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
   Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert,
-  HelpCircle, BarChart3, Video, Loader2
+  HelpCircle, BarChart3, Video, Loader2, Tag, FileText, Sparkles, Eye, Shield
 } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
@@ -1151,7 +1151,7 @@ export default function Dashboard() {
         }}>
           <div style={{
             background: 'white', borderRadius: '16px', width: '100%',
-            maxWidth: '960px', height: '85vh', maxHeight: '800px', display: 'flex', flexDirection: 'column',
+            maxWidth: '960px', display: 'flex', flexDirection: 'column',
             boxShadow: '0 24px 64px rgba(0,0,0,0.25)', border: '1px solid #E3E6EE',
             overflow: 'hidden', position: 'relative'
           }}>
@@ -1169,12 +1169,12 @@ export default function Dashboard() {
                 <div>
                   <h3 style={{ margin: 0, color: 'var(--brand-dark)', fontWeight: 800, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Settings size={20} color="var(--brand-primary)" />
-                    {showRulePreview ? 'Preview Konfigurasi AI Skills' : 'Pengaturan AI Skills'}
+                    {showRulePreview ? 'Preview Konfigurasi Policy' : (editingSkillId ? 'Edit Rule Policy' : 'Tambah Rule Policy Baru')}
                   </h3>
                   <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: 'var(--outline)' }}>
                     {showRulePreview
                       ? 'Konfigurasi berikut dihasilkan secara otomatis. Terapkan atau kembali untuk mengedit.'
-                      : 'Definisikan group template dan kelola rule/skill deteksi AI di dalamnya.'}
+                      : 'Konfigurasi instruksi keselamatan, K3, dan tingkat prioritas policy.'}
                   </p>
                 </div>
               </div>
@@ -1198,9 +1198,8 @@ export default function Dashboard() {
             </div>
 
             {/* Modal Content */}
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-
-              <div style={{ padding: '32px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '28px', height: '100%' }}>
+            <div style={{ overflowY: 'auto', maxHeight: 'calc(90vh - 100px)' }}>
+              <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {showRulePreview ? (
                   isPreviewLoading ? (
                     /* ===== PREVIEW LOADING VIEW ===== */
@@ -1489,164 +1488,153 @@ export default function Dashboard() {
                     if (!activeGroup) return null;
 
                     return (
-                      <>
-                        {/* Add/Edit Skill Form */}
-                        <div style={{ background: '#FAFBFD', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '20px' }}>
-                          <h5 style={{ margin: '0 0 16px', color: 'var(--brand-dark)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {editingSkillId ? '📝 Edit Rule AI' : '➕ Tambah Rule AI Baru'}
-                          </h5>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px', marginBottom: '16px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Event Code</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '20px' }} className="db-layout-grid">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Event Code</label>
+                              <div style={{ position: 'relative' }}>
+                                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                                  <Tag size={15} color="#94A3B8" />
+                                </span>
                                 <input
                                   type="text"
                                   placeholder="e.g. no_human_zone"
                                   value={skillCode}
                                   onChange={(e) => setSkillCode(e.target.value)}
+                                  onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--brand-primary)';
+                                    e.target.style.background = 'white';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(13,71,161,0.1)';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.target.style.borderColor = '#E2E8F0';
+                                    e.target.style.background = '#F8FAFC';
+                                    e.target.style.boxShadow = 'none';
+                                  }}
                                   style={{
-                                    width: '100%', padding: '10px', fontSize: '12.5px',
-                                    border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                    width: '100%', padding: '12px 14px 12px 38px', fontSize: '13px',
+                                    border: '1.5px solid #E2E8F0', borderRadius: '8px', outline: 'none',
+                                    background: '#F8FAFC', color: 'var(--brand-dark)', transition: 'all 0.2s',
+                                    boxSizing: 'border-box'
                                   }}
                                 />
                               </div>
-                              <div>
-                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Deskripsi Singkat</label>
+                            </div>
+                            
+                            <div>
+                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Deskripsi Singkat</label>
+                              <div style={{ position: 'relative' }}>
+                                <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center' }}>
+                                  <FileText size={15} color="#94A3B8" />
+                                </span>
                                 <input
                                   type="text"
                                   placeholder="e.g. Area terlarang untuk operator jalan kaki"
                                   value={skillDesc}
                                   onChange={(e) => setSkillDesc(e.target.value)}
+                                  onFocus={(e) => {
+                                    e.target.style.borderColor = 'var(--brand-primary)';
+                                    e.target.style.background = 'white';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(13,71,161,0.1)';
+                                  }}
+                                  onBlur={(e) => {
+                                    e.target.style.borderColor = '#E2E8F0';
+                                    e.target.style.background = '#F8FAFC';
+                                    e.target.style.boxShadow = 'none';
+                                  }}
                                   style={{
-                                    width: '100%', padding: '10px', fontSize: '12.5px',
-                                    border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none'
+                                    width: '100%', padding: '12px 14px 12px 38px', fontSize: '13px',
+                                    border: '1.5px solid #E2E8F0', borderRadius: '8px', outline: 'none',
+                                    background: '#F8FAFC', color: 'var(--brand-dark)', transition: 'all 0.2s',
+                                    boxSizing: 'border-box'
                                   }}
                                 />
                               </div>
                             </div>
+                          </div>
 
-                            <div>
-                              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '4px' }}>Prompt Agent</label>
+                          <div>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Prompt Agent</label>
+                            <div style={{ position: 'relative' }}>
+                              <span style={{ position: 'absolute', left: '12px', top: '14px', display: 'flex', alignItems: 'center' }}>
+                                <Sparkles size={15} color="#94A3B8" />
+                              </span>
                               <textarea
                                 placeholder="Berikan instruksi operasional untuk AI agent, misal: Cari objek manusia menggunakan rompi oranye di dalam area marka kuning..."
                                 value={skillGuidelines}
                                 onChange={(e) => setSkillGuidelines(e.target.value)}
+                                onFocus={(e) => {
+                                  e.target.style.borderColor = 'var(--brand-primary)';
+                                  e.target.style.background = 'white';
+                                  e.target.style.boxShadow = '0 0 0 3px rgba(13,71,161,0.1)';
+                                }}
+                                onBlur={(e) => {
+                                  e.target.style.borderColor = '#E2E8F0';
+                                  e.target.style.background = '#F8FAFC';
+                                  e.target.style.boxShadow = 'none';
+                                }}
                                 style={{
-                                  width: '100%', padding: '10px', fontSize: '12.5px', minHeight: '94px',
-                                  border: '1.5px solid #C3C6D4', borderRadius: '6px', outline: 'none',
-                                  fontFamily: 'inherit', resize: 'vertical', lineHeight: 1.4
+                                  width: '100%', padding: '12px 14px 12px 38px', fontSize: '13px', minHeight: '110px',
+                                  border: '1.5px solid #E2E8F0', borderRadius: '8px', outline: 'none',
+                                  background: '#F8FAFC', color: 'var(--brand-dark)', fontFamily: 'inherit',
+                                  resize: 'vertical', lineHeight: 1.5, transition: 'all 0.2s',
+                                  boxSizing: 'border-box'
                                 }}
                               />
                             </div>
                           </div>
+                        </div>
 
-                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                            {editingSkillId && (
-                              <button
-                                onClick={() => {
-                                  setEditingSkillId(null);
-                                  setSkillCode('');
-                                  setSkillDesc('');
-                                  setSkillGuidelines('');
-                                }}
-                                style={{
-                                  background: 'white', color: 'var(--brand-dark)',
-                                  border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 16px',
-                                  fontSize: '12.5px', fontWeight: 600, cursor: 'pointer'
-                                }}
-                              >
-                                Batal
-                              </button>
-                            )}
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', borderTop: '1px solid #E2E8F0', paddingTop: '20px' }}>
+                          {editingSkillId && (
                             <button
                               onClick={() => {
-                                setShowRulePreview(true);
-                                setIsPreviewLoading(true);
-                                setTimeout(() => {
-                                  setIsPreviewLoading(false);
-                                }, 2000);
+                                setEditingSkillId(null);
+                                setSkillCode('');
+                                setSkillDesc('');
+                                setSkillGuidelines('');
                               }}
                               style={{
-                                background: 'white', color: 'var(--brand-primary)',
-                                border: '1.5px solid var(--brand-primary)',
-                                borderRadius: '8px', padding: '8px 18px',
-                                fontSize: '12.5px', fontWeight: 700,
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                                background: 'white', color: 'var(--brand-dark)',
+                                border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '10px 20px',
+                                fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
                               }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
                             >
-                              Preview Rule
+                              Batal
                             </button>
-                          </div>
+                          )}
+                          <button
+                            onClick={() => {
+                              setShowRulePreview(true);
+                              setIsPreviewLoading(true);
+                              setTimeout(() => {
+                                setIsPreviewLoading(false);
+                              }, 2000);
+                            }}
+                            style={{
+                              background: 'var(--brand-primary)', color: 'white',
+                              border: 'none', borderRadius: '8px', padding: '10px 24px',
+                              fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                              display: 'inline-flex', alignItems: 'center', gap: '8px',
+                              boxShadow: '0 4px 12px rgba(13,71,161,0.15)', transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#0a3c85';
+                              e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'var(--brand-primary)';
+                              e.currentTarget.style.transform = 'none';
+                            }}
+                          >
+                            <Eye size={15} />
+                            <span>Preview Rule</span>
+                          </button>
                         </div>
-
-                        {/* Skills List in Active Group */}
-                        <div>
-                          <h5 style={{ margin: '0 0 12px', color: 'var(--outline)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            AI Skills ({activeGroup.skills.length})
-                          </h5>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                            {activeGroup.skills.length === 0 ? (
-                              <div style={{ padding: '32px', background: '#F8FAFC', borderRadius: '12px', textAlign: 'center', border: '1.5px dashed #E3E6EE' }}>
-                                <span style={{ fontSize: '13px', color: 'var(--outline)', fontStyle: 'italic' }}>
-                                  Group policy ini belum memiliki rule deteksi AI. Tambahkan rule di atas.
-                                </span>
-                              </div>
-                            ) : (
-                              activeGroup.skills.map(skill => (
-                                <div
-                                  key={skill.id}
-                                  style={{
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    padding: '16px 20px', background: 'white', border: '1.5px solid #E3E6EE',
-                                    borderRadius: '12px'
-                                  }}
-                                >
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, flex: 1 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--brand-dark)' }}>
-                                        {skill.description}
-                                      </span>
-                                      <code style={{ fontSize: '10px', background: '#EEF2F6', color: '#4F46E5', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                                        {skill.code}
-                                      </code>
-                                    </div>
-                                    {/* {skill.guidelines && (
-                                      <span style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        Guidelines: {skill.guidelines}
-                                      </span>
-                                    )} */}
-                                  </div>
-
-                                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                                    <button
-                                      onClick={() => handleEditSkillClick(skill)}
-                                      style={{
-                                        background: '#F4F6FA', border: '1px solid #E3E6EE', borderRadius: '6px',
-                                        width: '32px', height: '32px', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', cursor: 'pointer', color: 'var(--brand-dark)'
-                                      }}
-                                    >
-                                      <Edit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteSkillFromGroup(activeGroup.id, skill.id)}
-                                      style={{
-                                        background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '6px',
-                                        width: '32px', height: '32px', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', cursor: 'pointer', color: '#EF4444'
-                                      }}
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      </>
+                      </div>
                     );
                   })()
                 )}
