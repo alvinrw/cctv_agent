@@ -93,6 +93,8 @@ export default function Dashboard() {
   // Tab Active State ('overview' | 'map' | 'add-site' | 'users' | 'live-cctv' | 'policy-management')
   const [activeSubTab, setActiveSubTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [hoveredCollapse, setHoveredCollapse] = useState(false);
+  const [hoveredExpand, setHoveredExpand] = useState(false);
   const [adminSection, setAdminSection] = useState('sites');
 
   // Workload States
@@ -382,7 +384,7 @@ export default function Dashboard() {
 
     // Evaluate AI parsed parameters from form fields
     const text = ((skillDesc || '') + ' ' + (skillGuidelines || '') + ' ' + (skillCode || '')).toLowerCase();
-    
+
     let priority = 'low';
     if (text.includes('bahaya') || text.includes('fatal') || text.includes('no_human') || text.includes('terlarang') || text.includes('blasting') || text.includes('kecelakaan') || text.includes('critical') || text.includes('kritis')) {
       priority = 'high';
@@ -481,21 +483,21 @@ export default function Dashboard() {
           // Edit existing skill in this group
           const updated = currentSkills.map(sk =>
             sk.id === editingSkillId
-              ? { 
-                  ...sk, 
-                  code: sanitizedCode, 
-                  description: skillDesc.trim(), 
-                  guidelines: skillGuidelines.trim(),
-                  priority: previewPriority,
-                  preAlarm: previewPreAlarm,
-                  postAlarm: previewPostAlarm,
-                  retention: previewRetention,
-                  evidenceType: previewEvidenceType,
-                  humanInLoop: previewHumanInLoop,
-                  targetObjects: previewTargetObjects,
-                  threshold: previewThreshold,
-                  channels: previewChannels
-                }
+              ? {
+                ...sk,
+                code: sanitizedCode,
+                description: skillDesc.trim(),
+                guidelines: skillGuidelines.trim(),
+                priority: previewPriority,
+                preAlarm: previewPreAlarm,
+                postAlarm: previewPostAlarm,
+                retention: previewRetention,
+                evidenceType: previewEvidenceType,
+                humanInLoop: previewHumanInLoop,
+                targetObjects: previewTargetObjects,
+                threshold: previewThreshold,
+                channels: previewChannels
+              }
               : sk
           );
           return { ...group, skills: updated };
@@ -916,7 +918,7 @@ export default function Dashboard() {
     { key: 'policy-management', label: 'Policy Studio', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
     { key: 'incident-center', label: 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
     { key: 'analysis', label: 'Analisis', icon: BarChart3, onClick: () => setActiveSubTab('analysis') },
-    { key: 'admin', label: 'Sektor Management', icon: Settings, onClick: () => setActiveSubTab('admin') },
+    { key: 'admin', label: 'Settings', icon: Settings, onClick: () => setActiveSubTab('admin') },
     { key: 'camera-management', label: 'Camera Management', icon: Video, onClick: () => setActiveSubTab('camera-management') }
   ];
 
@@ -1023,53 +1025,62 @@ export default function Dashboard() {
         zIndex: 50,
         transition: 'width 0.25s ease, padding 0.25s ease'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between', gap: '12px' }}>
-          <div style={{
-            // background: 'rgba(255,255,255,0.95)',
-            padding: sidebarCollapsed ? '6px' : '6px 10px',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: sidebarCollapsed ? '44px' : '96px',
-            height: '42px',
-            overflow: 'hidden',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <img src={logoImage} alt="PamAgents" style={{ height: sidebarCollapsed ? '28px' : '30px', width: 'auto', maxWidth: sidebarCollapsed ? '32px' : '120px', objectFit: 'contain' }} />
-          </div>
-          {!sidebarCollapsed && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'space-between', gap: '12px', minHeight: '42px' }}>
+          {!sidebarCollapsed ? (
+            <>
+              <div style={{
+                padding: '6px 10px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: '96px',
+                height: '42px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                <img src={logoImage} alt="PamAgents" style={{ height: '30px', width: 'auto', maxWidth: '120px', objectFit: 'contain' }} />
+              </div>
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                onMouseEnter={() => setHoveredCollapse(true)}
+                onMouseLeave={() => setHoveredCollapse(false)}
+                title="Collapse sidebar"
+                style={{
+                  width: '34px', height: '34px', border: 'none',
+                  background: 'transparent', color: 'white',
+                  opacity: hoveredCollapse ? 1 : 0.4,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                  transition: 'opacity 0.2s ease'
+                }}
+              >
+                <ChevronLeft size={18} />
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => setSidebarCollapsed(true)}
-              title="Collapse sidebar"
+              onClick={() => setSidebarCollapsed(false)}
+              onMouseEnter={() => setHoveredExpand(true)}
+              onMouseLeave={() => setHoveredExpand(false)}
+              title="Extend sidebar"
               style={{
-                width: '34px', height: '34px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.18)',
-                background: 'rgba(255,255,255,0.06)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+                width: '44px', height: '42px', border: 'none',
+                background: 'transparent', color: 'white',
+                opacity: hoveredExpand ? 1 : 0.4,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                transition: 'opacity 0.2s ease'
               }}
             >
-              <ChevronLeft size={18} />
+              <ChevronRight size={18} />
             </button>
           )}
         </div>
-
-        {sidebarCollapsed && (
-          <button
-            onClick={() => setSidebarCollapsed(false)}
-            title="Extend sidebar"
-            style={{
-              width: '44px', height: '34px', alignSelf: 'center', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.18)',
-              background: 'rgba(255,255,255,0.06)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
-            }}
-          >
-            <ChevronRight size={18} />
-          </button>
-        )}
 
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = activeSubTab === item.key;
-            
+
             let header = null;
             if (item.key === 'map') {
               header = sidebarCollapsed ? (
@@ -1165,18 +1176,20 @@ export default function Dashboard() {
             gap: '10px',
             background: 'rgba(255,255,255,0.04)'
           }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-              gap: '8px',
-              color: 'white',
-              fontSize: '12px',
-              fontFamily: 'monospace'
-            }}>
-              <Clock size={14} color="#FFC107" />
-              {!sidebarCollapsed && <span>{timeStr}</span>}
-            </div>
+            {!sidebarCollapsed && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: '8px',
+                color: 'white',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>
+                <Clock size={14} color="#FFC107" />
+                <span>{timeStr}</span>
+              </div>
+            )}
 
             <div style={{
               display: 'flex',
@@ -1375,13 +1388,13 @@ export default function Dashboard() {
                           background: 'rgba(13, 71, 161, 0.08)',
                           animation: 'pulseScale 2s infinite ease-in-out'
                         }} />
-                        <Loader2 
-                          size={40} 
-                          color="var(--brand-primary)" 
-                          style={{ 
+                        <Loader2
+                          size={40}
+                          color="var(--brand-primary)"
+                          style={{
                             animation: 'spin 1.2s linear infinite',
                             zIndex: 2
-                          }} 
+                          }}
                         />
                       </div>
                       <h4 style={{ margin: '0 0 8px', color: 'var(--brand-dark)', fontSize: '16px', fontWeight: 700 }}>
@@ -1414,7 +1427,7 @@ export default function Dashboard() {
                           {/* Priority & Evidence Rules */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Prioritas & Aturan Bukti</label>
-                            
+
                             {isEditingPreview ? (
                               <div style={{ display: 'flex', gap: '8px' }}>
                                 {['low', 'medium', 'high'].map(p => {
@@ -1425,14 +1438,14 @@ export default function Dashboard() {
                                       key={p}
                                       onClick={() => setPreviewPriority(p)}
                                       style={{
-                                        flex: 1, 
-                                        padding: '10px 8px', 
-                                        borderRadius: '8px', 
-                                        textAlign: 'center', 
-                                        background: isSel ? color : 'white', 
-                                        border: `1.5px solid ${color}`, 
-                                        fontSize: '12.5px', 
-                                        fontWeight: 700, 
+                                        flex: 1,
+                                        padding: '10px 8px',
+                                        borderRadius: '8px',
+                                        textAlign: 'center',
+                                        background: isSel ? color : 'white',
+                                        border: `1.5px solid ${color}`,
+                                        fontSize: '12.5px',
+                                        fontWeight: 700,
                                         color: isSel ? 'white' : color,
                                         cursor: 'pointer',
                                         transition: 'all 0.2s',
@@ -1451,7 +1464,7 @@ export default function Dashboard() {
                                 </div>
                               </div>
                             )}
-                            
+
                             {isEditingPreview ? (
                               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
                                 <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
@@ -1517,7 +1530,7 @@ export default function Dashboard() {
                           {/* Time Bounds */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Durasi Waktu</label>
-                            
+
                             {isEditingPreview ? (
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                                 <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
@@ -1569,7 +1582,7 @@ export default function Dashboard() {
                           {/* Target Objects & Accuracy Threshold */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Objek & Batas Akurasi (Threshold)</label>
-                            
+
                             {isEditingPreview ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
                                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -1674,7 +1687,7 @@ export default function Dashboard() {
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             <div>
                               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Saluran Respons</label>
-                              
+
                               {isEditingPreview ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                   {previewChannels.map((ch, idx) => (
@@ -1822,7 +1835,7 @@ export default function Dashboard() {
                                 />
                               </div>
                             </div>
-                            
+
                             <div>
                               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Deskripsi Singkat</label>
                               <div style={{ position: 'relative' }}>

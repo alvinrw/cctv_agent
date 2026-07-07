@@ -264,9 +264,6 @@ export default function IncidentCenterTab() {
                   <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0, lineHeight: 1.3 }}>{selectedIncident.type}</h3>
                   <p style={{ fontSize: '12px', color: 'var(--outline)', margin: '4px 0 0' }}>Detected at {selectedIncident.detectedAt}</p>
                 </div>
-                <button onClick={() => setDrawerOpen(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--outline)', padding: '4px', borderRadius: '50%' }}>
-                  <X size={18} />
-                </button>
               </div>
             </div>
 
