@@ -95,6 +95,7 @@ export default function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hoveredCollapse, setHoveredCollapse] = useState(false);
   const [hoveredExpand, setHoveredExpand] = useState(false);
+  const [lang, setLang] = useState('id');
   const [adminSection, setAdminSection] = useState('sites');
 
   // Workload States
@@ -912,17 +913,18 @@ export default function Dashboard() {
 
   const sidebarWidth = sidebarCollapsed ? 84 : 260;
   const navItems = [
-    { key: 'overview', label: 'Utama', icon: Home, onClick: () => setActiveSubTab('overview') },
-    { key: 'map', label: 'Peta Pemantauan', icon: Map, onClick: () => { setActiveSubTab('map'); setFilterKPI('ALL'); } },
-    { key: 'live-cctv', label: 'Live Multi-CCTV', icon: Camera, onClick: () => setActiveSubTab('live-cctv') },
-    { key: 'policy-management', label: 'Policy Studio', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
-    { key: 'incident-center', label: 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
-    { key: 'analysis', label: 'Analisis', icon: BarChart3, onClick: () => setActiveSubTab('analysis') },
-    { key: 'admin', label: 'Settings', icon: Settings, onClick: () => setActiveSubTab('admin') },
-    { key: 'camera-management', label: 'Camera Management', icon: Video, onClick: () => setActiveSubTab('camera-management') }
+    { key: 'overview', label: lang === 'id' ? 'Utama' : 'Overview', icon: Home, onClick: () => setActiveSubTab('overview') },
+    { key: 'map', label: lang === 'id' ? 'Peta Pemantauan' : 'Monitoring Map', icon: Map, onClick: () => { setActiveSubTab('map'); setFilterKPI('ALL'); } },
+    { key: 'live-cctv', label: lang === 'id' ? 'Siaran Live Multi-CCTV' : 'Live Multi-CCTV', icon: Camera, onClick: () => setActiveSubTab('live-cctv') },
+    { key: 'policy-management', label: lang === 'id' ? 'Studio Policy' : 'Policy Studio', icon: Cpu, onClick: () => setActiveSubTab('policy-management') },
+    { key: 'incident-center', label: lang === 'id' ? 'Pusat Insiden' : 'Incident Center', icon: ShieldAlert, onClick: () => setActiveSubTab('incident-center') },
+    { key: 'analysis', label: lang === 'id' ? 'Analisis' : 'Analytics', icon: BarChart3, onClick: () => setActiveSubTab('analysis') },
+    { key: 'admin', label: lang === 'id' ? 'Pengaturan Sistem' : 'Settings', icon: Settings, onClick: () => setActiveSubTab('admin') },
+    { key: 'camera-management', label: lang === 'id' ? 'Manajemen Kamera' : 'Camera Management', icon: Video, onClick: () => setActiveSubTab('camera-management') }
   ];
 
   const dashboardTabProps = {
+    lang,
     sites,
     overviewFilterMode,
     setOverviewFilterMode,
@@ -1143,7 +1145,7 @@ export default function Dashboard() {
         }}>
           {/* Help Button */}
           <button
-            title={sidebarCollapsed ? 'Bantuan & FAQ' : undefined}
+            title={sidebarCollapsed ? (lang === 'id' ? 'Bantuan & FAQ' : 'Help & FAQ') : undefined}
             style={{
               background: 'transparent',
               border: 'none',
@@ -1162,8 +1164,89 @@ export default function Dashboard() {
             }}
           >
             <HelpCircle size={18} />
-            {!sidebarCollapsed && <span>Bantuan</span>}
+            {!sidebarCollapsed && <span>{lang === 'id' ? 'Bantuan' : 'Help & FAQ'}</span>}
           </button>
+
+          {/* Language Switcher Button */}
+          <div
+            title="Switch Language / Ganti Bahasa"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '10px',
+              padding: sidebarCollapsed ? '6px 4px' : '6px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: sidebarCollapsed ? 'center' : 'space-between',
+              gap: '8px',
+              minHeight: '38px',
+              width: '100%'
+            }}
+          >
+            {!sidebarCollapsed ? (
+              <>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '15px' }}>🌐</span>
+                  <span>{lang === 'id' ? 'Bahasa' : 'Language'}</span>
+                </span>
+                <div style={{ display: 'flex', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button
+                    onClick={() => setLang('id')}
+                    style={{
+                      background: lang === 'id' ? 'var(--brand-primary)' : 'transparent',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    ID
+                  </button>
+                  <button
+                    onClick={() => setLang('en')}
+                    style={{
+                      background: lang === 'en' ? 'var(--brand-primary)' : 'transparent',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    EN
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                onClick={() => setLang(prev => prev === 'id' ? 'en' : 'id')}
+                title={`Current: ${lang.toUpperCase()}. Click to switch.`}
+                style={{
+                  background: 'var(--brand-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  width: '30px',
+                  height: '26px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {lang.toUpperCase()}
+              </button>
+            )}
+          </div>
 
           {/* Profile Card */}
           <div style={{
@@ -1225,7 +1308,7 @@ export default function Dashboard() {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            title={sidebarCollapsed ? 'Keluar dari Portal' : undefined}
+            title={sidebarCollapsed ? (lang === 'id' ? 'Keluar dari Portal' : 'Logout') : undefined}
             style={{
               background: 'transparent',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -1244,7 +1327,7 @@ export default function Dashboard() {
             }}
           >
             <LogOut size={18} />
-            {!sidebarCollapsed && <span>Keluar</span>}
+            {!sidebarCollapsed && <span>{lang === 'id' ? 'Keluar' : 'Logout'}</span>}
           </button>
         </div>
       </aside>

@@ -45,7 +45,8 @@ const buildGroupRows = (policies) => policyGroups.map(group => {
 
 export default function PolicyManagementTab({
   setShowPolicyModal,
-  setActiveSubTab
+  setActiveSubTab,
+  lang = 'id'
 }) {
   const [activeMenu, setActiveMenu] = useState('policies');
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,9 +81,9 @@ export default function PolicyManagementTab({
   const isGroupView = activeMenu === 'groups';
 
   const menuItems = [
-    { key: 'policies', label: 'Policies', icon: Shield },
+    { key: 'policies', label: lang === 'id' ? 'Daftar Policy' : 'Policies', icon: Shield },
     { key: 'groups', label: 'Group Policy', icon: Layers },
-    { key: 'priority', label: 'Priority Settings', icon: Sliders }
+    { key: 'priority', label: lang === 'id' ? 'Pengaturan Prioritas' : 'Priority Settings', icon: Sliders }
   ];
 
   return (
@@ -91,8 +92,8 @@ export default function PolicyManagementTab({
         {/* Page Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Policy Studio</h2>
-            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>Configure real-time AI computer vision policies, triggers, and action workflows.</p>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>{lang === 'id' ? 'Studio Policy' : 'Policy Studio'}</h2>
+            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>{lang === 'id' ? 'Konfigurasi kebijakan (policy) computer vision AI real-time, pemicu, dan alur kerja aksi.' : 'Configure real-time AI computer vision policies, triggers, and action workflows.'}</p>
           </div>
         </div>
 
@@ -113,7 +114,7 @@ export default function PolicyManagementTab({
             flexDirection: 'column'
           }}>
             <h3 style={{ margin: '0 0 18px', color: 'var(--brand-dark)', fontSize: '15px', fontWeight: 800 }}>
-              Policy Studio
+              {lang === 'id' ? 'Studio Policy' : 'Policy Studio'}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
@@ -191,7 +192,7 @@ export default function PolicyManagementTab({
                 }}
               >
                 <Video size={16} />
-                <span>Camera Settings</span>
+                <span>{lang === 'id' ? 'Pengaturan Kamera' : 'Camera Settings'}</span>
                 <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: hoveredCctv ? 1 : 0.8, transform: hoveredCctv ? 'translateX(2px)' : 'none', transition: 'all 0.2s' }} />
               </button>
             </div>
@@ -209,7 +210,7 @@ export default function PolicyManagementTab({
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '14px', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
               <h2 style={{ margin: 0, color: 'var(--brand-dark)', fontSize: '20px', fontWeight: 800 }}>
-                {isGroupView ? `Group Policy (${groups.length})` : `Policies (${policies.length})`}
+                {isGroupView ? `Group Policy (${groups.length})` : (lang === 'id' ? `Daftar Policy (${policies.length})` : `Policies (${policies.length})`)}
               </h2>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative' }}>
@@ -217,7 +218,7 @@ export default function PolicyManagementTab({
                   <input
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    placeholder="Search"
+                    placeholder={lang === 'id' ? 'Cari...' : 'Search'}
                     style={{
                       width: '230px',
                       border: '1px solid #CBD5E1',
@@ -258,7 +259,7 @@ export default function PolicyManagementTab({
                     gap: '7px'
                   }}
                 >
-                  <Plus size={14} /> {isGroupView ? 'Create Group Policy' : 'Create Policy'}
+                  <Plus size={14} /> {isGroupView ? (lang === 'id' ? 'Tambah Group Policy' : 'Create Group Policy') : (lang === 'id' ? 'Tambah Policy' : 'Create Policy')}
                 </button>
               </div>
             </div>
@@ -284,7 +285,7 @@ export default function PolicyManagementTab({
                   </colgroup>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #E3E6EE', background: 'white' }}>
-                      {['Group Name', 'Policies', 'Policy Count', 'CCTV Attach', ''].map((head, idx) => (
+                      {(lang === 'id' ? ['Nama Group', 'Daftar Policy', 'Jumlah Policy', 'CCTV Terhubung', ''] : ['Group Name', 'Policies', 'Policy Count', 'CCTV Attach', '']).map((head, idx) => (
                         <th key={head || 'action'} style={{
                           textAlign: idx >= 2 ? 'center' : 'left',
                           padding: '12px 16px',
@@ -359,7 +360,7 @@ export default function PolicyManagementTab({
                   </colgroup>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #E3E6EE', background: 'white' }}>
-                      {['Policy Name', 'Deskripsi', 'Groups', 'CCTV Attach', ''].map((head, idx) => (
+                      {(lang === 'id' ? ['Nama Policy', 'Deskripsi', 'Daftar Group', 'CCTV Terhubung', ''] : ['Policy Name', 'Deskripsi', 'Groups', 'CCTV Attach', '']).map((head, idx) => (
                         <th key={head || 'action'} style={{
                           textAlign: idx >= 2 ? 'center' : 'left',
                           padding: '12px 16px',
@@ -456,10 +457,10 @@ export default function PolicyManagementTab({
             <div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Layers size={20} color="var(--brand-primary)" />
-                <span>Group Policy & Camera Attachment Overview</span>
+                <span>{lang === 'id' ? 'Ikhtisar Group Policy & Koneksi Kamera' : 'Group Policy & Camera Attachment Overview'}</span>
               </h3>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--outline)' }}>
-                Diagram keterikatan kamera CCTV dengan Group Policy serta aturan policy yang diterapkan.
+                {lang === 'id' ? 'Diagram keterikatan kamera CCTV dengan Group Policy serta aturan policy yang diterapkan.' : 'Diagram showing CCTV camera attachment to Group Policy and enforced safety rules.'}
               </p>
             </div>
           </div>
@@ -541,7 +542,7 @@ export default function PolicyManagementTab({
                   {/* Column 1: CCTV Attached */}
                   <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '16px', minWidth: '220px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Video size={14} /> Kamera Terpasang
+                      <Video size={14} /> {lang === 'id' ? 'Kamera Terpasang' : 'Attached Cameras'}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {(group.cam_attachment || []).length > 0 ? (
@@ -552,7 +553,7 @@ export default function PolicyManagementTab({
                           </div>
                         ))
                       ) : (
-                        <div style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', padding: '8px 0' }}>Tidak ada kamera terpasang</div>
+                        <div style={{ fontSize: '12px', color: 'var(--outline)', fontStyle: 'italic', padding: '8px 0' }}>{lang === 'id' ? 'Tidak ada kamera terpasang' : 'No cameras attached'}</div>
                       )}
                     </div>
                   </div>
@@ -568,7 +569,7 @@ export default function PolicyManagementTab({
                       <Layers size={20} />
                     </div>
                     <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--brand-dark)' }}>{group.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--outline)', marginTop: '4px' }}>Penghubung antara stream CCTV dan aturan kebijakan keamanan.</div>
+                    <div style={{ fontSize: '12px', color: 'var(--outline)', marginTop: '4px' }}>{lang === 'id' ? 'Penghubung antara stream CCTV dan aturan kebijakan keamanan.' : 'Bridge between CCTV streams and AI safety enforcement rules.'}</div>
                   </div>
 
                   {/* Arrow 2 */}
@@ -579,7 +580,7 @@ export default function PolicyManagementTab({
                   {/* Column 3: Policies Attached */}
                   <div style={{ background: 'white', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '16px', minWidth: '220px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Shield size={14} /> Rule Policy Aktif
+                      <Shield size={14} /> {lang === 'id' ? 'Rule Policy Aktif' : 'Active Policies'}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {(group.attachedPolicies || []).length > 0 ? (

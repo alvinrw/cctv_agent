@@ -79,7 +79,7 @@ const statusConfig = {
   responded: { label: 'Responded', bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' }
 };
 
-export default function IncidentCenterTab() {
+export default function IncidentCenterTab({ lang = 'id' }) {
   const [selectedIncident, setSelectedIncident] = useState(MOCK_INCIDENTS[0]);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [filterSeverity, setFilterSeverity] = useState('all');
@@ -112,8 +112,8 @@ export default function IncidentCenterTab() {
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Incident Center</h2>
-          <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>Manage, investigate, and resolve operational anomalies.</p>
+          <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>{lang === 'id' ? 'Pusat Insiden' : 'Incident Center'}</h2>
+          <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>{lang === 'id' ? 'Pantau, kelola, dan investigasi anomali operasional secara real-time.' : 'Manage, investigate, and resolve operational anomalies.'}</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button style={{
@@ -121,7 +121,7 @@ export default function IncidentCenterTab() {
             fontSize: '12px', fontWeight: 700, color: 'var(--brand-primary)', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px'
           }}>
-            <Download size={15} /> Export Log
+            <Download size={15} /> {lang === 'id' ? 'Ekspor Log' : 'Export Log'}
           </button>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function IncidentCenterTab() {
               <div style={{ position: 'relative' }}>
                 <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--outline)' }} />
                 <input
-                  type="text" placeholder="Search incidents..."
+                  type="text" placeholder={lang === 'id' ? 'Cari insiden...' : 'Search incidents...'}
                   value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                   style={{
                     paddingLeft: '32px', paddingRight: '12px', paddingTop: '7px', paddingBottom: '7px',
@@ -147,7 +147,7 @@ export default function IncidentCenterTab() {
               </div>
               <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value)}
                 style={{ padding: '7px 12px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>
-                <option value="all">All Severities</option>
+                <option value="all">{lang === 'id' ? 'Semua Tingkat' : 'All Severities'}</option>
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
@@ -155,7 +155,7 @@ export default function IncidentCenterTab() {
               </select>
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                 style={{ padding: '7px 12px', border: '1.5px solid #C3C6D4', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', background: 'white' }}>
-                <option value="all">Status: All</option>
+                <option value="all">{lang === 'id' ? 'Status: Semua' : 'Status: All'}</option>
                 <option value="detected">Detected</option>
                 <option value="pending_validation">Pending Validation</option>
                 <option value="confirmed">Confirmed</option>
@@ -170,7 +170,7 @@ export default function IncidentCenterTab() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E3E6EE', position: 'sticky', top: 0, background: 'white', zIndex: 5 }}>
-                  {['ID', 'Type & Description', 'Severity', 'Location', 'Status', 'Assignee'].map(h => (
+                  {(lang === 'id' ? ['ID', 'Tipe & Deskripsi', 'Tingkat', 'Lokasi', 'Status', 'Petugas'] : ['ID', 'Type & Description', 'Severity', 'Location', 'Status', 'Assignee']).map(h => (
                     <th key={h} style={{ padding: '12px 16px', fontSize: '10px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>

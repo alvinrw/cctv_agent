@@ -4,7 +4,7 @@ import {
   ShieldAlert, Lock, Gauge, Users, Maximize2, Sparkles, MapPin
 } from 'lucide-react';
 
-export default function AnalysisTab() {
+export default function AnalysisTab({ lang = 'id' }) {
   const [hoveredBar, setHoveredBar] = useState(null);
   const [activeBarValue, setActiveBarValue] = useState(null);
 
@@ -47,7 +47,7 @@ export default function AnalysisTab() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px' }}>
           <div>
             <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Analisis</h2>
-            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>Executive Analytics & Risk Trends</p>
+            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>{lang === 'id' ? 'Tren Risiko & Analisis Eksekutif' : 'Executive Analytics & Risk Trends'}</p>
           </div>
         </div>
 
@@ -71,13 +71,13 @@ export default function AnalysisTab() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Weekly Violations
+                {lang === 'id' ? 'Pelanggaran Mingguan' : 'Weekly Violations'}
               </span>
               <TrendingDown size={18} color="var(--outline)" />
             </div>
             <div style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
               <span style={{ fontSize: '32px', fontWeight: 700, color: 'var(--brand-dark)', lineHeight: 1 }}>142</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#16a34a', marginBottom: '3px' }}>-12% vs last week</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#16a34a', marginBottom: '3px' }}>{lang === 'id' ? '-12% vs minggu lalu' : '-12% vs last week'}</span>
             </div>
           </div>
 
@@ -94,13 +94,13 @@ export default function AnalysisTab() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Monthly Average
+                {lang === 'id' ? 'Rata-rata Bulanan' : 'Monthly Average'}
               </span>
               <Calendar size={18} color="var(--outline)" />
             </div>
             <div style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
               <span style={{ fontSize: '32px', fontWeight: 700, color: 'var(--brand-dark)', lineHeight: 1 }}>680</span>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--outline)', marginBottom: '3px' }}>Stable</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--outline)', marginBottom: '3px' }}>{lang === 'id' ? 'Stabil' : 'Stable'}</span>
             </div>
           </div>
 
@@ -128,10 +128,10 @@ export default function AnalysisTab() {
                 alignItems: 'center',
                 gap: '4px'
               }}>
-                <Sparkles size={12} /> Agent Insight
+                <Sparkles size={12} /> {lang === 'id' ? 'Wawasan AI (Agent Insight)' : 'Agent Insight'}
               </span>
               <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.5, color: 'var(--brand-dark)', fontWeight: 600 }}>
-                Zone C shows a 15% recurring spike in PPE violations during shift changes.
+                {lang === 'id' ? 'Zona C menunjukkan lonjakan berulang 15% pada pelanggaran APD selama pergantian shift.' : 'Zone C shows a 15% recurring spike in PPE violations during shift changes.'}
               </p>
             </div>
           </div>
@@ -149,13 +149,13 @@ export default function AnalysisTab() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                High Risk Events
+                {lang === 'id' ? 'Kejadian Risiko Tinggi' : 'High Risk Events'}
               </span>
               <AlertTriangle size={18} color="#ec407a" />
             </div>
             <div style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
               <span style={{ fontSize: '32px', fontWeight: 700, color: 'var(--brand-dark)', lineHeight: 1 }}>8</span>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: '#ec407a', marginBottom: '3px' }}>+2 vs last week</span>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#ec407a', marginBottom: '3px' }}>{lang === 'id' ? '+2 vs minggu lalu' : '+2 vs last week'}</span>
             </div>
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function AnalysisTab() {
           }} className="bento-col-8">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Violation Trend (30 Days)
+                {lang === 'id' ? 'Tren Pelanggaran (30 Hari)' : 'Violation Trend (30 Days)'}
               </h3>
               {hoveredBar !== null && (
                 <div style={{
@@ -269,15 +269,15 @@ export default function AnalysisTab() {
             minHeight: '380px'
           }} className="bento-col-4">
             <h3 style={{ margin: '0 0 20px', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Top Triggered Policies
+              {lang === 'id' ? 'Policy Sering Terpemicu' : 'Top Triggered Policies'}
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               {[
-                { label: 'Missing Hardhat', pct: '42%', icon: ShieldAlert, bg: 'rgba(239, 68, 68, 0.08)', color: '#ef4444' },
-                { label: 'Restricted Area Access', pct: '28%', icon: Lock, bg: 'rgba(13, 71, 161, 0.08)', color: 'var(--brand-primary)' },
-                { label: 'Vehicle Speeding', pct: '15%', icon: Gauge, bg: 'rgba(249, 115, 22, 0.08)', color: '#f97316' },
-                { label: 'Unauthorized Group', pct: '10%', icon: Users, bg: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }
+                { label: lang === 'id' ? 'Tanpa Helm Proyek' : 'Missing Hardhat', pct: '42%', icon: ShieldAlert, bg: 'rgba(239, 68, 68, 0.08)', color: '#ef4444' },
+                { label: lang === 'id' ? 'Akses Area Terlarang' : 'Restricted Area Access', pct: '28%', icon: Lock, bg: 'rgba(13, 71, 161, 0.08)', color: 'var(--brand-primary)' },
+                { label: lang === 'id' ? 'Kendaraan Ngebut' : 'Vehicle Speeding', pct: '15%', icon: Gauge, bg: 'rgba(249, 115, 22, 0.08)', color: '#f97316' },
+                { label: lang === 'id' ? 'Kerumunan Tanpa Izin' : 'Unauthorized Group', pct: '10%', icon: Users, bg: 'rgba(16, 185, 129, 0.08)', color: '#10b981' }
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -323,7 +323,7 @@ export default function AnalysisTab() {
             minHeight: '320px'
           }} className="bento-col-6">
             <h3 style={{ margin: '0 0 20px', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Most Violated Zones
+              {lang === 'id' ? 'Zona Paling Sering Melanggar' : 'Most Violated Zones'}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
@@ -366,7 +366,7 @@ export default function AnalysisTab() {
           }} className="bento-col-6">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Site Heatmap
+                {lang === 'id' ? 'Heatmap Lokasi' : 'Site Heatmap'}
               </h3>
               <Maximize2 size={16} color="var(--outline)" style={{ cursor: 'pointer' }} />
             </div>

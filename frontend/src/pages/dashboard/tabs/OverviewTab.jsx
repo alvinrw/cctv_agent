@@ -13,7 +13,8 @@ export default function OverviewTab({
   totalCCTVOffline,
   allIncidents,
   setActiveSubTab,
-  setSelectedSite
+  setSelectedSite,
+  lang = 'id'
 }) {
   const [selectedMapMarker, setSelectedMapMarker] = useState(null);
 
@@ -48,8 +49,8 @@ export default function OverviewTab({
           {/* Header Section */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Operational Overview</h2>
-              <p style={{ fontSize: '13px', color: 'var(--outline)', margin: '4px 0 0' }}>Real-time telemetry and incident tracking across active zones.</p>
+              <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>{lang === 'id' ? 'Ringkasan Operasional' : 'Operational Overview'}</h2>
+              <p style={{ fontSize: '13px', color: 'var(--outline)', margin: '4px 0 0' }}>{lang === 'id' ? 'Telemetri dan pelacakan insiden secara real-time di seluruh zona aktif.' : 'Real-time telemetry and incident tracking across active zones.'}</p>
             </div>
           </div>
 
@@ -58,7 +59,7 @@ export default function OverviewTab({
             {/* Active Cameras */}
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>Active Cameras</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>{lang === 'id' ? 'Kamera Aktif' : 'Active Cameras'}</span>
                 <span style={{ background: 'rgba(30, 73, 226, 0.08)', color: 'var(--brand-primary)', padding: '6px', borderRadius: '50%', display: 'flex' }}>
                   <Camera size={16} />
                 </span>
@@ -71,7 +72,7 @@ export default function OverviewTab({
             {/* Active Policies */}
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>Active Policies</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>{lang === 'id' ? 'Policy Aktif' : 'Active Policies'}</span>
                 <span style={{ background: 'rgba(30, 73, 226, 0.08)', color: 'var(--brand-primary)', padding: '6px', borderRadius: '50%', display: 'flex' }}>
                   <Cpu size={16} />
                 </span>
@@ -85,28 +86,28 @@ export default function OverviewTab({
             {/* Active Alerts */}
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>Active Alerts</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>{lang === 'id' ? 'Peringatan Aktif' : 'Active Alerts'}</span>
                 <span style={{ background: 'rgba(255, 196, 0, 0.1)', color: '#D97706', padding: '6px', borderRadius: '50%', display: 'flex' }}>
                   <AlertTriangle size={16} />
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
                 <span style={{ fontSize: '32px', fontWeight: 700, color: 'var(--brand-dark)', lineHeight: 1 }}>5</span>
-                <span style={badgeStyle('rgba(255, 196, 0, 0.15)', '#D97706')}>Action Req</span>
+                <span style={badgeStyle('rgba(255, 196, 0, 0.15)', '#D97706')}>{lang === 'id' ? 'Perlu Tindakan' : 'Action Req'}</span>
               </div>
             </div>
 
             {/* Open Incidents */}
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>Open Incidents</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' }}>{lang === 'id' ? 'Insiden Terbuka' : 'Open Incidents'}</span>
                 <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', padding: '6px', borderRadius: '50%', display: 'flex' }}>
                   <ShieldAlert size={16} />
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
                 <span style={{ fontSize: '32px', fontWeight: 700, color: 'var(--brand-dark)', lineHeight: 1 }}>3</span>
-                <span style={badgeStyle('rgba(239, 68, 68, 0.1)', '#EF4444')}>Critical</span>
+                <span style={badgeStyle('rgba(239, 68, 68, 0.1)', '#EF4444')}>{lang === 'id' ? 'Kritis' : 'Critical'}</span>
               </div>
             </div>
           </div>
@@ -117,7 +118,7 @@ export default function OverviewTab({
             {/* Operational Map */}
             <div style={{ ...cardStyle, boxShadow: 'none' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Operational Map: Mine Site Alpha
+                {lang === 'id' ? 'Peta Operasional: Mine Site Alpha' : 'Operational Map: Mine Site Alpha'}
               </h3>
 
               {/* Map Canvas Visualizer */}
@@ -209,13 +210,13 @@ export default function OverviewTab({
             <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', height: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Recent Alerts
+                  {lang === 'id' ? 'Peringatan Terbaru' : 'Recent Alerts'}
                 </h3>
                 <button
                   onClick={() => setActiveSubTab('incident-center')}
                   style={{ background: 'none', border: 'none', color: 'var(--brand-primary)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
                 >
-                  View All
+                  {lang === 'id' ? 'Lihat Semua' : 'View All'}
                 </button>
               </div>
               
@@ -235,7 +236,7 @@ export default function OverviewTab({
                   <span style={{ fontSize: '12px', color: 'var(--outline)' }}>Camera 12 - Crusher Zone</span>
                   <div style={{ marginTop: '4px' }}>
                     <span style={badgeStyle('rgba(255,196,0,0.1)', '#D97706')}>
-                      <Activity size={10} /> Agent Analyzing
+                      <Activity size={10} /> {lang === 'id' ? 'AI Menganalisis' : 'Agent Analyzing'}
                     </span>
                   </div>
                 </div>
@@ -289,15 +290,14 @@ export default function OverviewTab({
             {/* Incident Summary Table */}
             <div style={{ ...cardStyle, overflowX: 'auto' }}>
               <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Incident Summary
+                {lang === 'id' ? 'Ringkasan Insiden' : 'Incident Summary'}
               </h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(195,198,212,0.3)', paddingBottom: '8px' }}>
-                    <th style={{ padding: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase' }}>ID</th>
-                    <th style={{ padding: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase' }}>Type</th>
-                    <th style={{ padding: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase' }}>Location</th>
-                    <th style={{ padding: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase' }}>Status</th>
+                    {(lang === 'id' ? ['ID', 'Tipe', 'Lokasi', 'Status'] : ['ID', 'Type', 'Location', 'Status']).map(h => (
+                      <th key={h} style={{ padding: '8px', fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase' }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -318,7 +318,7 @@ export default function OverviewTab({
                           fontSize: '11px', fontWeight: 700, color: row.statusColor, background: row.statusBg,
                           padding: '3px 8px', borderRadius: '4px'
                         }}>
-                          {row.status}
+                          {lang === 'id' ? (row.status === 'Open' ? 'Terbuka' : row.status === 'Investigating' ? 'Investigasi' : 'Selesai') : row.status}
                         </span>
                       </td>
                     </tr>
@@ -330,7 +330,7 @@ export default function OverviewTab({
             {/* Analytics Charts */}
             <div style={cardStyle}>
               <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', margin: '0 0 16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Analytics Overview
+                {lang === 'id' ? 'Ringkasan Analisis' : 'Analytics Overview'}
               </h3>
               <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
                 
@@ -339,7 +339,7 @@ export default function OverviewTab({
                   flex: 1, background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0',
                   padding: '16px', display: 'flex', flexDirection: 'column', position: 'relative', justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', position: 'absolute', top: '10px', left: '10px' }}>Violation Trends</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', position: 'absolute', top: '10px', left: '10px' }}>{lang === 'id' ? 'Tren Pelanggaran' : 'Violation Trends'}</span>
                   <div style={{ display: 'flex', alignItems: 'end', gap: '6px', height: '100px', width: '100%', justifyContent: 'center', marginTop: '20px' }}>
                     <div style={{ width: '12px', height: '90px', background: 'var(--brand-primary)', opacity: 0.6, borderRadius: '3px 3px 0 0' }} />
                     <div style={{ width: '12px', height: '45px', background: 'var(--brand-secondary)', borderRadius: '3px 3px 0 0' }} />
@@ -354,7 +354,7 @@ export default function OverviewTab({
                   flex: 1, background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0',
                   padding: '16px', display: 'flex', flexDirection: 'column', position: 'relative', alignItems: 'center', justifyContent: 'center'
                 }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', position: 'absolute', top: '10px', left: '10px' }}>Incident Dist.</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', position: 'absolute', top: '10px', left: '10px' }}>{lang === 'id' ? 'Dist. Insiden' : 'Incident Dist.'}</span>
                   <div style={{
                     width: '76px', height: '76px', borderRadius: '50%',
                     border: '10px solid var(--brand-primary)', borderRightColor: 'var(--brand-secondary)', borderBottomColor: 'var(--brand-dark)',

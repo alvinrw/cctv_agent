@@ -20,7 +20,8 @@ export default function MapMonitoringTab({
   setClipProgress,
   getCctvSectorGroup,
   cctvAttributeBadgeStyle,
-  handlePlayClip
+  handlePlayClip,
+  lang = 'id'
 }) {
   return (
   <section style={{ marginTop: '32px' }}>
@@ -186,10 +187,10 @@ export default function MapMonitoringTab({
             {/* Player header */}
             <div style={{ background: 'rgba(11,29,58,0.95)', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               <span style={{ color: 'white', fontSize: '11px', fontFamily: 'monospace', fontWeight: 600 }}>
-                {isPlayingClip ? 'REC PLAYBACK MODE' : 'LIVE CCTV FEED'}
+                {isPlayingClip ? (lang === 'id' ? 'MODE PUTAR ULANG REKAMAN' : 'REC PLAYBACK MODE') : (lang === 'id' ? 'SIARAN LIVE CCTV' : 'LIVE CCTV FEED')}
               </span>
               <span style={{ color: isPlayingClip ? '#ff4d4d' : '#FFC107', fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold' }}>
-                {activeCctv ? activeCctv.name : 'NO CAMERA SELECTED'}
+                {activeCctv ? activeCctv.name : (lang === 'id' ? 'TIDAK ADA KAMERA DIPILIH' : 'NO CAMERA SELECTED')}
               </span>
             </div>
 
@@ -199,8 +200,8 @@ export default function MapMonitoringTab({
               {activeCctv && activeCctv.status === 'OFFLINE' ? (
                 <div style={{ textAlign: 'center', zIndex: 5, color: '#ff4d4d', padding: '20px' }}>
                   <WifiOff size={40} style={{ marginBottom: '10px', opacity: 0.8 }} />
-                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>CCTV DISCONNECTED</h4>
-                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Signal timeout or hardware offline.</p>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>{lang === 'id' ? 'CCTV TERPUTUS' : 'CCTV DISCONNECTED'}</h4>
+                  <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>{lang === 'id' ? 'Sinyal terputus atau perangkat offline.' : 'Signal timeout or hardware offline.'}</p>
                 </div>
               ) : (
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>

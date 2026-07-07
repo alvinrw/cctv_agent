@@ -4,7 +4,7 @@ import {
   MoreVertical, ChevronLeft, ChevronRight 
 } from 'lucide-react';
 
-export default function CameraManagementTab() {
+export default function CameraManagementTab({ lang = 'id' }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -44,8 +44,8 @@ export default function CameraManagementTab() {
           gap: '20px'
         }}>
           <div>
-            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>Camera Management</h2>
-            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>Monitor and maintain enterprise surveillance infrastructure.</p>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--brand-dark)', margin: 0 }}>{lang === 'id' ? 'Manajemen Kamera' : 'Camera Management'}</h2>
+            <p style={{ fontSize: '14px', color: 'var(--outline)', margin: '4px 0 0' }}>{lang === 'id' ? 'Pantau dan pelihara infrastruktur pengawasan video perusahaan.' : 'Monitor and maintain enterprise surveillance infrastructure.'}</p>
           </div>
 
           {/* Filters Area */}
@@ -54,7 +54,7 @@ export default function CameraManagementTab() {
               <Search size={16} color="var(--outline)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="text"
-                placeholder="Search cameras..."
+                placeholder={lang === 'id' ? 'Cari kamera...' : 'Search cameras...'}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 style={{
@@ -85,7 +85,7 @@ export default function CameraManagementTab() {
                 cursor: 'pointer'
               }}
             >
-              <option value="">All Zones</option>
+              <option value="">{lang === 'id' ? 'Semua Zona' : 'All Zones'}</option>
               <option value="Loading Area A">Loading Area A</option>
               <option value="Loading Area B">Loading Area B</option>
               <option value="Processing Plant">Processing Plant</option>
@@ -105,7 +105,7 @@ export default function CameraManagementTab() {
                 cursor: 'pointer'
               }}
             >
-              <option value="">All Statuses</option>
+              <option value="">{lang === 'id' ? 'Semua Status' : 'All Statuses'}</option>
               <option value="online">Online</option>
               <option value="offline">Offline</option>
               <option value="degraded">Degraded</option>
@@ -134,13 +134,13 @@ export default function CameraManagementTab() {
                   letterSpacing: '0.06em'
                 }}>
                   <th style={{ padding: '14px 16px', width: '80px', textAlign: 'center' }}>Stream</th>
-                  <th style={{ padding: '14px 16px' }}>Camera ID</th>
-                  <th style={{ padding: '14px 16px' }}>Name</th>
-                  <th style={{ padding: '14px 16px' }}>Zone</th>
-                  <th style={{ padding: '14px 16px' }}>Location</th>
+                  <th style={{ padding: '14px 16px' }}>{lang === 'id' ? 'ID Kamera' : 'Camera ID'}</th>
+                  <th style={{ padding: '14px 16px' }}>{lang === 'id' ? 'Nama' : 'Name'}</th>
+                  <th style={{ padding: '14px 16px' }}>{lang === 'id' ? 'Zona' : 'Zone'}</th>
+                  <th style={{ padding: '14px 16px' }}>{lang === 'id' ? 'Lokasi' : 'Location'}</th>
                   <th style={{ padding: '14px 16px' }}>Status</th>
-                  <th style={{ padding: '14px 16px' }}>Health</th>
-                  <th style={{ padding: '14px 16px', width: '80px', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '14px 16px' }}>{lang === 'id' ? 'Kondisi' : 'Health'}</th>
+                  <th style={{ padding: '14px 16px', width: '80px', textAlign: 'right' }}>{lang === 'id' ? 'Aksi' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody style={{ fontSize: '13px', color: 'var(--brand-dark)' }}>
@@ -263,7 +263,7 @@ export default function CameraManagementTab() {
                 {filteredCameras.length === 0 && (
                   <tr>
                     <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: 'var(--outline)' }}>
-                      No cameras found matching current filters.
+                      {lang === 'id' ? 'Tidak ada kamera yang cocok dengan filter saat ini.' : 'No cameras found matching current filters.'}
                     </td>
                   </tr>
                 )}
@@ -282,7 +282,7 @@ export default function CameraManagementTab() {
             fontSize: '13px',
             color: 'var(--outline)'
           }}>
-            <span>Showing {filteredCameras.length} of {cameras.length} entries</span>
+            <span>{lang === 'id' ? `Menampilkan ${filteredCameras.length} dari ${cameras.length} entri` : `Showing ${filteredCameras.length} of ${cameras.length} entries`}</span>
             
             <div style={{ display: 'flex', gap: '4px' }}>
               <button 
