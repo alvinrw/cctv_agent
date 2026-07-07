@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Share2, AlertTriangle, CheckCircle, Download, Maximize2, Play, Volume2, Settings, ZoomIn, ImagePlus, Lightbulb, Clock, Shield, Camera, MapPin, Cpu, Info, Send, XCircle } from 'lucide-react';
+import { ArrowLeft, Share2, AlertTriangle, CheckCircle, Download, Maximize2, Play, Volume2, Settings, ZoomIn, ImagePlus, Clock, Shield, Camera, MapPin, Cpu, Info, Send, XCircle, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import screenshot1 from '../../../assets/screenshot_example_1.png';
 import screenshot2 from '../../../assets/screenshot_example_2.png';
 import screenshot3 from '../../../assets/screenshot_example_3.png';
@@ -27,6 +27,31 @@ export default function IncidentDetailView({ incident, onBack }) {
     telegram: true,
     email: false
   });
+  const [supervisorQuestion, setSupervisorQuestion] = useState('');
+  const [chatMessages, setChatMessages] = useState(() => ([
+    {
+      role: 'ai',
+      time: '10:44 AM',
+      text: `AI Co-Investigator online untuk insiden ${incident.id}. Saya bisa bantu gali konteks, risiko, dan langkah tindak lanjut.`
+    },
+    {
+      role: 'supervisor',
+      time: '10:45 AM',
+      text: 'Apa risiko utama kalau unit tetap bergerak di area ini?'
+    },
+    {
+      role: 'ai',
+      time: '10:45 AM',
+      text: 'Risiko utama adalah eskalasi ke zona kritis di sekitar gate. Rekomendasi: tahan pergerakan, verifikasi visual, dan kirim patroli ke perimeter.'
+    }
+  ]));
+  const quickQuestions = [
+    'Apa penyebab paling mungkin dari insiden ini?',
+    'Apa tindakan prioritas untuk supervisor?',
+    'Apakah area ini perlu lockdown sementara?',
+    'Ringkas kronologi insiden dalam 3 poin.'
+  ];
+  const [showIncidentTimeline, setShowIncidentTimeline] = useState(true);
 
   const sev = severityConfig[incident.severity] || severityConfig.low;
   const stat = statusConfig[incident.status] || statusConfig.open;
@@ -38,6 +63,24 @@ export default function IncidentDetailView({ incident, onBack }) {
 
   const labelStyle = { fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--outline)' };
   const valueStyle = { fontSize: '14px', fontWeight: 500, color: 'var(--brand-dark)' };
+
+  const handleSendQuestion = (questionText) => {
+    const text = (questionText ?? supervisorQuestion).trim();
+
+    if (!text) return;
+
+    setChatMessages(prev => [
+      ...prev,
+      { role: 'supervisor', time: '10:46 AM', text },
+      {
+        role: 'ai',
+        time: '10:46 AM',
+        text: 'Analisis sementara: fokus pada verifikasi visual, cek area sekitar gate, dan koordinasikan patroli. Jika Anda mau, saya bisa bantu susun instruksi singkat untuk tim lapangan.'
+      }
+    ]);
+
+    if (!questionText) setSupervisorQuestion('');
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F9FC' }}>
@@ -71,7 +114,7 @@ export default function IncidentDetailView({ incident, onBack }) {
             padding: '8px 16px', borderRadius: '8px', border: '1.5px solid #C3C6D4',
             background: 'white', cursor: 'pointer', fontSize: '12px', fontWeight: 700,
             color: 'var(--brand-dark)', display: 'flex', alignItems: 'center', gap: '6px'
-          }}>
+          }} onClick={onBack}>
             <XCircle size={15} /> False Alarm
           </button>
           <button style={{
@@ -79,7 +122,7 @@ export default function IncidentDetailView({ incident, onBack }) {
             background: 'var(--brand-primary)', cursor: 'pointer', fontSize: '12px', fontWeight: 700,
             color: 'white', display: 'flex', alignItems: 'center', gap: '6px',
             boxShadow: '0 2px 8px rgba(13,71,161,0.25)'
-          }}>
+          }} onClick={onBack}>
             <Send size={15} /> Send
           </button>
         </div>
@@ -175,6 +218,65 @@ export default function IncidentDetailView({ incident, onBack }) {
                 </div>
               </div>
             </div>
+
+            {/* Incident Timeline */}
+            <div style={{ borderTop: '1px solid rgba(195,198,212,0.2)', background: '#FBFCFE' }}>
+              <button
+                type="button"
+                onClick={() => setShowIncidentTimeline(prev => !prev)}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '12px',
+                  color: 'var(--brand-dark)',
+                  fontSize: '13px',
+                  fontWeight: 700
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={16} /> Incident Timestamp
+                </span>
+                {showIncidentTimeline ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {showIncidentTimeline && (
+                <div style={{ padding: '0 20px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {(incident.timeline || []).map((entry, index) => (
+                    <div
+                      key={`${entry.time}-${index}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '10px',
+                        padding: '10px 12px',
+                        borderRadius: '10px',
+                        background: entry.primary ? 'rgba(13,71,161,0.06)' : 'white',
+                        border: '1px solid rgba(195,198,212,0.18)'
+                      }}
+                    >
+                      <div style={{
+                        minWidth: '54px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: entry.primary ? 'var(--brand-primary)' : 'var(--outline)',
+                        fontFamily: 'monospace'
+                      }}>
+                        {entry.time}
+                      </div>
+                      <div style={{ flex: 1, fontSize: '12px', color: 'var(--brand-dark)', lineHeight: 1.45 }}>
+                        {entry.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Response Form */}
@@ -186,7 +288,7 @@ export default function IncidentDetailView({ incident, onBack }) {
             }}>
               <Send size={18} /> Response
             </h3>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -277,18 +379,101 @@ export default function IncidentDetailView({ incident, onBack }) {
               ))}
             </div>
 
-            {/* Agent Insight */}
-            <div style={{
-              marginTop: '4px', padding: '12px 14px', borderRadius: '10px',
-              background: 'rgba(214,227,255,0.3)', borderLeft: '4px solid #FABD00',
-              display: 'flex', gap: '10px', alignItems: 'flex-start',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+          </section>
+
+          {/* Supervisor AI Chat */}
+          <section style={{ ...cardStyle, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{
+              fontSize: '16px', fontWeight: 600, color: 'var(--brand-dark)', margin: 0,
+              paddingBottom: '10px', borderBottom: '1px solid rgba(195,198,212,0.2)',
+              display: 'flex', alignItems: 'center', gap: '8px'
             }}>
-              <Lightbulb size={18} color="var(--brand-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', margin: '0 0 4px', letterSpacing: '0.03em' }}>Agent Insight</p>
-                <p style={{ fontSize: '12px', color: 'var(--outline)', margin: 0, lineHeight: 1.5 }}>{incident.aiSummary}</p>
-              </div>
+              <MessageSquare size={18} /> AI Co-Investigator
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '260px', overflowY: 'auto', paddingRight: '4px' }}>
+              {chatMessages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}`}
+                  style={{
+                    alignSelf: message.role === 'supervisor' ? 'flex-end' : 'flex-start',
+                    maxWidth: '86%',
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    background: message.role === 'supervisor' ? 'var(--brand-primary)' : '#F2F4F7',
+                    color: message.role === 'supervisor' ? 'white' : 'var(--brand-dark)',
+                    fontSize: '13px',
+                    lineHeight: 1.45,
+                    boxShadow: message.role === 'supervisor' ? '0 4px 14px rgba(13,71,161,0.15)' : 'none'
+                  }}
+                >
+                  <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', opacity: 0.75, marginBottom: '4px', display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+                    <span>{message.role === 'supervisor' ? 'Supervisor' : 'AI Co-Investigator'}</span>
+                    {message.time ? <span>{message.time}</span> : null}
+                  </div>
+                  {message.text}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {quickQuestions.map(question => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => handleSendQuestion(question)}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '999px',
+                    border: '1px solid #D6D9E3',
+                    background: 'white',
+                    color: 'var(--brand-dark)',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+              <textarea
+                value={supervisorQuestion}
+                onChange={e => setSupervisorQuestion(e.target.value)}
+                rows={3}
+                placeholder="Tulis pertanyaan untuk AI tentang insiden ini..."
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  border: '1.5px solid #C3C6D4',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  resize: 'vertical',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => handleSendQuestion()}
+                style={{
+                  padding: '11px 14px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: 'var(--brand-primary)',
+                  color: 'white',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(13,71,161,0.2)'
+                }}
+                title="Kirim pertanyaan"
+              >
+                <Send size={16} />
+              </button>
             </div>
           </section>
 
