@@ -117,14 +117,21 @@ export default function PolicyManagementTab({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
               {menuItems.map(item => {
                 const Icon = item.icon;
-                const isActive = activeMenu === item.key;
-                const isHovered = hoveredMenu === item.key;
+                const isDisabled = item.key === 'priority';
+                const isActive = activeMenu === item.key && !isDisabled;
+                const isHovered = hoveredMenu === item.key && !isDisabled;
                 
                 return (
                   <button
                     key={item.key}
-                    onClick={() => setActiveMenu(item.key)}
-                    onMouseEnter={() => setHoveredMenu(item.key)}
+                    onClick={() => {
+                      if (isDisabled) return;
+                      setActiveMenu(item.key);
+                    }}
+                    onMouseEnter={() => {
+                      if (isDisabled) return;
+                      setHoveredMenu(item.key);
+                    }}
                     onMouseLeave={() => setHoveredMenu(null)}
                     style={{
                       textAlign: 'left',
@@ -139,7 +146,8 @@ export default function PolicyManagementTab({
                       padding: '12px 14px',
                       fontSize: '13px',
                       fontWeight: isActive ? 700 : 600,
-                      cursor: 'pointer',
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      opacity: isDisabled ? 0.5 : 1,
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',
@@ -152,9 +160,6 @@ export default function PolicyManagementTab({
                   </button>
                 );
               })}
-              
-              {/* Divider line before external settings redirect */}
-              <div style={{ height: '1px', background: '#E2E8F0', margin: '12px 0' }} />
               
               <button
                 onClick={() => {

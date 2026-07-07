@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Camera, LogOut, Map, Trash2, Clock,
   Home, Cpu, Edit, Settings, ChevronLeft, ChevronRight, ShieldAlert,
-  HelpCircle, BarChart3, Video, Loader2, Tag, FileText, Sparkles, Eye, Shield
+  HelpCircle, BarChart3, Video, Loader2, Tag, FileText, Sparkles, Eye, Shield, Check
 } from 'lucide-react';
 import logoImage from '../assets/logo.png';
 import initialSites from './dashboard/data/initialSites.json';
@@ -111,6 +111,21 @@ export default function Dashboard() {
   const [skillCode, setSkillCode] = useState('');
   const [skillDesc, setSkillDesc] = useState('');
   const [skillGuidelines, setSkillGuidelines] = useState('');
+  const [previewPriority, setPreviewPriority] = useState('low');
+  const [previewPreAlarm, setPreviewPreAlarm] = useState(5);
+  const [previewPostAlarm, setPreviewPostAlarm] = useState(5);
+  const [previewRetention, setPreviewRetention] = useState('7 Hari');
+  const [previewEvidenceType, setPreviewEvidenceType] = useState('Snapshot Tunggal');
+  const [previewHumanInLoop, setPreviewHumanInLoop] = useState(true);
+  const [previewTargetObjects, setPreviewTargetObjects] = useState(['person']);
+  const [previewThreshold, setPreviewThreshold] = useState(60);
+  const [previewChannels, setPreviewChannels] = useState([
+    { label: 'Telegram', active: false },
+    { label: 'Email', active: true },
+    { label: 'HT OCC Gateway', active: false },
+    { label: 'Dashboard Alert', active: true }
+  ]);
+  const [isEditingPreview, setIsEditingPreview] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
@@ -361,6 +376,91 @@ export default function Dashboard() {
     }));
   };
 
+  const handlePreviewClick = () => {
+    // Reset edit mode on preview load
+    setIsEditingPreview(false);
+
+    // Evaluate AI parsed parameters from form fields
+    const text = ((skillDesc || '') + ' ' + (skillGuidelines || '') + ' ' + (skillCode || '')).toLowerCase();
+    
+    let priority = 'low';
+    if (text.includes('bahaya') || text.includes('fatal') || text.includes('no_human') || text.includes('terlarang') || text.includes('blasting') || text.includes('kecelakaan') || text.includes('critical') || text.includes('kritis')) {
+      priority = 'high';
+    } else if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe') || text.includes('tidak memakai') || text.includes('unsafe') || text.includes('k3') || text.includes('safety')) {
+      priority = 'medium';
+    }
+
+    let preAlarmVal = 5;
+    let postAlarmVal = 5;
+    let evidenceText = 'Snapshot Tunggal';
+    let retentionText = '7 Hari';
+    let thresholdVal = 60;
+    let initialChannels = [
+      { label: 'Telegram', active: false },
+      { label: 'Email', active: true },
+      { label: 'HT OCC Gateway', active: false },
+      { label: 'Dashboard Alert', active: true }
+    ];
+
+    if (priority === 'high') {
+      preAlarmVal = 3;
+      postAlarmVal = 15;
+      evidenceText = 'Video Clip (1 Menit)';
+      retentionText = 'Permanen (Anti-tamper)';
+      thresholdVal = 70;
+      initialChannels = [
+        { label: 'Telegram', active: true },
+        { label: 'Email', active: true },
+        { label: 'HT OCC Gateway', active: true },
+        { label: 'Dashboard Alert', active: true }
+      ];
+    } else if (priority === 'medium') {
+      preAlarmVal = 5;
+      postAlarmVal = 10;
+      evidenceText = 'Snapshot Burst (5 Foto)';
+      retentionText = '14 Hari';
+      thresholdVal = 65;
+      initialChannels = [
+        { label: 'Telegram', active: true },
+        { label: 'Email', active: true },
+        { label: 'HT OCC Gateway', active: false },
+        { label: 'Dashboard Alert', active: true }
+      ];
+    }
+
+    let targetObjs = ['person'];
+    if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe')) {
+      const objs = ['person'];
+      if (text.includes('helm')) objs.push('helmet');
+      if (text.includes('rompi') || text.includes('vest')) objs.push('safety_vest');
+      if (text.includes('sepatu') || text.includes('shoes')) objs.push('safety_shoes');
+      targetObjs = objs;
+    } else if (text.includes('truck') || text.includes('truk') || text.includes('mobil') || text.includes('excavator') || text.includes('heavy') || text.includes('alat berat')) {
+      const objs = [];
+      if (text.includes('truk') || text.includes('truck')) objs.push('dump_truck');
+      if (text.includes('excavator')) objs.push('excavator');
+      if (text.includes('mobil') || text.includes('car')) objs.push('light_vehicle');
+      if (objs.length === 0) objs.push('heavy_equipment');
+      targetObjs = objs;
+    }
+
+    setPreviewPriority(priority);
+    setPreviewPreAlarm(preAlarmVal);
+    setPreviewPostAlarm(postAlarmVal);
+    setPreviewRetention(retentionText);
+    setPreviewEvidenceType(evidenceText);
+    setPreviewHumanInLoop(true);
+    setPreviewTargetObjects(targetObjs);
+    setPreviewThreshold(thresholdVal);
+    setPreviewChannels(initialChannels);
+
+    setShowRulePreview(true);
+    setIsPreviewLoading(true);
+    setTimeout(() => {
+      setIsPreviewLoading(false);
+    }, 2000);
+  };
+
   // Group Policy Manager Action Handlers
   const handleSaveSkillToGroup = (groupId) => {
     if (!skillCode.trim()) {
@@ -381,7 +481,21 @@ export default function Dashboard() {
           // Edit existing skill in this group
           const updated = currentSkills.map(sk =>
             sk.id === editingSkillId
-              ? { ...sk, code: sanitizedCode, description: skillDesc.trim(), guidelines: skillGuidelines.trim() }
+              ? { 
+                  ...sk, 
+                  code: sanitizedCode, 
+                  description: skillDesc.trim(), 
+                  guidelines: skillGuidelines.trim(),
+                  priority: previewPriority,
+                  preAlarm: previewPreAlarm,
+                  postAlarm: previewPostAlarm,
+                  retention: previewRetention,
+                  evidenceType: previewEvidenceType,
+                  humanInLoop: previewHumanInLoop,
+                  targetObjects: previewTargetObjects,
+                  threshold: previewThreshold,
+                  channels: previewChannels
+                }
               : sk
           );
           return { ...group, skills: updated };
@@ -391,7 +505,16 @@ export default function Dashboard() {
             id: 'skill-' + Date.now(),
             code: sanitizedCode,
             description: skillDesc.trim(),
-            guidelines: skillGuidelines.trim()
+            guidelines: skillGuidelines.trim(),
+            priority: previewPriority,
+            preAlarm: previewPreAlarm,
+            postAlarm: previewPostAlarm,
+            retention: previewRetention,
+            evidenceType: previewEvidenceType,
+            humanInLoop: previewHumanInLoop,
+            targetObjects: previewTargetObjects,
+            threshold: previewThreshold,
+            channels: previewChannels
           };
           return { ...group, skills: [...currentSkills, newSkill] };
         }
@@ -410,6 +533,20 @@ export default function Dashboard() {
     setSkillCode(skill.code);
     setSkillDesc(skill.description);
     setSkillGuidelines(skill.guidelines || '');
+    setPreviewPriority(skill.priority || 'low');
+    setPreviewPreAlarm(skill.preAlarm || 5);
+    setPreviewPostAlarm(skill.postAlarm || 5);
+    setPreviewRetention(skill.retention || '7 Hari');
+    setPreviewEvidenceType(skill.evidenceType || 'Snapshot Tunggal');
+    setPreviewHumanInLoop(skill.humanInLoop !== undefined ? skill.humanInLoop : true);
+    setPreviewTargetObjects(skill.targetObjects || ['person']);
+    setPreviewThreshold(skill.threshold || 60);
+    setPreviewChannels(skill.channels || [
+      { label: 'Telegram', active: false },
+      { label: 'Email', active: true },
+      { label: 'HT OCC Gateway', active: false },
+      { label: 'Dashboard Alert', active: true }
+    ]);
   };
 
   const handleDeleteSkillFromGroup = (groupId, skillId) => {
@@ -1257,87 +1394,17 @@ export default function Dashboard() {
                   ) : (
                     /* ===== PREVIEW VIEW ===== */
                     (() => {
-                      const text = ((skillDesc || '') + ' ' + (skillGuidelines || '') + ' ' + (skillCode || '')).toLowerCase();
-                      
-                      // Priority evaluation
-                      let priority = 'low';
-                      if (text.includes('bahaya') || text.includes('fatal') || text.includes('no_human') || text.includes('terlarang') || text.includes('blasting') || text.includes('kecelakaan') || text.includes('critical') || text.includes('kritis')) {
-                        priority = 'high';
-                      } else if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe') || text.includes('tidak memakai') || text.includes('unsafe') || text.includes('k3') || text.includes('safety')) {
-                        priority = 'medium';
-                      }
-
-                      // Dynamic variables based on priority
-                      let priorityLabel = 'Low';
-                      let priorityColor = '#10B981'; // Green
-                      let preAlarm = '5';
-                      let postAlarm = '5';
-                      let evidenceText = 'Snapshot Tunggal';
-                      let retentionText = '7 Hari';
-                      let thresholdVal = 0.60;
-                      let channels = [
-                        { label: 'Telegram', active: false },
-                        { label: 'Email', active: true },
-                        { label: 'HT OCC Gateway', active: false },
-                        { label: 'Dashboard Alert', active: true }
-                      ];
-
-                      if (priority === 'high') {
-                        priorityLabel = 'High';
-                        priorityColor = '#EF4444'; // Red
-                        preAlarm = '3';
-                        postAlarm = '15';
-                        evidenceText = 'Video Clip (1 Menit)';
-                        retentionText = 'Permanen (Anti-tamper)';
-                        thresholdVal = 0.70;
-                        channels = [
-                          { label: 'Telegram', active: true },
-                          { label: 'Email', active: true },
-                          { label: 'HT OCC Gateway', active: true },
-                          { label: 'Dashboard Alert', active: true }
-                        ];
-                      } else if (priority === 'medium') {
-                        priorityLabel = 'Medium';
-                        priorityColor = '#F59E0B'; // Orange/Yellow
-                        preAlarm = '5';
-                        postAlarm = '10';
-                        evidenceText = 'Snapshot Burst (5 Foto)';
-                        retentionText = '14 Hari';
-                        thresholdVal = 0.65;
-                        channels = [
-                          { label: 'Telegram', active: true },
-                          { label: 'Email', active: true },
-                          { label: 'HT OCC Gateway', active: false },
-                          { label: 'Dashboard Alert', active: true }
-                        ];
-                      }
-
-                      // Target Objects extraction
-                      let targetObjects = ['person'];
-                      if (text.includes('helm') || text.includes('sepatu') || text.includes('rompi') || text.includes('apd') || text.includes('ppe')) {
-                        const objs = ['person'];
-                        if (text.includes('helm')) objs.push('helmet');
-                        if (text.includes('rompi') || text.includes('vest')) objs.push('safety_vest');
-                        if (text.includes('sepatu') || text.includes('shoes')) objs.push('safety_shoes');
-                        targetObjects = objs;
-                      } else if (text.includes('truck') || text.includes('truk') || text.includes('mobil') || text.includes('excavator') || text.includes('heavy') || text.includes('alat berat')) {
-                        const objs = [];
-                        if (text.includes('truck') || text.includes('truk')) objs.push('dump_truck');
-                        if (text.includes('excavator')) objs.push('excavator');
-                        if (text.includes('mobil') || text.includes('car')) objs.push('light_vehicle');
-                        if (objs.length === 0) objs.push('heavy_equipment');
-                        targetObjects = objs;
-                      }
+                      const priorityColor = previewPriority === 'high' ? '#EF4444' : (previewPriority === 'medium' ? '#F59E0B' : '#10B981');
 
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                           {/* Preview rule identity */}
-                          <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '12px', padding: '16px 20px' }}>
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '16px 20px' }}>
                             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '4px' }}>Rule yang dikonfigurasi</div>
                             <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--brand-dark)' }}>{skillDesc || 'Titik ini ga boleh ada manusia (Bahaya)'}</div>
                             <div style={{ fontSize: '11px', color: 'var(--outline)', fontFamily: 'monospace', marginTop: '2px' }}>{skillCode ? skillCode.toLowerCase().replace(/[^a-z0-9_]/g, '_') : 'no_human_zone'}</div>
                             {skillGuidelines && (
-                              <div style={{ marginTop: '12px', borderTop: '1px dashed #E3E6EE', paddingTop: '10px' }}>
+                              <div style={{ marginTop: '12px', borderTop: '1px dashed #E2E8F0', paddingTop: '10px' }}>
                                 <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--outline)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Prompt Agent (Petunjuk Deteksi)</div>
                                 <div style={{ fontSize: '12.5px', color: 'var(--brand-dark)', fontStyle: 'italic', lineHeight: 1.4 }}>"{skillGuidelines}"</div>
                               </div>
@@ -1347,26 +1414,101 @@ export default function Dashboard() {
                           {/* Priority & Evidence Rules */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Prioritas & Aturan Bukti</label>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <div style={{ flex: 1, padding: '10px 8px', borderRadius: '8px', textAlign: 'center', background: priorityColor, border: `1.5px solid ${priorityColor}`, fontSize: '12.5px', fontWeight: 700, color: 'white' }}>
-                                {priorityLabel} Priority
-                              </div>
-                            </div>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
-                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
-                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Masa Simpan Bukti</div>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{retentionText}</div>
+                            {isEditingPreview ? (
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                {['low', 'medium', 'high'].map(p => {
+                                  const isSel = previewPriority === p;
+                                  const color = p === 'high' ? '#EF4444' : (p === 'medium' ? '#F59E0B' : '#10B981');
+                                  return (
+                                    <button
+                                      key={p}
+                                      onClick={() => setPreviewPriority(p)}
+                                      style={{
+                                        flex: 1, 
+                                        padding: '10px 8px', 
+                                        borderRadius: '8px', 
+                                        textAlign: 'center', 
+                                        background: isSel ? color : 'white', 
+                                        border: `1.5px solid ${color}`, 
+                                        fontSize: '12.5px', 
+                                        fontWeight: 700, 
+                                        color: isSel ? 'white' : color,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        textTransform: 'capitalize'
+                                      }}
+                                    >
+                                      {p} Priority
+                                    </button>
+                                  );
+                                })}
                               </div>
-                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
-                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Tipe Bukti (Evidence)</div>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{evidenceText}</div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <div style={{ flex: 1, padding: '10px 8px', borderRadius: '8px', textAlign: 'center', background: priorityColor, border: `1.5px solid ${priorityColor}`, fontSize: '12.5px', fontWeight: 700, color: 'white', textTransform: 'capitalize' }}>
+                                  {previewPriority} Priority
+                                </div>
                               </div>
-                              <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
-                                <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Human-in-the-Loop</div>
-                                <div style={{ fontSize: '12px', fontWeight: 700, color: '#10B981', marginTop: '2px' }}>Wajib Validasi</div>
+                            )}
+                            
+                            {isEditingPreview ? (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Masa Simpan Bukti</div>
+                                  <select
+                                    value={previewRetention}
+                                    onChange={e => setPreviewRetention(e.target.value)}
+                                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px', cursor: 'pointer' }}
+                                  >
+                                    <option value="7 Hari">7 Hari</option>
+                                    <option value="14 Hari">14 Hari</option>
+                                    <option value="30 Hari">30 Hari</option>
+                                    <option value="Permanen (Anti-tamper)">Permanen</option>
+                                  </select>
+                                </div>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Tipe Bukti (Evidence)</div>
+                                  <select
+                                    value={previewEvidenceType}
+                                    onChange={e => setPreviewEvidenceType(e.target.value)}
+                                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px', cursor: 'pointer' }}
+                                  >
+                                    <option value="Snapshot Tunggal">Snapshot</option>
+                                    <option value="Snapshot Burst (5 Foto)">Burst</option>
+                                    <option value="Video Clip (1 Menit)">Video Clip</option>
+                                  </select>
+                                </div>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Human-in-the-Loop</div>
+                                  <select
+                                    value={previewHumanInLoop ? 'wajib' : 'tidak'}
+                                    onChange={e => setPreviewHumanInLoop(e.target.value === 'wajib')}
+                                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: '12px', fontWeight: 700, color: '#10B981', marginTop: '2px', cursor: 'pointer' }}
+                                  >
+                                    <option value="wajib">Wajib</option>
+                                    <option value="tidak">Tidak</option>
+                                  </select>
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', marginTop: '10px' }}>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Masa Simpan Bukti</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{previewRetention}</div>
+                                </div>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Tipe Bukti (Evidence)</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--brand-dark)', marginTop: '2px' }}>{previewEvidenceType}</div>
+                                </div>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', padding: '10px 12px' }}>
+                                  <div style={{ fontSize: '10px', color: 'var(--outline)', fontWeight: 600 }}>Human-in-the-Loop</div>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: previewHumanInLoop ? '#10B981' : 'var(--outline)', marginTop: '2px' }}>
+                                    {previewHumanInLoop ? 'Wajib Validasi' : 'Tidak Wajib'}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>Direkomendasikan secara otomatis berdasarkan klasifikasi safety K3 PAMA.</p>
                           </div>
 
@@ -1375,21 +1517,51 @@ export default function Dashboard() {
                           {/* Time Bounds */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Durasi Waktu</label>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                              {[
-                                { label: 'Sebelum Alarm', value: preAlarm, sub: 'Detik sebelum notifikasi dikirim' },
-                                { label: 'Setelah Alarm', value: postAlarm, sub: 'Detik hold-time setelah event' }
-                              ].map(t => (
-                                <div key={t.label} style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
-                                  <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>{t.label}</div>
-                                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                                    <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--brand-dark)', fontFamily: 'monospace', lineHeight: 1 }}>{t.value}</span>
+                            
+                            {isEditingPreview ? (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>Sebelum Alarm</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                      type="number"
+                                      value={previewPreAlarm}
+                                      onChange={e => setPreviewPreAlarm(Number(e.target.value))}
+                                      style={{ width: '80px', padding: '6px', fontSize: '20px', fontWeight: 800, border: '1px solid #E2E8F0', borderRadius: '6px', outline: 'none', background: 'white', textAlign: 'center' }}
+                                    />
                                     <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
                                   </div>
-                                  <div style={{ fontSize: '10.5px', color: 'var(--outline)', marginTop: '4px' }}>{t.sub}</div>
                                 </div>
-                              ))}
-                            </div>
+                                <div style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
+                                  <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>Setelah Alarm</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                      type="number"
+                                      value={previewPostAlarm}
+                                      onChange={e => setPreviewPostAlarm(Number(e.target.value))}
+                                      style={{ width: '80px', padding: '6px', fontSize: '20px', fontWeight: 800, border: '1px solid #E2E8F0', borderRadius: '6px', outline: 'none', background: 'white', textAlign: 'center' }}
+                                    />
+                                    <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                {[
+                                  { label: 'Sebelum Alarm', value: previewPreAlarm, sub: 'Detik sebelum notifikasi dikirim' },
+                                  { label: 'Setelah Alarm', value: previewPostAlarm, sub: 'Detik hold-time setelah event' }
+                                ].map(t => (
+                                  <div key={t.label} style={{ background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
+                                    <div style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600, marginBottom: '6px' }}>{t.label}</div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                                      <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--brand-dark)', fontFamily: 'monospace', lineHeight: 1 }}>{t.value}</span>
+                                      <span style={{ fontSize: '12px', color: 'var(--outline)', fontWeight: 600 }}>detik</span>
+                                    </div>
+                                    <div style={{ fontSize: '10.5px', color: 'var(--outline)', marginTop: '4px' }}>{t.sub}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
 
                           <div style={{ borderTop: '1px solid #F0F2F7' }} />
@@ -1397,39 +1569,100 @@ export default function Dashboard() {
                           {/* Target Objects & Accuracy Threshold */}
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Objek & Batas Akurasi (Threshold)</label>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px', gap: '20px', flexWrap: 'wrap' }}>
-                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                                {targetObjects.map(obj => (
-                                  <span key={obj} style={{
-                                    background: 'rgba(13, 71, 161, 0.06)',
-                                    border: '1px solid rgba(13, 71, 161, 0.15)',
+                            
+                            {isEditingPreview ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px' }}>
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                  {['person', 'helmet', 'safety_vest', 'safety_shoes', 'dump_truck', 'excavator', 'light_vehicle', 'heavy_equipment'].map(obj => {
+                                    const isAct = previewTargetObjects.includes(obj);
+                                    return (
+                                      <button
+                                        key={obj}
+                                        onClick={() => {
+                                          if (isAct) {
+                                            setPreviewTargetObjects(prev => prev.filter(o => o !== obj));
+                                          } else {
+                                            setPreviewTargetObjects(prev => [...prev, obj]);
+                                          }
+                                        }}
+                                        style={{
+                                          background: isAct ? 'rgba(13, 71, 161, 0.08)' : 'white',
+                                          border: `1.5px solid ${isAct ? 'var(--brand-primary)' : '#E2E8F0'}`,
+                                          borderRadius: '6px',
+                                          padding: '6px 12px',
+                                          fontSize: '11px',
+                                          fontWeight: 600,
+                                          color: isAct ? 'var(--brand-primary)' : '#64748B',
+                                          fontFamily: 'monospace',
+                                          cursor: 'pointer',
+                                          transition: 'all 0.15s'
+                                        }}
+                                      >
+                                        {obj}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px dashed #E2E8F0', paddingTop: '10px' }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600 }}>Confidence Threshold:</span>
+                                  <input
+                                    type="range"
+                                    min="30"
+                                    max="95"
+                                    step="5"
+                                    value={previewThreshold}
+                                    onChange={e => setPreviewThreshold(Number(e.target.value))}
+                                    style={{ flex: 1, cursor: 'pointer', accentColor: 'var(--brand-primary)' }}
+                                  />
+                                  <span style={{
+                                    background: 'white',
+                                    border: '1.5px solid #E3E6EE',
                                     borderRadius: '6px',
-                                    padding: '4px 10px',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
-                                    color: 'var(--brand-primary)',
+                                    padding: '4px 8px',
+                                    fontSize: '12.5px',
+                                    fontWeight: 700,
+                                    color: 'var(--brand-dark)',
                                     fontFamily: 'monospace'
                                   }}>
-                                    {obj}
+                                    {previewThreshold}%
                                   </span>
-                                ))}
+                                </div>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                                <span style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600 }}>Confidence Threshold:</span>
-                                <span style={{
-                                  background: 'white',
-                                  border: '1.5px solid #E3E6EE',
-                                  borderRadius: '6px',
-                                  padding: '4px 8px',
-                                  fontSize: '12.5px',
-                                  fontWeight: 700,
-                                  color: 'var(--brand-dark)',
-                                  fontFamily: 'monospace'
-                                }}>
-                                  {(thresholdVal * 100).toFixed(0)}%
-                                </span>
+                            ) : (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '10px', padding: '14px 16px', gap: '20px', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                  {previewTargetObjects.map(obj => (
+                                    <span key={obj} style={{
+                                      background: 'rgba(13, 71, 161, 0.06)',
+                                      border: '1px solid rgba(13, 71, 161, 0.15)',
+                                      borderRadius: '6px',
+                                      padding: '4px 10px',
+                                      fontSize: '11px',
+                                      fontWeight: 600,
+                                      color: 'var(--brand-primary)',
+                                      fontFamily: 'monospace'
+                                    }}>
+                                      {obj}
+                                    </span>
+                                  ))}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--outline)', fontWeight: 600 }}>Confidence Threshold:</span>
+                                  <span style={{
+                                    background: 'white',
+                                    border: '1.5px solid #E3E6EE',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    fontSize: '12.5px',
+                                    fontWeight: 700,
+                                    color: 'var(--brand-dark)',
+                                    fontFamily: 'monospace'
+                                  }}>
+                                    {previewThreshold}%
+                                  </span>
+                                </div>
                               </div>
-                            </div>
+                            )}
                             <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--outline)' }}>
                               Batas akurasi minimum untuk mengurangi false positive sebelum SmolVLM menganalisis video.
                             </p>
@@ -1441,17 +1674,38 @@ export default function Dashboard() {
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             <div>
                               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Saluran Respons</label>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {channels.map(ch => (
-                                  <div key={ch.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px' }}>
-                                    <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                      {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                              
+                              {isEditingPreview ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {previewChannels.map((ch, idx) => (
+                                    <div
+                                      key={ch.label}
+                                      onClick={() => {
+                                        setPreviewChannels(prev => prev.map((item, i) => i === idx ? { ...item, active: !item.active } : item));
+                                      }}
+                                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px', cursor: 'pointer', userSelect: 'none' }}
+                                    >
+                                      <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                                      </div>
+                                      <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
+                                      <span style={{ fontSize: '10px', fontWeight: 700, color: ch.active ? '#10B981' : 'var(--outline)', background: ch.active ? '#F0FDF4' : '#F2F4F7', padding: '2px 7px', borderRadius: '3px' }}>{ch.active ? 'ON' : 'OFF'}</span>
                                     </div>
-                                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
-                                    <span style={{ fontSize: '10px', fontWeight: 700, color: ch.active ? '#10B981' : 'var(--outline)', background: ch.active ? '#F0FDF4' : '#F2F4F7', padding: '2px 7px', borderRadius: '3px' }}>{ch.active ? 'ON' : 'OFF'}</span>
-                                  </div>
-                                ))}
-                              </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                  {previewChannels.map(ch => (
+                                    <div key={ch.label} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: '#F8FAFC', border: '1px solid #E3E6EE', borderRadius: '8px' }}>
+                                      <div style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, border: `2px solid ${ch.active ? 'var(--brand-primary)' : '#C3C6D4'}`, background: ch.active ? 'var(--brand-primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {ch.active && <span style={{ color: 'white', fontSize: '10px', fontWeight: 900, lineHeight: 1 }}>&#10003;</span>}
+                                      </div>
+                                      <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--brand-dark)', flex: 1 }}>{ch.label}</span>
+                                      <span style={{ fontSize: '10px', fontWeight: 700, color: ch.active ? '#10B981' : 'var(--outline)', background: ch.active ? '#F0FDF4' : '#F2F4F7', padding: '2px 7px', borderRadius: '3px' }}>{ch.active ? 'ON' : 'OFF'}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--brand-dark)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Target Camera Group</label>
@@ -1463,19 +1717,66 @@ export default function Dashboard() {
                           </div>
 
                           {/* Preview action buttons */}
-                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid #E3E6EE' }}>
+                          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid #E2E8F0' }}>
                             <button
-                              onClick={() => setShowRulePreview(false)}
-                              style={{ background: 'white', color: 'var(--on-surface-variant)', border: '1.5px solid #E3E6EE', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                            >Kembali ke Form</button>
+                              onClick={() => setIsEditingPreview(!isEditingPreview)}
+                              style={{
+                                background: isEditingPreview ? 'var(--brand-primary)' : 'white',
+                                color: isEditingPreview ? 'white' : 'var(--brand-primary)',
+                                border: '1.5px solid var(--brand-primary)',
+                                borderRadius: '8px',
+                                padding: '8px 18px',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isEditingPreview) e.currentTarget.style.background = 'rgba(13, 71, 161, 0.04)';
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!isEditingPreview) e.currentTarget.style.background = 'white';
+                              }}
+                            >
+                              <Edit size={14} />
+                              <span>{isEditingPreview ? 'Selesai Edit' : 'Edit'}</span>
+                            </button>
                             <button
-                              onClick={() => setShowRulePreview(false)}
-                              style={{ background: 'white', color: 'var(--brand-primary)', border: '1.5px solid var(--brand-primary)', borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                            >Edit</button>
-                            <button
-                              onClick={() => { setShowRulePreview(false); }}
-                              style={{ background: 'var(--brand-primary)', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 20px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 12px rgba(13,71,161,0.2)' }}
-                            >Terapkan Konfigurasi</button>
+                              onClick={() => {
+                                handleSaveSkillToGroup(selectedGroupId);
+                                setShowRulePreview(false);
+                                setShowPolicyModal(false);
+                              }}
+                              style={{
+                                background: 'var(--brand-primary)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '8px 20px',
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 4px 12px rgba(13, 71, 161, 0.2)',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#0a3c85';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'var(--brand-primary)';
+                                e.currentTarget.style.transform = 'none';
+                              }}
+                            >
+                              <Check size={14} />
+                              <span>Terapkan Konfigurasi</span>
+                            </button>
                           </div>
                         </div>
                       );
@@ -1607,13 +1908,7 @@ export default function Dashboard() {
                             </button>
                           )}
                           <button
-                            onClick={() => {
-                              setShowRulePreview(true);
-                              setIsPreviewLoading(true);
-                              setTimeout(() => {
-                                setIsPreviewLoading(false);
-                              }, 2000);
-                            }}
+                            onClick={handlePreviewClick}
                             style={{
                               background: 'var(--brand-primary)', color: 'white',
                               border: 'none', borderRadius: '8px', padding: '10px 24px',
