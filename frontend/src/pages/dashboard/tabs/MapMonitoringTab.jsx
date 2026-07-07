@@ -24,8 +24,8 @@ export default function MapMonitoringTab({
   lang = 'id'
 }) {
   return (
-  <section style={{ marginTop: '32px' }}>
-    <div className="container animate-tab-fade">
+  <section style={{ padding: '32px 40px', minHeight: '100vh' }}>
+    <div className="animate-tab-fade">
 
       {/* Filter tags status */}
       {filterKPI !== 'ALL' && (

@@ -50,8 +50,8 @@ export default function AdminTab({
   handleDeleteUser
 }) {
   return (
-  <section style={{ marginTop: '32px' }}>
-    <div className="container animate-tab-fade">
+  <section style={{ padding: '32px 40px', minHeight: '100vh' }}>
+    <div className="animate-tab-fade">
 
       {/* Admin Section Toggle Bar */}
       <div style={{

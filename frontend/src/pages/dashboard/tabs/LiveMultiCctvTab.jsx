@@ -60,8 +60,8 @@ export default function LiveMultiCctvTab({
 
   return (
     <>
-      <section style={{ marginTop: '32px' }}>
-      <div className="container animate-tab-fade">
+      <section style={{ padding: '32px 40px', minHeight: '100vh' }}>
+      <div className="animate-tab-fade">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* Top: Layout Monitor Selector & Top Actions */}
